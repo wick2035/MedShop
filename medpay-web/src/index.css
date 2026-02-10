@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Ivory palette */
+  --ivory-50: #FEFDFB;
+  --ivory-100: #FBF8F3;
+  --ivory-200: #F5EFE5;
+  --ivory-300: #E8DFCF;
+
+  /* Sage palette */
+  --sage-50: #F0F5F1;
+  --sage-100: #D4E2D7;
+  --sage-200: #A8C5AF;
+  --sage-300: #7DA888;
+  --sage-400: #5A8F67;
+  --sage-500: #3D7A4A;
+  --sage-600: #2D6139;
+  --sage-700: #1F4A2B;
+  --sage-800: #153620;
+  --sage-900: #0D2416;
+
+  /* Accent colors */
+  --terracotta: #C67B5C;
+  --dusty-rose: #C4898A;
+  --muted-gold: #C9A962;
+  --sky-accent: #7AAFC4;
+
+  /* Semantic colors */
+  --error: #C0392B;
+  --warning: #E67E22;
+  --success: #27AE60;
+  --info: #2980B9;
+
+  /* Text colors */
+  --text-primary: #2C3E2D;
+  --text-secondary: #6B7B6C;
+  --text-muted: #9BA89C;
+
+  /* Font families */
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: var(--ivory-50);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+  }
+
+  code, pre, kbd, samp {
+    font-family: var(--font-mono);
+  }
+
+  a {
+    color: var(--sage-500);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    color: var(--sage-600);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Focus ring styles */
+  :focus-visible {
+    outline: 2px solid var(--sage-400);
+    outline-offset: 2px;
+    border-radius: 4px;
+    transition: outline-offset 0.15s ease;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Custom scrollbar styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sage-200) var(--ivory-100);
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--ivory-100);
+    border-radius: 3px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--sage-200);
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--sage-300);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: var(--ivory-100);
+  }
+
+  /* Selection styling */
+  ::selection {
+    background-color: var(--sage-100);
+    color: var(--sage-800);
+  }
+}
+
+@layer components {
+  /* Glass panel utility */
+  .glass-panel {
+    background: rgba(254, 253, 251, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(232, 223, 207, 0.5);
+  }
+
+  /* Skeleton shimmer animation */
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background: var(--ivory-200);
+    border-radius: 4px;
+  }
+
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(254, 253, 251, 0.5) 20%,
+      rgba(254, 253, 251, 0.8) 50%,
+      rgba(254, 253, 251, 0.5) 80%,
+      transparent 100%
+    );
+    animation: shimmer 1.8s infinite ease-in-out;
+    transform: translateX(-100%);
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Smooth focus ring utility */
+  .focus-ring {
+    transition: box-shadow 0.2s ease, outline 0.2s ease;
+  }
+
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ivory-50), 0 0 0 4px var(--sage-400);
+  }
+}

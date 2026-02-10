@@ -1,0 +1,18 @@
+package com.medpay.common.constant;
+
+public enum OrderStatus {
+    CREATED,
+    PENDING_PAYMENT,
+    PAYING,
+    PAID,
+    PROCESSING,
+    COMPLETED,
+    CANCELLED,
+    REFUND_REQUESTED,
+    REFUND_APPROVED,
+    REFUNDED,
+    PARTIAL_REFUND_REQUESTED,
+    PARTIAL_REFUND_APPROVED,
+    PARTIALLY_REFUNDED,
+    CLOSED
+}

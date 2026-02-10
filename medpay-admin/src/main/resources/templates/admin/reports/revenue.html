@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('MedPay - 报表中心')}"></head>
+<body>
+<div class="d-flex">
+    <nav th:replace="~{admin/layout :: sidebar}"></nav>
+    <main class="main-content flex-grow-1 p-4">
+        <h2 class="mb-4">报表中心</h2>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="reportHospitalId" placeholder="医院ID">
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="reportStartDate">
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="reportEndDate">
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary" onclick="loadReport()">查询</button>
+                <button class="btn btn-outline-secondary" onclick="exportCsv()">导出CSV</button>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>收入趋势</h5>
+                        <canvas id="reportChart" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>支付渠道分布</h5>
+                        <canvas id="channelChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:src="@{/static/js/admin.js}"></script>
+</body>
+</html>

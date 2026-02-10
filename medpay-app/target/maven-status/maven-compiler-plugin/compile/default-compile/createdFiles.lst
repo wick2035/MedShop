@@ -1,0 +1,5 @@
+com\medpay\config\JpaConfig.class
+com\medpay\config\SecurityConfig.class
+com\medpay\config\SwaggerConfig.class
+com\medpay\config\SchedulingConfig.class
+com\medpay\MedPayApplication.class

@@ -1,0 +1,75 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: medpay
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/medpay
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# JWT Configuration
+medpay:
+  jwt:
+    secret: MedPaySecretKey2026ForJWTTokenSigningMustBeLongEnough256Bits!!
+    access-token-expiration: 7200000      # 2 hours in ms
+    refresh-token-expiration: 604800000   # 7 days in ms
+  tenant:
+    enabled: true
+  crypto:
+    aes-key: MedPayAES256SecretKeyForDataEncryption!
+  payment:
+    channel: mock
+    expire-minutes: 30
+    platform-fee-rate: 0.006
+    mock:
+      callback-delay-ms: 3000
+      callback-url: http://localhost:8080/api/v1/payments/callback/mock
+
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+
+# Swagger / OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+
+# Logging
+logging:
+  level:
+    com.medpay: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

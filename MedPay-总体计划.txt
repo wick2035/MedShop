@@ -1,0 +1,363 @@
+================================================================================
+              医疗商城支付系统 (MedPay) - 总体技术方案与实施计划
+================================================================================
+
+【项目概述】
+为医疗行业构建商城支付系统，服务于医院、患者、医生等多角色用户。
+支持挂号预约费、药费、医疗产品购买、增值服务等多种支付场景，具备医保分账能力。
+核心关注：支付安全、幂等防抖、数据不丢失、审计合规。
+
+【技术选型】
+  后端框架：Java 17 + Spring Boot 3.3.x
+  数据库：  PostgreSQL（主库）
+  迁移工具：Flyway
+  架构模式：模块化单体（Maven多模块），模块间通过Spring ApplicationEvent解耦
+  支付对接：标准接口抽象 + Mock模拟实现，可随时替换微信/支付宝
+  多租户：  多医院共享数据库，通过 hospital_id 字段隔离数据
+  认证：    JWT Token + Spring Security
+  文档：    SpringDoc OpenAPI (Swagger UI)
+  管理后台：Thymeleaf 模板引擎
+  无外部中间件依赖（不需要Redis/Kafka），用PostgreSQL原生能力覆盖
+
+================================================================================
+一、项目模块结构（13个Maven子模块）
+================================================================================
+
+medpay/
+├── pom.xml                       父POM（依赖管理、插件管理）
+├── medpay-common/                共享内核
+│   ├── domain/                     基础实体（BaseEntity, TenantEntity）
+│   ├── exception/                  全局异常体系（BusinessException, ErrorCode）
+│   ├── util/                       工具类（雪花ID、加密、JSON）
+│   ├── event/                      领域事件基类
+│   ├── security/                   租户上下文（TenantContext）、认证工具
+│   └── constant/                   枚举、状态码常量
+│
+├── medpay-user/                  用户与认证
+│   ├── domain/                     Patient, Doctor, Admin, UserAccount 实体
+│   ├── repository/                 JPA Repository
+│   ├── service/                    用户注册、登录、JWT签发
+│   ├── controller/                 REST API
+│   └── dto/                        请求/响应DTO
+│
+├── medpay-hospital/              医院与科室管理
+├── medpay-catalog/               服务/产品/处方/排班/健康套餐目录
+├── medpay-order/                 订单管理（含状态机）
+├── medpay-payment/               支付核心（支付/退款/结算/幂等/分账）
+├── medpay-insurance/             医保分账（报销计算、理赔追踪）
+├── medpay-reconciliation/        对账与报表
+├── medpay-audit/                 审计日志（AOP自动记录）
+├── medpay-notification/          通知（站内信/短信Mock）
+├── medpay-admin/                 管理后台（Thymeleaf页面）
+├── medpay-app/                   主启动模块（SecurityConfig, SwaggerConfig, TenantConfig）
+└── medpay-migration/             Flyway数据库迁移脚本
+
+【关键架构决策】
+  1. 模块间通过 ApplicationEventPublisher 发布领域事件，不跨模块直接注入Bean
+  2. 多租户通过 TenantContext(ThreadLocal) + Hibernate @Filter 自动隔离
+  3. 主键使用UUID（PostgreSQL uuid类型），业务编号用雪花算法+前缀
+     示例：ORD-20260208-XXXXXX, PAY-20260208-XXXXXX
+  4. 不引入Redis/Kafka，用PostgreSQL Advisory Lock处理并发锁，
+     用Outbox表+轮询保证事件可靠投递
+
+================================================================================
+二、数据库核心表设计（约25张表）
+================================================================================
+
+【用户与租户】(6张表)
+  hospital            医院/租户表，含配置JSON、订阅等级、许可证号
+  department          科室表（支持树形层级，parent_id自引用）
+  user_account        统一登录账户（username/phone/email + 密码哈希 + 角色枚举）
+  patient             患者档案：身份证AES-256加密+SHA-256哈希查询、医保类型、过敏信息
+  doctor              医生档案：职称、专长、默认挂号费、评分
+  admin               管理员：admin_level区分医院管理员/超管，permissions_json细粒度权限
+
+【商品与服务】(8张表)
+  service_category    服务分类（树形结构）
+  medical_service     医疗服务：类型枚举(REGISTRATION/EXAMINATION/CONSULTATION/
+                      TELEMEDICINE/VIP_PACKAGE/HEALTH_CHECKUP等)，含医保类别和报销比例
+  product             药品/器械/健康产品：库存管理、处方标记、医保信息、有效期预警
+  doctor_schedule     排班表：医生+日期+时段+最大接诊量+已预约数
+  prescription        处方单：关联医生+患者+诊断码(ICD-10)，金额拆分
+  prescription_item   处方明细：药品快照、用法用量、医保比例
+  health_package      健康套餐：体检/VIP/慢病管理/产检，含服务项目JSON
+  patient_package     患者套餐订阅：激活时间、到期时间、剩余次数
+
+【订单】(2张表)
+  orders              主订单表（避免order关键字）
+                      核心字段：patient_id(UUID), hospital_id(UUID), order_type,
+                      total_amount, discount_amount, insurance_amount, self_pay_amount,
+                      status(状态机), expire_at(超时自动取消)
+  order_item          订单明细：item_type(SERVICE/PRODUCT), 价格快照, 医保分摊明细
+
+【支付与财务】(4张表)
+  payment_transaction 支付流水：渠道信息、幂等键(UNIQUE约束)、重试计数、渠道回调原始数据
+  refund_record       退款记录：退款类型(全额/部分)、审批流程、幂等键
+  settlement_record   结算记录：结算周期、医院收款净额、平台手续费
+  payment_ledger      资金流水账本：复式记账(DEBIT/CREDIT)、余额快照
+
+【医保分账】(3张表)
+  insurance_claim     医保理赔申请：逐项分账明细(JSONB)、起付线、覆盖比例
+  split_payment       分账记录：一笔订单支持多种付款方式(医保+自费+企业付)
+  reimbursement       报销追踪：事后报销场景
+
+【安全与运维】(8张表)
+  idempotency_key     幂等键存储：请求体哈希、缓存HTTP响应、状态、过期时间
+  audit_log           审计日志：操作人、实体类型、实体ID、前后值(JSONB)、IP
+  data_change_log     敏感数据字段级变更日志（值加密存储）
+  event_outbox        事务性发件箱：aggregate_type, event_type, payload(JSONB)
+  reconciliation_batch    对账批次：系统vs渠道流水笔数/金额比对
+  reconciliation_detail   对账明细：逐笔匹配结果和差异解决
+  notification        通知记录：类型、渠道(SMS/PUSH/IN_APP)、状态
+  coupon / patient_coupon 优惠券及领取使用记录
+
+【额外扩展表】
+  appointment         预约记录：排队号、签到时间、状态(BOOKED→CHECKED_IN→COMPLETED)
+  waitlist_entry      智能候补队列
+  hospital_health_metrics  医院支付健康评分（每日指标快照）
+  patient_dependent   家庭成员/代付对象
+
+================================================================================
+三、服务场景（8大场景）
+================================================================================
+
+  1. 挂号预约费    在线预约+支付+排队号分配+QR码到院签到
+  2. 药费(处方)    医生开处方→推送患者→确认支付→药房配药通知
+  3. 医疗产品购买  商城模式：医疗器械、保健品，支持到院自提/快递配送
+  4. 增值服务      VIP诊疗套餐、全面体检套餐、远程问诊、专家二诊
+  5. 检查检验费    血检/CT/MRI/病理等费用，关联医嘱
+  6. 住院押金与结算 预授权押金→住院期间每日累计→出院时医保+自费最终结算
+  7. 康复治疗套餐  多次理疗疗程包（如10次物理治疗），按次扣减使用
+  8. 居家护理服务  出院后上门护理/换药/注射，平台下单+护士派遣
+
+================================================================================
+四、核心业务流程
+================================================================================
+
+【4.1 下单→支付→完成】
+  患者下单(带幂等键Header)
+  → 校验商品/服务可用性 + 库存充足
+  → 计算医保覆盖（如适用）
+  → 快照当前价格到order_item（防后续改价影响已有订单）
+  → 创建订单 (status=CREATED)
+  → 乐观锁预留库存 (UPDATE ... WHERE stock >= qty)
+  → 设置30分钟过期计时器
+  → 患者发起支付(带幂等键) → 创建payment_transaction(PENDING)
+  → 调用支付渠道prepay → 返回支付参数(QR码/跳转URL)
+  → 患者在渠道端完成支付
+  → 渠道异步回调 → 验证签名 + 验证金额 → payment_transaction→SUCCESS
+  → 订单→PAID → 写入payment_ledger(DEBIT) → 确认扣减库存 → 发通知
+  → 医院处理 → 订单→PROCESSING → 订单→COMPLETED
+
+【4.2 退款流程】
+  申请退款(幂等键) → 校验 已退总额+本次 ≤ 已付金额
+  → 创建refund_record(PENDING) → 通知医院管理员
+  → 管理员审批：
+    批准 → refund→APPROVED → 调用渠道退款 → 成功→订单状态更新+ledger记账+释放库存
+    拒绝 → refund→REJECTED → 通知患者
+  安全：对订单行使用 SELECT FOR UPDATE 防并发退款竞争
+
+【4.3 医保+自费混合支付】
+  调用 POST /insurance/calculate 预计算 → 展示分账明细给患者
+  → 患者确认 → 提交医保理赔 → 医保系统确认覆盖金额
+  → 创建split_payment记录(医保部分PAID)
+  → 自费部分走正常支付渠道
+  → 全部分账完成 → 订单PAID
+
+【4.4 订单状态机】
+  CREATED → PENDING_PAYMENT → PAYING → PAID → PROCESSING → COMPLETED → CLOSED
+  CREATED/PENDING_PAYMENT → CANCELLED（超时或主动取消）
+  PAID → REFUND_REQUESTED → REFUND_APPROVED → REFUNDED
+  PAID → PARTIAL_REFUND_REQUESTED → PARTIAL_REFUND_APPROVED → PARTIALLY_REFUNDED
+
+  实现方式：纯Java枚举 + Map<Status, Map<Event, Status>> 转换表
+  每次转换严格校验合法性，非法转换抛出IllegalStateTransitionException
+
+================================================================================
+五、安全机制（五重保障）
+================================================================================
+
+【5.1 幂等防重】
+  所有写操作要求 Idempotency-Key HTTP Header（客户端生成UUID）
+  服务端使用 INSERT ... ON CONFLICT DO NOTHING 原子操作
+  已处理中(PROCESSING) → 返回 HTTP 409 Conflict
+  已完成(COMPLETED) → 返回缓存的响应（不重复执行）
+  幂等键24小时后自动过期清理
+
+【5.2 并发控制】
+  使用 PostgreSQL Advisory Lock (pg_try_advisory_xact_lock) 替代Redis分布式锁
+  锁粒度：支付操作锁定order_id、库存扣减锁定product_id、预约锁定schedule_id
+  事务级锁，事务结束自动释放，无死锁风险，无需手动释放
+
+【5.3 数据不丢失】
+  Transactional Outbox模式：
+    关键事件(PaymentSuccess/RefundCompleted)与业务操作在同一数据库事务中写入event_outbox表
+    独立轮询线程读取PENDING事件并发布，发布成功标记为PUBLISHED
+    保证"业务操作成功 ↔ 事件一定发出"的强一致性
+  乐观锁：所有关键实体带version字段，JPA @Version自动CAS检查
+  数据库约束兜底：UNIQUE防重复、CHECK防负值、外键防孤儿记录
+
+【5.4 安全防护】
+  敏感数据：患者身份证/医保号 AES-256加密存储，SHA-256哈希用于等值查询
+  认证授权：JWT Token + Spring Security角色权限（PATIENT/DOCTOR/HOSPITAL_ADMIN/SUPER_ADMIN）
+  审计追踪：AOP切面自动记录所有敏感操作到audit_log
+  支付安全：回调接口验签防伪造、金额二次校验
+  Web安全：Spring Security默认CSRF防护、参数校验防注入
+
+【5.5 对账机制】
+  每日定时任务（Scheduled）：
+    拉取各渠道的当日交易流水
+    与系统payment_transaction逐笔比对
+    差异分类：MATCHED / AMOUNT_MISMATCH / MISSING_IN_SYSTEM / MISSING_IN_CHANNEL
+    异常记录写入reconciliation_detail，由管理员人工处理
+    处理结果留痕（resolved_by, resolution_note）
+
+================================================================================
+六、API设计概览（按模块分组）
+================================================================================
+
+【认证与用户】
+  POST   /api/v1/auth/register            患者自助注册
+  POST   /api/v1/auth/login               登录（返回JWT）
+  POST   /api/v1/auth/refresh             刷新Token
+  GET    /api/v1/users/me                  当前用户信息
+  PUT    /api/v1/users/me                  更新个人资料
+  GET    /api/v1/doctors                   医生列表（支持筛选）
+  GET    /api/v1/doctors/{id}/schedules    医生排班
+
+【医院与目录】
+  GET/POST/PUT  /api/v1/hospitals          医院CRUD（超管）
+  GET/POST/PUT  /api/v1/hospitals/{hid}/departments  科室CRUD
+  GET/POST/PUT  /api/v1/catalog/services   医疗服务CRUD
+  GET/POST/PUT  /api/v1/catalog/products   产品CRUD
+  PUT           /api/v1/catalog/products/{id}/stock  库存更新
+  GET/POST/PUT  /api/v1/catalog/packages   健康套餐CRUD
+  GET/POST/PUT  /api/v1/schedules          排班管理
+
+【处方】
+  POST  /api/v1/prescriptions                    医生开处方
+  GET   /api/v1/prescriptions/{id}               处方详情
+  POST  /api/v1/prescriptions/{id}/order         处方转订单
+
+【订单】
+  POST  /api/v1/orders                    创建订单（带Idempotency-Key）
+  GET   /api/v1/orders                    我的订单列表
+  GET   /api/v1/orders/{id}               订单详情
+  PUT   /api/v1/orders/{id}/cancel        取消订单
+  POST  /api/v1/orders/appointment        快捷创建挂号订单
+  GET   /api/v1/admin/orders              管理员订单管理
+
+【支付】
+  POST  /api/v1/payments/initiate         发起支付（带Idempotency-Key）
+  GET   /api/v1/payments/{transactionNo}  查询支付状态
+  POST  /api/v1/payments/callback/{ch}    渠道回调（Webhook）
+  POST  /api/v1/payments/split-pay        医保+自费混合支付
+
+【退款】
+  POST  /api/v1/refunds                   申请退款（带Idempotency-Key）
+  GET   /api/v1/refunds                   退款列表
+  PUT   /api/v1/refunds/{id}/approve      批准退款
+  PUT   /api/v1/refunds/{id}/reject       拒绝退款
+
+【医保】
+  POST  /api/v1/insurance/calculate       预计算医保覆盖
+  GET   /api/v1/insurance/claims          理赔列表
+  GET   /api/v1/insurance/reimbursements  报销追踪
+
+【对账与报表】
+  POST  /api/v1/reconciliation/trigger    触发对账
+  GET   /api/v1/reconciliation/batches    对账批次列表
+  GET   /api/v1/reports/revenue           收入报表
+  GET   /api/v1/reports/dashboard         仪表盘KPI
+  POST  /api/v1/settlements/generate      生成结算单
+
+【通知与审计】
+  GET   /api/v1/notifications             我的通知
+  PUT   /api/v1/notifications/read-all    全部已读
+  GET   /api/v1/audit/logs                审计日志查询（管理员）
+
+================================================================================
+七、创新特性（7个亮点）
+================================================================================
+
+  1.【一键支付】医保预计算后展示清晰分账明细 → 一键确认支付
+    缓存15分钟paymentToken，免重复输入
+
+  2.【智能候补】热门医生满号 → 患者加入优先级候补队列
+    有人取消自动通知下一位 → 5分钟确认窗口
+
+  3.【支付健康分】医院维度每日计算：支付成功率/退款率/对账准确率
+    综合评分0-100 + Z-score异常检测告警
+
+  4.【费用预估】基于历史聚合数据，就诊前预估费用范围
+    结合患者医保类型估算自付金额（"预计自付 100-200元"）
+
+  5.【家庭账户】一个主账号绑定家庭成员（父母/子女/配偶）
+    代为预约、支付、管理医疗费用
+
+  6.【QR码签到】在线支付完成后生成HMAC签名QR码
+    到院自助机扫码即签到，免排队窗口
+
+  7.【智能通知】场景化精准提醒：
+    预约前24h：提醒空腹等注意事项
+    预约前2h：基于当前等候情况推荐到达时间
+    就诊后：推送处方待支付通知
+
+================================================================================
+八、关键技术依赖
+================================================================================
+
+  spring-boot-starter-web              Web MVC
+  spring-boot-starter-data-jpa         JPA/Hibernate
+  spring-boot-starter-security         安全认证
+  spring-boot-starter-validation       参数校验
+  spring-boot-starter-thymeleaf        管理后台模板
+  spring-boot-starter-aop              审计切面
+  spring-boot-starter-actuator         健康检查/监控
+  postgresql (JDBC driver)             数据库驱动
+  flyway-core                          数据库迁移
+  jjwt-api/impl/jackson               JWT令牌
+  springdoc-openapi-starter-webmvc-ui  Swagger UI
+  mapstruct                            DTO映射
+  lombok                               样板代码消除
+  testcontainers:postgresql            集成测试容器
+
+  【明确不引入】Redis、Kafka、RabbitMQ —— PostgreSQL原生能力足够覆盖
+
+================================================================================
+九、分阶段实施路线
+================================================================================
+
+  P1 地基    Maven项目结构 + common模块 + Flyway建表
+             多租户TenantContext + JWT认证 + 用户CRUD
+
+  P2 业务    医院/科室管理 + 服务/产品目录 + 排班管理
+             订单状态机 + 订单CRUD + 审计模块
+
+  P3 支付    支付渠道接口+Mock实现 + 幂等拦截器
+             Advisory Lock并发控制 + 退款流程
+             Ledger复式记账 + Outbox事件保障
+
+  P4 医保    医保计算引擎 + 混合支付(分账)
+             理赔追踪 + 处方管理 + 处方转订单
+
+  P5 对账    每日对账调度 + 差异检测与处理
+             结算生成 + 收入报表 + Dashboard KPI + 数据导出
+
+  P6 前台    Thymeleaf管理后台页面 + 通知模块
+             优惠券系统 + 创新特性(候补/家庭账户等)
+
+  P7 加固    集成测试(Testcontainers) + 并发压测
+             安全审查 + 性能优化 + Swagger API文档完善
+
+================================================================================
+十、验证方案
+================================================================================
+
+  1. 单元测试：状态机转换测试、幂等逻辑测试、医保计算引擎测试
+  2. 集成测试：Testcontainers真实PostgreSQL，完整支付→退款端到端流程
+  3. 并发测试：多线程模拟并发支付同一订单、并发扣减库存
+  4. API测试：Swagger UI逐个接口手动验证
+  5. 管理后台：登录走通订单管理、退款审批、对账查看、报表导出全流程
+
+================================================================================

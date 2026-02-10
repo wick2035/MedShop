@@ -1,0 +1,18 @@
+package com.medpay.order.statemachine;
+
+public enum OrderEvent {
+    SUBMIT_PAYMENT,
+    BEGIN_PAYING,
+    PAYMENT_SUCCESS,
+    PAYMENT_FAILED,
+    PAYMENT_EXPIRED,
+    BEGIN_PROCESSING,
+    COMPLETE,
+    CANCEL,
+    REQUEST_REFUND,
+    APPROVE_REFUND,
+    REJECT_REFUND,
+    REFUND_SUCCESS,
+    REFUND_FAILED,
+    CLOSE
+}
