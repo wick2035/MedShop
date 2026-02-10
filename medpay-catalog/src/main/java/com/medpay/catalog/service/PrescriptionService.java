@@ -14,6 +14,8 @@ import com.medpay.common.exception.BusinessException;
 import com.medpay.common.exception.ErrorCode;
 import com.medpay.common.security.TenantContext;
 import com.medpay.common.util.SnowflakeIdGenerator;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +39,11 @@ public class PrescriptionService {
     private final ProductRepository productRepository;
     private final SnowflakeIdGenerator idGenerator;
 
-    public PrescriptionResponse createPrescription(UUID doctorId, PrescriptionCreateRequest request) {
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public PrescriptionResponse createPrescription(UUID doctorIdOrUserId, PrescriptionCreateRequest request) {
+        UUID doctorId = resolveDoctorEntityId(doctorIdOrUserId);
         String prescriptionNo = idGenerator.generatePrescriptionNo();
 
         List<PrescriptionItem> items = new ArrayList<>();
@@ -140,7 +146,8 @@ public class PrescriptionService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PrescriptionResponse> listByDoctor(UUID doctorId, Pageable pageable) {
+    public Page<PrescriptionResponse> listByDoctor(UUID doctorIdOrUserId, Pageable pageable) {
+        UUID doctorId = resolveDoctorEntityId(doctorIdOrUserId);
         return prescriptionRepository.findByDoctorIdOrderByCreatedAtDesc(doctorId, pageable)
                 .map(p -> {
                     List<PrescriptionItem> items = prescriptionItemRepository.findByPrescriptionId(p.getId());
@@ -156,6 +163,23 @@ public class PrescriptionService {
         }
         List<PrescriptionItem> items = prescriptionItemRepository.findByPrescriptionId(prescriptionId);
         return toResponse(prescription, items);
+    }
+
+    private UUID resolveDoctorEntityId(UUID idOrUserId) {
+        Long count = (Long) entityManager.createNativeQuery(
+                        "SELECT COUNT(*) FROM doctor WHERE id = :id")
+                .setParameter("id", idOrUserId)
+                .getSingleResult();
+        if (count > 0) return idOrUserId;
+
+        @SuppressWarnings("unchecked")
+        List<UUID> result = entityManager.createNativeQuery(
+                        "SELECT id FROM doctor WHERE user_id = :uid")
+                .setParameter("uid", idOrUserId)
+                .getResultList();
+        if (!result.isEmpty()) return result.get(0);
+
+        throw new BusinessException(ErrorCode.NOT_FOUND, "医生不存在");
     }
 
     private Prescription findPrescriptionOrThrow(UUID id) {

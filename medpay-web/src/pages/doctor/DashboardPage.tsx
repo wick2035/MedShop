@@ -44,9 +44,10 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
+        const docId = user.doctorId ?? user.id;
         const [scheduleData, prescriptionData] = await Promise.all([
-          schedulesApi.list({ doctorId: user.id, date: todayStr }),
-          prescriptionsApi.listByDoctor(user.id),
+          schedulesApi.list({ doctorId: docId, date: todayStr }),
+          prescriptionsApi.listByDoctor(docId),
         ]);
         setSchedules(scheduleData);
         setPendingPrescriptions(

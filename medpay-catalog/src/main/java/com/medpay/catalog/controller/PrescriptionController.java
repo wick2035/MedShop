@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,7 +32,7 @@ public class PrescriptionController {
     @Operation(summary = "创建处方")
     @PostMapping
     public ApiResponse<PrescriptionResponse> create(
-            @RequestHeader("X-Doctor-Id") UUID doctorId,
+            @RequestParam UUID doctorId,
             @Valid @RequestBody PrescriptionCreateRequest request) {
         return ApiResponse.success(prescriptionService.createPrescription(doctorId, request));
     }

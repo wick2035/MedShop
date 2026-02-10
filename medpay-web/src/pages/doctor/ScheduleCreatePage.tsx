@@ -55,7 +55,7 @@ export default function ScheduleCreatePage() {
 
     try {
       const body: DoctorScheduleRequest = {
-        doctorId: user.id,
+        doctorId: user.doctorId ?? user.id,
         scheduleDate: formData.scheduleDate,
         timeSlotStart: formData.timeSlotStart,
         timeSlotEnd: formData.timeSlotEnd,

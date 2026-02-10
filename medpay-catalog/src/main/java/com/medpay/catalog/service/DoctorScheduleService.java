@@ -7,6 +7,8 @@ import com.medpay.catalog.repository.DoctorScheduleRepository;
 import com.medpay.common.exception.BusinessException;
 import com.medpay.common.exception.ErrorCode;
 import com.medpay.common.security.TenantContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -22,6 +25,9 @@ import java.util.UUID;
 public class DoctorScheduleService {
 
     private final DoctorScheduleRepository doctorScheduleRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public DoctorSchedule findByIdOrThrow(UUID id) {
         return doctorScheduleRepository.findById(id)
@@ -42,7 +48,8 @@ public class DoctorScheduleService {
     @Transactional(readOnly = true)
     public Page<DoctorScheduleResponse> findAvailable(UUID doctorId, LocalDate date, Pageable pageable) {
         if (doctorId != null) {
-            Page<DoctorSchedule> page = doctorScheduleRepository.findByDoctorIdAndStatus(doctorId, "AVAILABLE", pageable);
+            UUID resolvedId = resolveDoctorEntityId(doctorId);
+            Page<DoctorSchedule> page = doctorScheduleRepository.findByDoctorIdAndStatus(resolvedId, "AVAILABLE", pageable);
             return page.map(this::toResponse);
         }
         UUID hospitalId = TenantContext.getCurrentHospitalId();
@@ -80,8 +87,31 @@ public class DoctorScheduleService {
         doctorScheduleRepository.save(schedule);
     }
 
+    /**
+     * Resolves a doctor entity ID from a value that may be either
+     * the doctor table PK or a user_account ID.
+     */
+    private UUID resolveDoctorEntityId(UUID idOrUserId) {
+        // Check if it is already a doctor entity ID
+        Long count = (Long) entityManager.createNativeQuery(
+                        "SELECT COUNT(*) FROM doctor WHERE id = :id")
+                .setParameter("id", idOrUserId)
+                .getSingleResult();
+        if (count > 0) return idOrUserId;
+
+        // Try as a user_account ID
+        @SuppressWarnings("unchecked")
+        List<UUID> result = entityManager.createNativeQuery(
+                        "SELECT id FROM doctor WHERE user_id = :uid")
+                .setParameter("uid", idOrUserId)
+                .getResultList();
+        if (!result.isEmpty()) return result.get(0);
+
+        throw new BusinessException(ErrorCode.NOT_FOUND, "医生不存在");
+    }
+
     private void mapRequestToEntity(DoctorScheduleRequest request, DoctorSchedule entity) {
-        entity.setDoctorId(request.doctorId());
+        entity.setDoctorId(resolveDoctorEntityId(request.doctorId()));
         entity.setServiceId(request.serviceId());
         entity.setScheduleDate(request.scheduleDate());
         entity.setTimeSlotStart(request.timeSlotStart());

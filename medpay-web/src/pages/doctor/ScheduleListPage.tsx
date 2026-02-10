@@ -63,7 +63,7 @@ export default function ScheduleListPage() {
     setError(null);
     try {
       const data = await schedulesApi.list({
-        doctorId: user.id,
+        doctorId: user.doctorId ?? user.id,
       });
       // Filter by week range client-side
       const startStr = toDateStr(weekStart);

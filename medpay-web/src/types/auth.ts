@@ -24,6 +24,7 @@ export interface UserInfoResponse {
   avatarUrl: string;
   fullName: string;
   hospitalId: string | null;
+  doctorId: string | null;
 }
 
 export interface LoginResponse {

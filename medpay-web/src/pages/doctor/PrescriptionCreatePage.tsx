@@ -130,7 +130,7 @@ export default function PrescriptionCreatePage() {
         items: prescriptionItems,
       };
 
-      const result = await prescriptionsApi.create(body);
+      const result = await prescriptionsApi.create(user.doctorId ?? user.id, body);
       setSuccess(true);
       setTimeout(() => navigate(`/doctor/prescriptions/${result.id}`), 1500);
     } catch (err) {

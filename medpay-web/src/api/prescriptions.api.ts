@@ -7,9 +7,9 @@ import type { OrderResponse } from '@/types/order';
 
 export const prescriptionsApi = {
   /** Create a new prescription */
-  create(body: PrescriptionCreateRequest): Promise<PrescriptionResponse> {
+  create(doctorId: string, body: PrescriptionCreateRequest): Promise<PrescriptionResponse> {
     return client
-      .post('/api/v1/prescriptions', body)
+      .post('/api/v1/prescriptions', body, { params: { doctorId } })
       .then((r) => r.data as PrescriptionResponse);
   },
 

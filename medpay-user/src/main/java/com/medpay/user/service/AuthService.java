@@ -148,6 +148,7 @@ public class AuthService {
 
     private UserInfoResponse buildUserInfo(UserAccount account, UUID hospitalId) {
         String fullName = resolveFullName(account);
+        UUID doctorId = resolveDoctorEntityId(account);
         return UserInfoResponse.builder()
                 .id(account.getId())
                 .username(account.getUsername())
@@ -158,7 +159,14 @@ public class AuthService {
                 .avatarUrl(account.getAvatarUrl())
                 .fullName(fullName)
                 .hospitalId(hospitalId)
+                .doctorId(doctorId)
                 .build();
+    }
+
+    private UUID resolveDoctorEntityId(UserAccount account) {
+        if (account.getRole() != UserRole.DOCTOR) return null;
+        return doctorRepository.findByUserId(account.getId())
+                .map(Doctor::getId).orElse(null);
     }
 
     private String resolveFullName(UserAccount account) {

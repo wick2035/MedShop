@@ -46,7 +46,7 @@ export default function PrescriptionListPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await prescriptionsApi.listByDoctor(user.id);
+      const data = await prescriptionsApi.listByDoctor(user.doctorId ?? user.id);
       setPrescriptions(data);
     } catch (err) {
       setError(

@@ -35,7 +35,7 @@ export default function PatientListPage() {
     setError(null);
     try {
       const data = await appointmentsApi.list({
-        doctorId: user.id,
+        doctorId: user.doctorId ?? user.id,
         date: todayStr,
       });
       setAppointments(data);
