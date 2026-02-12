@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record DoctorScheduleRequest(
         @NotNull UUID doctorId,
-        UUID serviceId,
+        @NotNull UUID serviceId,
         @NotNull LocalDate scheduleDate,
         @NotNull LocalTime timeSlotStart,
         @NotNull LocalTime timeSlotEnd,

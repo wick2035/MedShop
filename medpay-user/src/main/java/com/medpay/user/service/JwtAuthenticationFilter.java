@@ -40,8 +40,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 var authentication = new UsernamePasswordAuthenticationToken(userId, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                // Set tenant context (skip for super admin who can access all hospitals)
-                if (hospitalId != null && role != UserRole.SUPER_ADMIN) {
+                // Set tenant context
+                if (role == UserRole.SUPER_ADMIN) {
+                    // Super admin can specify which hospital to operate on via header
+                    String headerHospitalId = request.getHeader("X-Hospital-Id");
+                    if (headerHospitalId != null && !headerHospitalId.isBlank()) {
+                        TenantContext.setCurrentHospitalId(UUID.fromString(headerHospitalId));
+                    }
+                } else if (hospitalId != null) {
                     TenantContext.setCurrentHospitalId(hospitalId);
                 }
             }

@@ -150,24 +150,18 @@ export default function AuditLogPage() {
           <Select
             value={filters.action}
             onChange={(e) => setFilters((prev) => ({ ...prev, action: e.target.value }))}
-          >
-            <option value="">All Actions</option>
-            {ACTIONS.filter(Boolean).map((a) => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-          </Select>
+            placeholder="All Actions"
+            options={ACTIONS.filter(Boolean).map((a) => ({ value: a, label: a }))}
+          />
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">Entity Type</label>
           <Select
             value={filters.entityType}
             onChange={(e) => setFilters((prev) => ({ ...prev, entityType: e.target.value }))}
-          >
-            <option value="">All Types</option>
-            {ENTITY_TYPES.filter(Boolean).map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </Select>
+            placeholder="All Types"
+            options={ENTITY_TYPES.filter(Boolean).map((t) => ({ value: t, label: t }))}
+          />
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">Start Date</label>

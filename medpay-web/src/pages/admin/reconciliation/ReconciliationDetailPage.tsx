@@ -183,7 +183,7 @@ export default function ReconciliationDetailPage() {
       </motion.div>
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns} data={details} loading={false} emptyMessage="No details found" />
+        <DataTable columns={columns as any} data={details as any} loading={false} emptyMessage="No details found" />
       </motion.div>
     </PageContainer>
   );

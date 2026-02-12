@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -53,6 +55,7 @@ public class InsuranceClaim extends TenantEntity {
     @Column(name = "patient_copay", nullable = false, precision = 12, scale = 2)
     private BigDecimal patientCopay;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "item_breakdown", columnDefinition = "jsonb")
     private String itemBreakdown = "[]";
 
@@ -74,6 +77,7 @@ public class InsuranceClaim extends TenantEntity {
     @Column(name = "external_claim_id", length = 100)
     private String externalClaimId;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "external_response", columnDefinition = "jsonb")
     private String externalResponse;
 }

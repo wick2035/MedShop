@@ -51,7 +51,7 @@ export default function ProductDetailPage() {
           orderType: OrderType.PRODUCT,
           items: [{ referenceId: product.id, itemType: ItemType.PRODUCT, quantity: 1 }],
         },
-        user.id,
+        user.patientId ?? user.id,
       );
       toast.success('Order created!');
       navigate(`/patient/orders/${order.id}`);

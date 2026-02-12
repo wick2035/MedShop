@@ -1,7 +1,0 @@
-D:\Agent\shop\medpay-notification\src\main\java\com\medpay\notification\channel\InAppNotificationChannel.java
-D:\Agent\shop\medpay-notification\src\main\java\com\medpay\notification\channel\NotificationChannel.java
-D:\Agent\shop\medpay-notification\src\main\java\com\medpay\notification\channel\SmsNotificationChannel.java
-D:\Agent\shop\medpay-notification\src\main\java\com\medpay\notification\controller\NotificationController.java
-D:\Agent\shop\medpay-notification\src\main\java\com\medpay\notification\domain\Notification.java
-D:\Agent\shop\medpay-notification\src\main\java\com\medpay\notification\domain\NotificationRepository.java
-D:\Agent\shop\medpay-notification\src\main\java\com\medpay\notification\service\NotificationService.java

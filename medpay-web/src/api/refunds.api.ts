@@ -1,5 +1,4 @@
-import { client } from './client';
-import type { PaginatedResponse } from '@/types/api';
+import { client, unwrapPage } from './client';
 import type { RefundCreateRequest, RefundResponse } from '@/types/refund';
 
 export interface RefundListParams {
@@ -17,11 +16,18 @@ export const refundsApi = {
       .then((r) => r.data as RefundResponse);
   },
 
+  /** Get a single refund by ID */
+  getById(id: string): Promise<RefundResponse> {
+    return client
+      .get(`/api/v1/refunds/${id}`)
+      .then((r) => r.data as RefundResponse);
+  },
+
   /** List refunds with optional filters and pagination */
-  list(params?: RefundListParams): Promise<PaginatedResponse<RefundResponse>> {
+  list(params?: RefundListParams): Promise<RefundResponse[]> {
     return client
       .get('/api/v1/refunds', { params })
-      .then((r) => r.data as PaginatedResponse<RefundResponse>);
+      .then((r) => unwrapPage<RefundResponse>(r.data));
   },
 
   /** Approve a refund request */

@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   User,
 } from 'lucide-react';
-import type { OrderResponse } from '@/types/order';
+import type { AppointmentResponse } from '@/types/appointment';
 import PageContainer, {
   containerVariants,
   itemVariants,
@@ -23,7 +23,7 @@ export default function AppointmentCheckInPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [appointment, setAppointment] = useState<OrderResponse | null>(null);
+  const [appointment, setAppointment] = useState<AppointmentResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [checkingIn, setCheckingIn] = useState(false);
@@ -169,7 +169,7 @@ export default function AppointmentCheckInPage() {
                   Patient {appointment.patientId.slice(0, 8)}...
                 </h3>
                 <p className="text-sm text-sage-500">
-                  Order: {appointment.orderNo}
+                  Appt: {appointment.appointmentNo}
                 </p>
               </div>
 
@@ -191,8 +191,8 @@ export default function AppointmentCheckInPage() {
                   <div>
                     <p className="text-xs text-sage-500">Appointment Time</p>
                     <p className="text-sm font-medium text-sage-800">
-                      {appointment.appointmentTimeStart
-                        ? `${formatTime(appointment.appointmentTimeStart)} - ${formatTime(appointment.appointmentTimeEnd)}`
+                      {appointment.timeSlotStart
+                        ? `${formatTime(appointment.timeSlotStart)} - ${formatTime(appointment.timeSlotEnd)}`
                         : '--'}
                     </p>
                   </div>

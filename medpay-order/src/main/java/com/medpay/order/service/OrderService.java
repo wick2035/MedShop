@@ -14,6 +14,7 @@ import com.medpay.common.event.OrderCreatedEvent;
 import com.medpay.common.exception.BusinessException;
 import com.medpay.common.exception.ErrorCode;
 import com.medpay.common.security.TenantContext;
+import com.medpay.common.security.TenantUtil;
 import com.medpay.common.util.SnowflakeIdGenerator;
 import com.medpay.order.domain.ItemType;
 import com.medpay.order.domain.Order;
@@ -48,6 +49,8 @@ public class OrderService {
     private final MedicalServiceService medicalServiceService;
     private final DoctorScheduleService doctorScheduleService;
     private final EventOutboxService eventOutboxService;
+    private final AppointmentService appointmentService;
+    private final com.medpay.catalog.service.PrescriptionService prescriptionService;
 
     private static final int ORDER_EXPIRE_MINUTES = 30;
 
@@ -130,11 +133,62 @@ public class OrderService {
         return toResponse(savedOrder);
     }
 
+    // ==================== 处方转订单 ====================
+
+    @Transactional
+    public OrderResponse createPrescriptionOrder(UUID prescriptionId, UUID patientId) {
+        com.medpay.catalog.domain.Prescription prescription = prescriptionService.findByIdOrThrow(prescriptionId);
+
+        if (!"CONFIRMED".equals(prescription.getStatus())) {
+            throw new BusinessException(ErrorCode.ORDER_STATUS_INVALID, "只有已确认的处方才能转为订单");
+        }
+
+        // Set TenantContext from prescription if needed
+        if (TenantContext.getCurrentHospitalId() == null && prescription.getHospitalId() != null) {
+            TenantContext.setCurrentHospitalId(prescription.getHospitalId());
+        }
+
+        List<com.medpay.catalog.domain.PrescriptionItem> prescriptionItems =
+                prescriptionService.findItemsByPrescriptionId(prescriptionId);
+
+        // Build order item requests from prescription items
+        List<OrderItemRequest> itemRequests = prescriptionItems.stream()
+                .map(pi -> new OrderItemRequest(ItemType.PRODUCT, pi.getProductId(), pi.getQuantity()))
+                .toList();
+
+        OrderCreateRequest createReq = new OrderCreateRequest(
+                OrderType.MEDICINE,
+                itemRequests,
+                null,
+                null,
+                null,
+                "处方转订单: " + prescription.getPrescriptionNo()
+        );
+
+        OrderResponse response = createOrder(createReq, patientId);
+
+        // Mark prescription as FILLED
+        prescriptionService.markAsFilled(prescriptionId);
+
+        log.info("Prescription {} converted to order {}", prescription.getPrescriptionNo(), response.orderNo());
+        return response;
+    }
+
     // ==================== 快捷挂号 ====================
 
     @Transactional
     public OrderResponse createAppointmentOrder(AppointmentOrderRequest request, UUID patientId) {
         DoctorSchedule schedule = doctorScheduleService.findByIdOrThrow(request.scheduleId());
+
+        // Ensure TenantContext is set (patient JWT may not carry hospitalId)
+        if (TenantContext.getCurrentHospitalId() == null && schedule.getHospitalId() != null) {
+            TenantContext.setCurrentHospitalId(schedule.getHospitalId());
+        }
+
+        // Validate that the schedule has an associated medical service
+        if (schedule.getServiceId() == null) {
+            throw new BusinessException(ErrorCode.PARAM_INVALID, "该排班未关联医疗服务，无法创建挂号订单");
+        }
 
         // Find the service associated with this schedule
         MedicalService registrationService = medicalServiceService.findByIdOrThrow(schedule.getServiceId());
@@ -205,6 +259,7 @@ public class OrderService {
     public void updateOrderStatus(UUID orderId, OrderEvent event) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+        TenantUtil.verifyAccess(order.getHospitalId());
 
         OrderStatus current = OrderStatus.valueOf(order.getStatus());
         OrderStatus next = stateMachine.transition(current, event);
@@ -213,7 +268,14 @@ public class OrderService {
 
         // Set timestamps based on event
         switch (event) {
-            case PAYMENT_SUCCESS -> order.setPaidAt(LocalDateTime.now());
+            case PAYMENT_SUCCESS -> {
+                order.setPaidAt(LocalDateTime.now());
+                // Create appointment record for registration orders
+                if (OrderType.REGISTRATION.name().equals(order.getOrderType())) {
+                    appointmentService.createAppointment(order);
+                    log.info("Appointment created for order: orderNo={}", order.getOrderNo());
+                }
+            }
             case COMPLETE -> order.setCompletedAt(LocalDateTime.now());
             case CANCEL, PAYMENT_EXPIRED -> order.setCancelledAt(LocalDateTime.now());
             default -> { }
@@ -263,6 +325,18 @@ public class OrderService {
         }
 
         return page.map(this::toResponse);
+    }
+
+    // ==================== 保险金额更新 ====================
+
+    @Transactional
+    public void updateInsuranceAmounts(UUID orderId, BigDecimal insuranceAmount, BigDecimal selfPayAmount) {
+        int updated = orderRepository.updateInsuranceAmounts(orderId, insuranceAmount, selfPayAmount);
+        if (updated == 0) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_FOUND);
+        }
+        log.info("Order insurance amounts updated: orderId={}, insurance={}, selfPay={}",
+                orderId, insuranceAmount, selfPayAmount);
     }
 
     // ==================== 内部方法 ====================

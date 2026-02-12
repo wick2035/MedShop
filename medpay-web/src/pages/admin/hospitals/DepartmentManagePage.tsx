@@ -82,6 +82,7 @@ export default function DepartmentManagePage() {
     try {
       await departmentsApi.create(hospitalId, {
         name: formName,
+        code: formName.toUpperCase().replace(/\s+/g, '-'),
         description: formDesc || undefined,
         sortOrder: Number(formSort) || 0,
       });
@@ -104,6 +105,7 @@ export default function DepartmentManagePage() {
     try {
       await departmentsApi.update(hospitalId, editDept.id, {
         name: formName,
+        code: formName.toUpperCase().replace(/\s+/g, '-'),
         description: formDesc || undefined,
         sortOrder: Number(formSort) || 0,
       });

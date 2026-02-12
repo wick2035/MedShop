@@ -185,7 +185,7 @@ export default function ScheduleListPage() {
                       key={s.id}
                       className={cn(
                         'rounded-md px-1.5 py-1 text-xs',
-                        s.status === 'ACTIVE'
+                        s.status === 'AVAILABLE'
                           ? 'bg-sage-100 text-sage-700'
                           : 'bg-gray-100 text-gray-500',
                       )}
@@ -286,7 +286,7 @@ export default function ScheduleListPage() {
                         <span
                           className={cn(
                             'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium',
-                            schedule.status === 'ACTIVE'
+                            schedule.status === 'AVAILABLE'
                               ? 'bg-emerald-50 text-emerald-700'
                               : schedule.status === 'COMPLETED'
                                 ? 'bg-blue-50 text-blue-700'

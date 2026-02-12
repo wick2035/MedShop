@@ -24,7 +24,7 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     int deductStock(@Param("productId") UUID productId, @Param("quantity") int quantity);
 
     @Query("SELECT p FROM Product p WHERE p.hospitalId = :hid " +
-            "AND (:keyword IS NULL OR p.name LIKE CONCAT('%', :keyword, '%')) " +
+            "AND (CAST(:keyword AS string) IS NULL OR p.name LIKE CONCAT('%', CAST(:keyword AS string), '%')) " +
             "AND (:type IS NULL OR p.productType = :type) " +
             "AND p.status = 'ACTIVE'")
     Page<Product> search(@Param("hid") UUID hospitalId,

@@ -15,7 +15,9 @@ export const authApi = {
   /** Refresh an expired access token */
   refresh(refreshToken: string): Promise<LoginResponse> {
     return client
-      .post('/api/v1/auth/refresh', { refreshToken })
+      .post('/api/v1/auth/refresh', null, {
+        headers: { 'X-Refresh-Token': refreshToken },
+      })
       .then((r) => r.data as LoginResponse);
   },
 };

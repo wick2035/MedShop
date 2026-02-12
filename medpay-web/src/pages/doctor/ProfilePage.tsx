@@ -107,9 +107,9 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
             {/* Avatar */}
             <div className="flex-shrink-0">
-              {doctor?.avatarUrl || user?.avatarUrl ? (
+              {user?.avatarUrl ? (
                 <img
-                  src={doctor?.avatarUrl || user?.avatarUrl}
+                  src={user.avatarUrl}
                   alt={doctor?.fullName || user?.fullName || 'Avatar'}
                   className="h-24 w-24 rounded-full border-4 border-ivory-200 object-cover shadow-sm"
                 />
@@ -138,11 +138,11 @@ export default function ProfilePage() {
                   </span>
                 </div>
               )}
-              {doctor?.departmentName && (
+              {doctor?.departmentId && (
                 <div className="mt-1 flex items-center justify-center gap-2 sm:justify-start">
                   <Building2 className="h-4 w-4 text-sage-400" />
                   <span className="text-sm text-sage-600">
-                    {doctor.departmentName}
+                    Department
                   </span>
                 </div>
               )}
@@ -170,13 +170,13 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Introduction */}
-          {doctor?.introduction && (
+          {/* Bio */}
+          {doctor?.bio && (
             <div className="mt-6 rounded-lg bg-ivory-50 p-4">
               <h3 className="mb-2 text-sm font-medium text-sage-700">
-                Introduction
+                Bio
               </h3>
-              <p className="text-sm text-sage-600">{doctor.introduction}</p>
+              <p className="text-sm text-sage-600">{doctor.bio}</p>
             </div>
           )}
         </motion.div>

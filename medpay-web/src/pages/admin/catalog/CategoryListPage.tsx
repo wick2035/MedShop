@@ -14,9 +14,10 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 
 import { catalogCategoriesApi } from '@/api/catalog-categories.api';
-import { formatDateTime } from '@/lib/utils';
+import { useHospitalContextStore } from '@/stores/hospital-context.store';
 
 export default function CategoryListPage() {
+  const { selectedHospitalId } = useHospitalContextStore();
   const [categories, setCategories] = useState<ServiceCategoryResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export default function CategoryListPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await catalogCategoriesApi.list();
+      const data = await catalogCategoriesApi.list(selectedHospitalId ?? undefined);
       setCategories(data);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load categories';
@@ -46,7 +47,7 @@ export default function CategoryListPage() {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [selectedHospitalId]);
 
   const openAdd = () => {
     setFormName('');
@@ -58,7 +59,7 @@ export default function CategoryListPage() {
 
   const openEdit = (cat: ServiceCategoryResponse) => {
     setFormName(cat.name);
-    setFormDesc(cat.description ?? '');
+    setFormDesc('');
     setFormSort(String(cat.sortOrder ?? 0));
     setEditCategory(cat);
     setDialogMode('edit');
@@ -74,14 +75,14 @@ export default function CategoryListPage() {
       if (dialogMode === 'add') {
         await catalogCategoriesApi.create({
           name: formName,
-          description: formDesc || undefined,
+          code: formName.toUpperCase().replace(/\s+/g, '_'),
           sortOrder: Number(formSort) || 0,
         });
         toast.success('Category created');
       } else if (dialogMode === 'edit' && editCategory) {
         await catalogCategoriesApi.update(editCategory.id, {
           name: formName,
-          description: formDesc || undefined,
+          code: editCategory.code,
           sortOrder: Number(formSort) || 0,
         });
         toast.success('Category updated');
@@ -98,7 +99,7 @@ export default function CategoryListPage() {
 
   const columns: DataTableColumn<ServiceCategoryResponse>[] = [
     { key: 'name', header: 'Name', sortable: true },
-    { key: 'description', header: 'Description' },
+    { key: 'code', header: 'Code' },
     {
       key: 'sortOrder',
       header: 'Sort Order',
@@ -106,9 +107,9 @@ export default function CategoryListPage() {
       render: (row) => <span className="font-mono text-sm">{row.sortOrder}</span>,
     },
     {
-      key: 'createdAt',
-      header: 'Created',
-      render: (row) => <span className="text-xs text-gray-500">{formatDateTime(row.createdAt)}</span>,
+      key: 'status',
+      header: 'Status',
+      render: (row) => <span className="text-xs text-gray-500">{row.status}</span>,
     },
     {
       key: 'actions',
@@ -155,8 +156,8 @@ export default function CategoryListPage() {
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
         <DataTable
-          columns={columns}
-          data={categories}
+          columns={columns as any}
+          data={categories as any}
           loading={loading}
           emptyMessage="No categories found"
         />

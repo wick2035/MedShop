@@ -45,7 +45,7 @@ export default function NotificationsPage() {
     setError(null);
     try {
       const data = await notificationsApi.list();
-      setNotifications(data);
+      setNotifications(data.content ?? []);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to load notifications',

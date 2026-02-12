@@ -18,6 +18,8 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule, 
 
     Page<DoctorSchedule> findByDoctorIdAndStatus(UUID doctorId, String status, Pageable pageable);
 
+    Page<DoctorSchedule> findByDoctorIdAndStatusAndScheduleDate(UUID doctorId, String status, LocalDate scheduleDate, Pageable pageable);
+
     @Query("SELECT ds FROM DoctorSchedule ds WHERE ds.hospitalId = :hid " +
             "AND ds.scheduleDate = :date AND ds.status = 'AVAILABLE'")
     Page<DoctorSchedule> findAvailable(@Param("hid") UUID hospitalId,

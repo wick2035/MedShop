@@ -75,15 +75,15 @@ export default function RefundListPage() {
       render: (row) => <span className="font-mono text-xs text-gray-500">{row.orderNo}</span>,
     },
     {
-      key: 'amount',
+      key: 'refundAmount',
       header: 'Amount',
       sortable: true,
-      render: (row) => <span className="font-medium text-red-600">{formatCurrency(row.amount)}</span>,
+      render: (row) => <span className="font-medium text-red-600">{formatCurrency(row.refundAmount)}</span>,
     },
     {
-      key: 'reason',
+      key: 'refundReason',
       header: 'Reason',
-      render: (row) => <span className="text-xs text-gray-500">{truncate(row.reason, 30)}</span>,
+      render: (row) => <span className="text-xs text-gray-500">{truncate(row.refundReason, 30)}</span>,
     },
     {
       key: 'status',
@@ -150,7 +150,7 @@ export default function RefundListPage() {
       </div>
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns} data={refunds} loading={loading} emptyMessage="No refund requests found" />
+        <DataTable columns={columns as any} data={refunds as any} loading={loading} emptyMessage="No refund requests found" />
       </motion.div>
     </PageContainer>
   );

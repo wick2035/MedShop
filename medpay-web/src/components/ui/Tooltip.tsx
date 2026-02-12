@@ -17,7 +17,7 @@ const positionStyles: Record<string, string> = {
   right: 'left-full top-1/2 -translate-y-1/2 ml-2',
 };
 
-const motionOrigin: Record<string, { initial: object; animate: object; exit: object }> = {
+const motionOrigin: Record<string, { initial: any; animate: any; exit: any }> = {
   top: {
     initial: { opacity: 0, y: 4 },
     animate: { opacity: 1, y: 0 },

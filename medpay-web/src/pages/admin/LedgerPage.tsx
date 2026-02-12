@@ -57,18 +57,18 @@ export default function LedgerPage() {
 
   const columns: DataTableColumn<LedgerResponse>[] = [
     {
-      key: 'transactionNo',
-      header: 'Transaction No.',
-      render: (row) => <span className="font-mono text-xs text-sage-700">{row.transactionNo}</span>,
+      key: 'ledgerNo',
+      header: 'Ledger No.',
+      render: (row) => <span className="font-mono text-xs text-sage-700">{row.ledgerNo}</span>,
     },
     {
-      key: 'type',
+      key: 'transactionType',
       header: 'Type',
       render: (row) => {
-        const isCredit = row.type?.toLowerCase().includes('credit') || row.amount > 0;
+        const isCredit = row.direction === 'CREDIT' || row.amount > 0;
         return (
           <Badge variant={isCredit ? 'success' : 'error'} size="sm">
-            {row.type}
+            {row.transactionType}
           </Badge>
         );
       },
@@ -78,20 +78,15 @@ export default function LedgerPage() {
       header: 'Amount',
       sortable: true,
       render: (row) => (
-        <span className={`font-medium ${row.amount >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-          {row.amount >= 0 ? '+' : ''}{formatCurrency(row.amount)}
+        <span className={`font-medium ${row.direction === 'CREDIT' ? 'text-emerald-600' : 'text-red-600'}`}>
+          {row.direction === 'CREDIT' ? '+' : '-'}{formatCurrency(row.amount)}
         </span>
       ),
     },
     {
-      key: 'balanceBefore',
-      header: 'Balance Before',
-      render: (row) => <span className="text-sm">{formatCurrency(row.balanceBefore)}</span>,
-    },
-    {
-      key: 'balanceAfter',
-      header: 'Balance After',
-      render: (row) => <span className="text-sm font-medium">{formatCurrency(row.balanceAfter)}</span>,
+      key: 'referenceType',
+      header: 'Reference',
+      render: (row) => <span className="text-sm">{row.referenceType}</span>,
     },
     {
       key: 'description',
@@ -122,7 +117,7 @@ export default function LedgerPage() {
       <PageHeader title="Payment Ledger" subtitle="Detailed ledger entries for all transactions" />
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns} data={entries} loading={loading} emptyMessage="No ledger entries found" />
+        <DataTable columns={columns as any} data={entries as any} loading={loading} emptyMessage="No ledger entries found" />
       </motion.div>
 
       {totalPages > 1 && (

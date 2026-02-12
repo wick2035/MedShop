@@ -7,6 +7,7 @@ import com.medpay.catalog.repository.HealthPackageRepository;
 import com.medpay.common.exception.BusinessException;
 import com.medpay.common.exception.ErrorCode;
 import com.medpay.common.security.TenantContext;
+import com.medpay.common.security.TenantUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +45,7 @@ public class HealthPackageService {
 
     public HealthPackageResponse update(UUID id, HealthPackageRequest request) {
         HealthPackage pkg = findByIdOrThrow(id);
+        TenantUtil.verifyAccess(pkg.getHospitalId());
         pkg.setName(request.name());
         pkg.setCode(request.code());
         pkg.setDescription(request.description());

@@ -1,6 +1,7 @@
 package com.medpay.payment.controller;
 
 import com.medpay.common.domain.ApiResponse;
+import com.medpay.common.security.TenantUtil;
 import com.medpay.payment.dto.RefundApprovalRequest;
 import com.medpay.payment.dto.RefundCreateRequest;
 import com.medpay.payment.dto.RefundResponse;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -28,27 +30,34 @@ public class RefundController {
             @Valid @RequestBody RefundCreateRequest request,
             HttpServletRequest httpRequest) {
         String idempotencyKey = httpRequest.getHeader("Idempotency-Key");
-        // TODO: get actual user ID from security context
-        UUID requestedBy = UUID.randomUUID();
+        UUID requestedBy = getCurrentUserId();
         RefundResponse response = refundService.requestRefund(request, requestedBy, idempotencyKey);
         return ApiResponse.success(response);
     }
 
     @GetMapping
     public ApiResponse<Page<RefundResponse>> getRefunds(
-            @RequestParam UUID hospitalId,
+            @RequestParam(required = false) UUID hospitalId,
             @RequestParam(required = false) String status,
             Pageable pageable) {
-        Page<RefundResponse> page = refundService.getRefundsByHospital(hospitalId, status, pageable);
+        UUID resolvedHospitalId = TenantUtil.resolveHospitalId(hospitalId);
+        if (resolvedHospitalId == null) {
+            return ApiResponse.success(Page.empty(pageable));
+        }
+        Page<RefundResponse> page = refundService.getRefundsByHospital(resolvedHospitalId, status, pageable);
         return ApiResponse.success(page);
+    }
+
+    @GetMapping("/{refundId}")
+    public ApiResponse<RefundResponse> getRefundById(@PathVariable UUID refundId) {
+        return ApiResponse.success(refundService.getRefundById(refundId));
     }
 
     @PutMapping("/{refundId}/approve")
     public ApiResponse<RefundResponse> approveRefund(
             @PathVariable UUID refundId,
             @RequestBody(required = false) RefundApprovalRequest request) {
-        // TODO: get actual reviewer ID from security context
-        UUID reviewedBy = UUID.randomUUID();
+        UUID reviewedBy = getCurrentUserId();
         RefundResponse response = refundService.approveRefund(refundId, request, reviewedBy);
         return ApiResponse.success(response);
     }
@@ -57,8 +66,12 @@ public class RefundController {
     public ApiResponse<RefundResponse> rejectRefund(
             @PathVariable UUID refundId,
             @RequestBody(required = false) RefundApprovalRequest request) {
-        UUID reviewedBy = UUID.randomUUID();
+        UUID reviewedBy = getCurrentUserId();
         RefundResponse response = refundService.rejectRefund(refundId, request, reviewedBy);
         return ApiResponse.success(response);
+    }
+
+    private UUID getCurrentUserId() {
+        return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

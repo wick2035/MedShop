@@ -51,7 +51,7 @@ export default function PackageDetailPage() {
           orderType: OrderType.PACKAGE,
           items: [{ referenceId: pkg.id, itemType: ItemType.SERVICE, quantity: 1 }],
         },
-        user.id,
+        user.patientId ?? user.id,
       );
       toast.success('Package purchased!');
       navigate(`/patient/orders/${order.id}`);

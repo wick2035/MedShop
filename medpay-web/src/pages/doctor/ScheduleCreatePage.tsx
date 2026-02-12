@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Users, ArrowLeft } from 'lucide-react';
 import type { DoctorScheduleRequest } from '@/types/schedule';
+import type { MedicalServiceResponse } from '@/types/catalog';
 import PageContainer, {
   containerVariants,
   itemVariants,
@@ -10,13 +11,16 @@ import PageContainer, {
 import PageHeader from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { useAuthStore } from '@/stores/auth.store';
 import { schedulesApi } from '@/api/schedules.api';
+import { medicalServicesApi } from '@/api/medical-services.api';
 
 export default function ScheduleCreatePage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
 
+  const [services, setServices] = useState<MedicalServiceResponse[]>([]);
   const [formData, setFormData] = useState({
     scheduleDate: '',
     timeSlotStart: '',
@@ -27,6 +31,20 @@ export default function ScheduleCreatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!user?.hospitalId) return;
+    medicalServicesApi
+      .list({ hospitalId: user.hospitalId, serviceType: 'REGISTRATION' as any })
+      .then((res) => {
+        const items = res?.content ?? (res as any) ?? [];
+        setServices(items);
+        if (items.length === 1) {
+          setFormData((prev) => ({ ...prev, serviceId: items[0].id }));
+        }
+      })
+      .catch(() => {});
+  }, [user?.hospitalId]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -45,6 +63,11 @@ export default function ScheduleCreatePage() {
       return;
     }
 
+    if (!formData.serviceId) {
+      setError('Please select a medical service.');
+      return;
+    }
+
     if (formData.maxPatients < 1) {
       setError('Maximum patients must be at least 1.');
       return;
@@ -60,7 +83,7 @@ export default function ScheduleCreatePage() {
         timeSlotStart: formData.timeSlotStart,
         timeSlotEnd: formData.timeSlotEnd,
         maxPatients: formData.maxPatients,
-        ...(formData.serviceId ? { serviceId: formData.serviceId } : {}),
+        serviceId: formData.serviceId,
       };
 
       await schedulesApi.create(body);
@@ -114,6 +137,22 @@ export default function ScheduleCreatePage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            <Select
+              label="Medical Service"
+              options={[
+                { value: '', label: 'Select a service...' },
+                ...services.map((s) => ({
+                  value: s.id,
+                  label: `${s.name} (¥${s.price})`,
+                })),
+              ]}
+              value={formData.serviceId}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, serviceId: e.target.value }))
+              }
+              required
+            />
+
             <Input
               label="Schedule Date"
               name="scheduleDate"
@@ -155,15 +194,6 @@ export default function ScheduleCreatePage() {
               onChange={handleChange}
               icon={Users}
               required
-            />
-
-            <Input
-              label="Service ID (optional)"
-              name="serviceId"
-              type="text"
-              value={formData.serviceId}
-              onChange={handleChange}
-              placeholder="Leave blank for general consultation"
             />
 
             <div className="flex gap-3 pt-2">

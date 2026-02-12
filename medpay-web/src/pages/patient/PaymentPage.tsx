@@ -9,6 +9,7 @@ import {
   Loader2,
   Smartphone,
   Wallet,
+  Shield,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { containerVariants, itemVariants } from '@/components/layout/PageContainer';
@@ -17,10 +18,12 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ordersApi } from '@/api/orders.api';
 import { paymentsApi } from '@/api/payments.api';
+import { insuranceApi } from '@/api/insurance.api';
 import { formatCurrency } from '@/lib/utils';
 import { PaymentChannel, PaymentStatus } from '@/types/enums';
 import type { OrderResponse } from '@/types/order';
 import type { PaymentInitiateResponse } from '@/types/payment';
+import type { InsuranceCoverageResult } from '@/types/insurance';
 
 const channels = [
   { value: PaymentChannel.MOCK, label: 'Mock Payment', icon: CreditCard, desc: 'For testing purposes' },
@@ -35,6 +38,7 @@ export default function PaymentPage() {
   const navigate = useNavigate();
 
   const [order, setOrder] = useState<OrderResponse | null>(null);
+  const [coverage, setCoverage] = useState<InsuranceCoverageResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel>(PaymentChannel.MOCK);
@@ -44,20 +48,25 @@ export default function PaymentPage() {
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    async function fetchOrder() {
+    async function fetchOrderWithInsurance() {
       if (!id) return;
       setLoading(true);
       setError(null);
       try {
-        const result = await ordersApi.getById(id);
-        setOrder(result);
+        // 1. Apply insurance calculation (updates order amounts in backend)
+        const insuranceResult = await insuranceApi.applyInsurance(id);
+        setCoverage(insuranceResult);
+
+        // 2. Re-fetch order with updated insurance amounts
+        const orderResult = await ordersApi.getById(id);
+        setOrder(orderResult);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load order');
       } finally {
         setLoading(false);
       }
     }
-    fetchOrder();
+    fetchOrderWithInsurance();
   }, [id]);
 
   // Cleanup polling on unmount
@@ -176,6 +185,54 @@ export default function PaymentPage() {
           </div>
         </Card>
       </motion.div>
+
+      {/* Insurance breakdown */}
+      {coverage && coverage.insurancePays > 0 && pageState === 'select' && (
+        <motion.div variants={itemVariants} className="mb-6">
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Shield className="h-4 w-4 text-sage-600" />
+              <h2 className="text-sm font-semibold text-sage-800">Insurance Coverage</h2>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-sage-700/70">Total Amount</span>
+                <span className="font-medium text-sage-800">{formatCurrency(coverage.totalAmount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sage-700/70">Eligible Amount</span>
+                <span className="text-sage-800">{formatCurrency(coverage.eligibleAmount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sage-700/70">Deductible</span>
+                <span className="text-sage-800">-{formatCurrency(coverage.deductibleAmount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sage-700/70">Coverage Ratio</span>
+                <span className="text-sage-800">{(coverage.coverageRatio * 100).toFixed(1)}%</span>
+              </div>
+              <div className="border-t border-sage-200 pt-2 flex justify-between font-semibold">
+                <span className="text-green-600">Insurance Pays</span>
+                <span className="text-green-600">-{formatCurrency(coverage.insurancePays)}</span>
+              </div>
+            </div>
+            {coverage.itemDetails && coverage.itemDetails.length > 0 && (
+              <div className="mt-3 border-t border-sage-100 pt-3">
+                <p className="text-xs font-medium text-sage-700/60 mb-2">Item Details</p>
+                {coverage.itemDetails.map((item, i) => (
+                  <div key={i} className="flex justify-between text-xs py-0.5">
+                    <span className="text-sage-700">
+                      {item.itemName}
+                      <span className="ml-1 text-sage-500">({item.category})</span>
+                    </span>
+                    <span className="text-green-600">-{formatCurrency(item.insurancePays)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </motion.div>
+      )}
 
       {/* Payment states */}
       {pageState === 'select' && (

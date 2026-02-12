@@ -100,11 +100,11 @@ export default function ExportPage() {
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Data Type <span className="text-red-500">*</span>
           </label>
-          <Select value={form.dataType} onChange={(e) => handleChange('dataType', e.target.value)}>
-            {DATA_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </Select>
+          <Select
+            value={form.dataType}
+            onChange={(e) => handleChange('dataType', e.target.value)}
+            options={DATA_TYPE_OPTIONS}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">

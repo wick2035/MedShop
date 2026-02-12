@@ -49,8 +49,8 @@ export default function ProductListPage() {
         setTotalPages(1);
       } else {
         const paginated = result as unknown as PaginatedResponse<ProductResponse>;
-        setProducts(paginated.content);
-        setTotalPages(paginated.totalPages);
+        setProducts(paginated.content ?? []);
+        setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load products';
@@ -98,11 +98,11 @@ export default function ProductListPage() {
       ),
     },
     {
-      key: 'enabled',
+      key: 'status',
       header: 'Status',
       render: (row) => (
-        <Badge variant={row.enabled ? 'success' : 'error'} size="sm">
-          {row.enabled ? 'Active' : 'Disabled'}
+        <Badge variant={row.status === 'ACTIVE' ? 'success' : 'error'} size="sm">
+          {row.status}
         </Badge>
       ),
     },
@@ -168,19 +168,24 @@ export default function ProductListPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Search products..."
         filters={
-          <Select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}>
-            <option value="">All Types</option>
-            {Object.entries(PRODUCT_TYPE_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </Select>
+          <Select
+            value={typeFilter}
+            onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}
+            options={[
+              { value: '', label: 'All Types' },
+              ...Object.entries(PRODUCT_TYPE_LABELS).map(([key, label]) => ({
+                value: key,
+                label: label,
+              })),
+            ]}
+          />
         }
       />
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
         <DataTable
-          columns={columns}
-          data={filtered}
+          columns={columns as any}
+          data={filtered as any}
           loading={loading}
           emptyMessage="No products found"
         />

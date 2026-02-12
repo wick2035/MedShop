@@ -58,7 +58,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className,
         )}
         disabled={isDisabled}
-        {...props}
+        {...(props as any)}
       >
         {loading ? (
           <>

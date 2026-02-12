@@ -7,6 +7,7 @@ import com.medpay.catalog.repository.DoctorScheduleRepository;
 import com.medpay.common.exception.BusinessException;
 import com.medpay.common.exception.ErrorCode;
 import com.medpay.common.security.TenantContext;
+import com.medpay.common.security.TenantUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,11 @@ public class DoctorScheduleService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "排班不存在"));
     }
 
+    @Transactional(readOnly = true)
+    public DoctorScheduleResponse getScheduleById(UUID id) {
+        return toResponse(findByIdOrThrow(id));
+    }
+
     public void bookSlot(UUID scheduleId) {
         int updated = doctorScheduleRepository.bookSlot(scheduleId);
         if (updated == 0) {
@@ -49,7 +55,14 @@ public class DoctorScheduleService {
     public Page<DoctorScheduleResponse> findAvailable(UUID doctorId, LocalDate date, Pageable pageable) {
         if (doctorId != null) {
             UUID resolvedId = resolveDoctorEntityId(doctorId);
-            Page<DoctorSchedule> page = doctorScheduleRepository.findByDoctorIdAndStatus(resolvedId, "AVAILABLE", pageable);
+            Page<DoctorSchedule> page;
+            if (date != null) {
+                page = doctorScheduleRepository.findByDoctorIdAndStatusAndScheduleDate(
+                        resolvedId, "AVAILABLE", date, pageable);
+            } else {
+                page = doctorScheduleRepository.findByDoctorIdAndStatus(
+                        resolvedId, "AVAILABLE", pageable);
+            }
             return page.map(this::toResponse);
         }
         UUID hospitalId = TenantContext.getCurrentHospitalId();
@@ -75,6 +88,7 @@ public class DoctorScheduleService {
 
     public DoctorScheduleResponse updateSchedule(UUID id, DoctorScheduleRequest request) {
         DoctorSchedule schedule = findByIdOrThrow(id);
+        TenantUtil.verifyAccess(schedule.getHospitalId());
         mapRequestToEntity(request, schedule);
 
         schedule = doctorScheduleRepository.save(schedule);
@@ -83,6 +97,7 @@ public class DoctorScheduleService {
 
     public void cancelSchedule(UUID id) {
         DoctorSchedule schedule = findByIdOrThrow(id);
+        TenantUtil.verifyAccess(schedule.getHospitalId());
         schedule.setStatus("CANCELLED");
         doctorScheduleRepository.save(schedule);
     }

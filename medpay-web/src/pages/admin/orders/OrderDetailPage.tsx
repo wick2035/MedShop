@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
 import { adminOrdersApi } from '@/api/admin-orders.api';
+import { ordersApi } from '@/api/orders.api';
 import { paymentsApi } from '@/api/payments.api';
 import { refundsApi } from '@/api/refunds.api';
 import {
@@ -46,19 +47,15 @@ export default function OrderDetailPage() {
     setLoading(true);
     setError(null);
     try {
-      const orderData = await adminOrdersApi.getById(id);
+      const orderData = await ordersApi.getById(id);
       setOrder(orderData);
       try {
-        const paymentData = await paymentsApi.getByOrderId(id);
-        setPayment(paymentData);
+        // No direct getByOrderId, skip payment lookup
       } catch { /* payment may not exist */ }
       try {
         const refundData = await refundsApi.list({});
-        setRefunds(
-          Array.isArray(refundData)
-            ? refundData.filter((r: RefundResponse) => r.orderId === id)
-            : [],
-        );
+        const refundList = Array.isArray(refundData) ? refundData : (refundData as any).content ?? [];
+        setRefunds(refundList);
       } catch { /* refunds may not exist */ }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load order';
@@ -153,19 +150,19 @@ export default function OrderDetailPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div>
               <p className="text-xs text-gray-400">Patient</p>
-              <p className="text-sm font-medium text-gray-700">{order.patientName}</p>
+              <p className="text-sm font-medium text-gray-700">{order.patientId.slice(0, 8)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Hospital</p>
-              <p className="text-sm font-medium text-gray-700">{order.hospitalName}</p>
+              <p className="text-xs text-gray-400">Order Source</p>
+              <p className="text-sm font-medium text-gray-700">{order.orderSource}</p>
             </div>
             <div>
               <p className="text-xs text-gray-400">Created</p>
               <p className="text-sm text-gray-700">{formatDateTime(order.createdAt)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Source</p>
-              <p className="text-sm text-gray-700">{order.source}</p>
+              <p className="text-xs text-gray-400">Total</p>
+              <p className="text-sm text-gray-700">{formatCurrency(order.totalAmount)}</p>
             </div>
           </div>
         </motion.div>
@@ -186,7 +183,7 @@ export default function OrderDetailPage() {
             <tbody>
               {order.items.map((item) => (
                 <tr key={item.id} className="border-b border-ivory-100">
-                  <td className="px-3 py-2.5 font-medium text-gray-700">{item.itemName}</td>
+                  <td className="px-3 py-2.5 font-medium text-gray-700">{item.name}</td>
                   <td className="px-3 py-2.5 text-gray-500">{item.itemType}</td>
                   <td className="px-3 py-2.5 text-right">{item.quantity}</td>
                   <td className="px-3 py-2.5 text-right">{formatCurrency(item.unitPrice)}</td>
@@ -214,11 +211,11 @@ export default function OrderDetailPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-400">Channel</p>
-                <p className="text-sm text-gray-700">{payment.channel}</p>
+                <p className="text-sm text-gray-700">{payment.paymentChannel}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400">Amount</p>
-                <p className="text-sm font-medium text-gray-700">{formatCurrency(payment.amount)}</p>
+                <p className="text-sm font-medium text-gray-700">{formatCurrency(payment.totalAmount)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400">Status</p>
@@ -232,16 +229,16 @@ export default function OrderDetailPage() {
           )}
           <div className="mt-4 grid grid-cols-3 gap-4 rounded-md bg-ivory-50 p-4">
             <div>
-              <p className="text-xs text-gray-400">Paid</p>
-              <p className="text-lg font-semibold text-emerald-600">{formatCurrency(order.paidAmount)}</p>
+              <p className="text-xs text-gray-400">Total</p>
+              <p className="text-lg font-semibold text-emerald-600">{formatCurrency(order.totalAmount)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Refunded</p>
-              <p className="text-lg font-semibold text-red-500">{formatCurrency(order.refundedAmount)}</p>
+              <p className="text-xs text-gray-400">Insurance</p>
+              <p className="text-lg font-semibold text-blue-500">{formatCurrency(order.insuranceAmount)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Net</p>
-              <p className="text-lg font-semibold text-sage-700">{formatCurrency(order.paidAmount - order.refundedAmount)}</p>
+              <p className="text-xs text-gray-400">Self Pay</p>
+              <p className="text-lg font-semibold text-sage-700">{formatCurrency(order.selfPayAmount)}</p>
             </div>
           </div>
         </motion.div>
@@ -259,8 +256,8 @@ export default function OrderDetailPage() {
                       {refund.status}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-sm font-medium">{formatCurrency(refund.amount)}</p>
-                  <p className="text-xs text-gray-500">{refund.reason}</p>
+                  <p className="mt-1 text-sm font-medium">{formatCurrency(refund.refundAmount)}</p>
+                  <p className="text-xs text-gray-500">{refund.refundReason}</p>
                 </div>
               ))}
             </div>

@@ -5,6 +5,7 @@ import com.medpay.catalog.dto.ProductRequest;
 import com.medpay.catalog.dto.ProductResponse;
 import com.medpay.catalog.service.ProductService;
 import com.medpay.common.domain.ApiResponse;
+import com.medpay.common.security.TenantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -37,7 +38,7 @@ public class ProductController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) ProductType type,
             Pageable pageable) {
-        Page<ProductResponse> page = productService.search(hospitalId, keyword, type, pageable);
+        Page<ProductResponse> page = productService.search(TenantUtil.resolveHospitalId(hospitalId), keyword, type, pageable);
         return ApiResponse.success(page);
     }
 

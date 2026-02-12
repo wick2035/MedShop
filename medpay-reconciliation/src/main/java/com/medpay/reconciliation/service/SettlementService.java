@@ -44,10 +44,11 @@ public class SettlementService {
         BigDecimal grossAmount = paymentTransactionRepository.sumAmountByHospitalAndStatusAndPaidAtBetween(
                 hospitalId, PaymentStatus.SUCCESS, start, end);
 
-        long txCount = paymentTransactionRepository.countByHospitalIdAndStatus(hospitalId, PaymentStatus.SUCCESS);
+        long txCount = paymentTransactionRepository.countByHospitalIdAndStatusAndPaidAtBetween(
+                hospitalId, PaymentStatus.SUCCESS, start, end);
 
-        // Calculate refunds (simplified - sum all approved refunds in period)
-        BigDecimal refundAmount = BigDecimal.ZERO; // Would need date filter
+        BigDecimal refundAmount = refundRecordRepository.sumRefundsByHospitalAndRefundedAtBetween(
+                hospitalId, start, end);
 
         BigDecimal platformFee = grossAmount.multiply(platformFeeRate).setScale(2, RoundingMode.HALF_UP);
         BigDecimal netAmount = grossAmount.subtract(refundAmount).subtract(platformFee);

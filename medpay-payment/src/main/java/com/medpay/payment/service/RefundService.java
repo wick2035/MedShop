@@ -5,6 +5,7 @@ import com.medpay.common.constant.PaymentStatus;
 import com.medpay.common.event.EventOutboxService;
 import com.medpay.common.exception.BusinessException;
 import com.medpay.common.exception.ErrorCode;
+import com.medpay.common.security.TenantUtil;
 import com.medpay.common.util.PostgresAdvisoryLock;
 import com.medpay.common.util.SnowflakeIdGenerator;
 import com.medpay.order.domain.Order;
@@ -113,6 +114,7 @@ public class RefundService {
 
         RefundRecord refund = refundRecordRepository.findById(refundId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "退款记录不存在"));
+        TenantUtil.verifyAccess(refund.getHospitalId());
 
         if (!"PENDING".equals(refund.getStatus())) {
             throw new BusinessException(ErrorCode.ORDER_STATUS_INVALID, "退款状态不允许审批: " + refund.getStatus());
@@ -176,6 +178,7 @@ public class RefundService {
     public RefundResponse rejectRefund(UUID refundId, RefundApprovalRequest approvalRequest, UUID reviewedBy) {
         RefundRecord refund = refundRecordRepository.findById(refundId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "退款记录不存在"));
+        TenantUtil.verifyAccess(refund.getHospitalId());
 
         if (!"PENDING".equals(refund.getStatus())) {
             throw new BusinessException(ErrorCode.ORDER_STATUS_INVALID, "退款状态不允许拒绝: " + refund.getStatus());
@@ -190,6 +193,13 @@ public class RefundService {
         orderService.updateOrderStatus(refund.getOrderId(), OrderEvent.REJECT_REFUND);
 
         log.info("Refund rejected: refundNo={}", refund.getRefundNo());
+        return toRefundResponse(refund);
+    }
+
+    @Transactional(readOnly = true)
+    public RefundResponse getRefundById(UUID refundId) {
+        RefundRecord refund = refundRecordRepository.findById(refundId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "退款记录不存在"));
         return toRefundResponse(refund);
     }
 

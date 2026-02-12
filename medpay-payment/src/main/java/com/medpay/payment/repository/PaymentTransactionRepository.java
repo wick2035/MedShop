@@ -42,4 +42,13 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
             @Param("end") LocalDateTime end);
 
     long countByHospitalIdAndStatus(UUID hospitalId, PaymentStatus status);
+
+    @Query("SELECT COUNT(p) FROM PaymentTransaction p " +
+            "WHERE p.hospitalId = :hospitalId AND p.status = :status " +
+            "AND p.paidAt BETWEEN :start AND :end")
+    long countByHospitalIdAndStatusAndPaidAtBetween(
+            @Param("hospitalId") UUID hospitalId,
+            @Param("status") PaymentStatus status,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -27,6 +29,7 @@ public class Admin extends BaseEntity {
     @Column(name = "admin_level", nullable = false)
     private String adminLevel;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "permissions_json", columnDefinition = "jsonb")
     private String permissionsJson = "[]";
 }

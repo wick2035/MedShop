@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { AlertCircle, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
-import type { SplitPayResponse } from '@/types/payment';
+import type { SplitPayResponse, SplitDetail } from '@/types/insurance';
 
 import PageContainer, { itemVariants } from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
@@ -18,7 +18,7 @@ import { PAYMENT_STATUS_LABELS, PAYMENT_CHANNEL_LABELS } from '@/lib/constants';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 
 export default function InsuranceSplitsPage() {
-  const [splits, setSplits] = useState<SplitPayResponse[]>([]);
+  const [splits, setSplits] = useState<SplitDetail[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderId, setOrderId] = useState('');
@@ -34,7 +34,9 @@ export default function InsuranceSplitsPage() {
     setSearched(true);
     try {
       const data = await paymentsApi.getSplits(orderId.trim());
-      setSplits(Array.isArray(data) ? data : []);
+      // Flatten splits from SplitPayResponse[] into SplitDetail[]
+      const allSplits = Array.isArray(data) ? data.flatMap((r: SplitPayResponse) => r.splits ?? []) : [];
+      setSplits(allSplits);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load split payments';
       setError(msg);
@@ -44,20 +46,11 @@ export default function InsuranceSplitsPage() {
     }
   };
 
-  const columns: DataTableColumn<SplitPayResponse>[] = [
+  const columns: DataTableColumn<SplitDetail>[] = [
     {
-      key: 'transactionNo',
-      header: 'Transaction No.',
-      render: (row) => <span className="font-mono text-xs text-sage-700">{row.transactionNo}</span>,
-    },
-    {
-      key: 'channel',
-      header: 'Channel',
-      render: (row) => (
-        <Badge variant="sage" size="sm">
-          {PAYMENT_CHANNEL_LABELS[row.channel] ?? row.channel}
-        </Badge>
-      ),
+      key: 'payerType',
+      header: 'Payer Type',
+      render: (row) => <span className="font-mono text-xs text-sage-700">{row.payerType}</span>,
     },
     {
       key: 'amount',
@@ -76,11 +69,6 @@ export default function InsuranceSplitsPage() {
           </Badge>
         );
       },
-    },
-    {
-      key: 'createdAt',
-      header: 'Created',
-      render: (row) => <span className="text-xs text-gray-500">{formatDateTime(row.createdAt)}</span>,
     },
   ];
 
@@ -113,7 +101,7 @@ export default function InsuranceSplitsPage() {
 
       {searched && (
         <motion.div variants={itemVariants} initial="hidden" animate="visible">
-          <DataTable columns={columns} data={splits} loading={loading} emptyMessage="No split payments found for this order" />
+          <DataTable columns={columns as any} data={splits as any} loading={loading} emptyMessage="No split payments found for this order" />
         </motion.div>
       )}
 

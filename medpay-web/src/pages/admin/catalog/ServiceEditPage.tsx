@@ -16,10 +16,12 @@ import { Select } from '@/components/ui/Select';
 import { medicalServicesApi } from '@/api/medical-services.api';
 import { catalogCategoriesApi } from '@/api/catalog-categories.api';
 import { SERVICE_TYPE_LABELS } from '@/lib/constants';
+import { useHospitalContextStore } from '@/stores/hospital-context.store';
 
 export default function ServiceEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { selectedHospitalId } = useHospitalContextStore();
 
   const [service, setService] = useState<MedicalServiceResponse | null>(null);
   const [categories, setCategories] = useState<ServiceCategoryResponse[]>([]);
@@ -45,19 +47,19 @@ export default function ServiceEditPage() {
     try {
       const [svc, cats] = await Promise.all([
         medicalServicesApi.getById(id),
-        catalogCategoriesApi.list(),
+        catalogCategoriesApi.list(selectedHospitalId ?? undefined),
       ]);
       setService(svc);
       setCategories(cats);
       setForm({
         name: svc.name,
-        categoryId: svc.categoryId,
+        categoryId: svc.categoryId ?? '',
         serviceType: svc.serviceType,
         description: svc.description ?? '',
         price: String(svc.price),
         durationMinutes: String(svc.durationMinutes ?? ''),
-        requiresAppointment: svc.requiresAppointment,
-        enabled: svc.enabled,
+        requiresAppointment: svc.requiresPrescription,
+        enabled: svc.status === 'ACTIVE',
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load service';
@@ -87,12 +89,13 @@ export default function ServiceEditPage() {
       await medicalServicesApi.update(id, {
         categoryId: form.categoryId || undefined,
         name: form.name,
+        code: form.name.toUpperCase().replace(/\s+/g, '-'),
         serviceType: form.serviceType as ServiceType,
         description: form.description || undefined,
         price: Number(form.price),
         durationMinutes: form.durationMinutes ? Number(form.durationMinutes) : undefined,
-        requiresAppointment: form.requiresAppointment,
-        enabled: form.enabled,
+        requiresPrescription: form.requiresAppointment,
+        insuranceCovered: false,
       });
       toast.success('Service updated');
       navigate('/admin/catalog/services');
@@ -147,20 +150,28 @@ export default function ServiceEditPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Category</label>
-            <Select value={form.categoryId} onChange={(e) => handleChange('categoryId', e.target.value)}>
-              <option value="">Select category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </Select>
+            <Select
+              value={form.categoryId}
+              onChange={(e) => handleChange('categoryId', e.target.value)}
+              options={[
+                { value: '', label: 'Select category' },
+                ...categories.map((cat) => ({
+                  value: cat.id,
+                  label: cat.name,
+                })),
+              ]}
+            />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Service Type</label>
-            <Select value={form.serviceType} onChange={(e) => handleChange('serviceType', e.target.value)}>
-              {Object.entries(SERVICE_TYPE_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </Select>
+            <Select
+              value={form.serviceType}
+              onChange={(e) => handleChange('serviceType', e.target.value)}
+              options={Object.entries(SERVICE_TYPE_LABELS).map(([key, label]) => ({
+                value: key,
+                label: label,
+              }))}
+            />
           </div>
         </div>
 

@@ -29,7 +29,8 @@ export default function InsuranceReimbursementsPage() {
       const data = await insuranceApi.getReimbursements({
         hospitalId: selectedHospitalId ?? undefined,
       });
-      setReimbursements(Array.isArray(data) ? data : []);
+      const items = Array.isArray(data) ? data : (data as any)?.content ?? [];
+      setReimbursements(items);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load reimbursements';
       setError(msg);
@@ -52,13 +53,13 @@ export default function InsuranceReimbursementsPage() {
     {
       key: 'claimId',
       header: 'Claim ID',
-      render: (row) => <span className="font-mono text-xs text-gray-500">{row.claimId.substring(0, 8)}</span>,
+      render: (row) => <span className="font-mono text-xs text-gray-500">{row.claimId?.substring(0, 8) ?? '--'}</span>,
     },
     {
       key: 'amount',
       header: 'Amount',
       sortable: true,
-      render: (row) => <span className="font-medium text-emerald-600">{formatCurrency(row.amount)}</span>,
+      render: (row) => <span className="font-medium text-emerald-600">{formatCurrency(row.reimbursedAmount)}</span>,
     },
     {
       key: 'status',
@@ -71,7 +72,7 @@ export default function InsuranceReimbursementsPage() {
     {
       key: 'processedAt',
       header: 'Processed At',
-      render: (row) => <span className="text-xs text-gray-500">{formatDateTime(row.processedAt)}</span>,
+      render: (row) => <span className="text-xs text-gray-500">{formatDateTime(row.completedAt)}</span>,
     },
     {
       key: 'createdAt',
@@ -96,7 +97,7 @@ export default function InsuranceReimbursementsPage() {
     <PageContainer>
       <PageHeader title="Insurance Reimbursements" subtitle="Track reimbursement payments from insurance" />
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns} data={reimbursements} loading={loading} emptyMessage="No reimbursements found" />
+        <DataTable columns={columns as any} data={reimbursements as any} loading={loading} emptyMessage="No reimbursements found" />
       </motion.div>
     </PageContainer>
   );

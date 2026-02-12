@@ -26,7 +26,7 @@ export default function PrescriptionListPage() {
       setLoading(true);
       setError(null);
       try {
-        const result = await prescriptionsApi.listByPatient(user.id);
+        const result = await prescriptionsApi.listByPatient(user.patientId ?? user.id);
         setPrescriptions(Array.isArray(result) ? result : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load prescriptions');

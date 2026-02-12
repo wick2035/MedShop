@@ -19,7 +19,7 @@ public interface MedicalServiceRepository extends JpaRepository<MedicalService, 
     Page<MedicalService> findByCategoryId(UUID categoryId, Pageable pageable);
 
     @Query("SELECT ms FROM MedicalService ms WHERE ms.hospitalId = :hid " +
-            "AND (:keyword IS NULL OR ms.name LIKE CONCAT('%', :keyword, '%')) " +
+            "AND (CAST(:keyword AS string) IS NULL OR ms.name LIKE CONCAT('%', CAST(:keyword AS string), '%')) " +
             "AND (:type IS NULL OR ms.serviceType = :type) " +
             "AND (:deptId IS NULL OR ms.departmentId = :deptId) " +
             "AND ms.status = 'ACTIVE'")

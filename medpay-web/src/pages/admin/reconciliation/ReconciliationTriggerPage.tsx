@@ -83,11 +83,14 @@ export default function ReconciliationTriggerPage() {
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Payment Channel <span className="text-red-500">*</span>
           </label>
-          <Select value={form.channel} onChange={(e) => handleChange('channel', e.target.value)}>
-            {Object.entries(PAYMENT_CHANNEL_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </Select>
+          <Select
+            value={form.channel}
+            onChange={(e) => handleChange('channel', e.target.value)}
+            options={Object.entries(PAYMENT_CHANNEL_LABELS).map(([key, label]) => ({
+              value: key,
+              label: label,
+            }))}
+          />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

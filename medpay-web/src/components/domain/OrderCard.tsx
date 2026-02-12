@@ -60,7 +60,7 @@ export default function OrderCard({ order, onClick }: OrderCardProps) {
       {/* Footer */}
       <div className="mt-2.5 flex items-center justify-between border-t border-ivory-200/60 pt-2.5">
         <span className="text-xs text-gray-400">
-          {order.patientName}
+          {order.patientId?.slice(0, 8) ?? 'Patient'}
         </span>
         <span className="flex items-center gap-1 text-xs text-gray-400">
           <Clock className="h-3 w-3" />

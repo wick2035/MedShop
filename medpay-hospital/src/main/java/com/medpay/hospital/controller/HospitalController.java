@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +40,7 @@ public class HospitalController {
      * 创建医院
      */
     @Operation(summary = "创建医院")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping
     public ApiResponse<HospitalResponse> createHospital(@Valid @RequestBody HospitalCreateRequest request) {
         HospitalResponse response = hospitalService.createHospital(request);
@@ -49,6 +51,7 @@ public class HospitalController {
      * 分页查询医院列表
      */
     @Operation(summary = "分页查询医院列表")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping
     public ApiResponse<Page<HospitalResponse>> list(Pageable pageable) {
         Page<HospitalResponse> page = hospitalService.list(pageable);
@@ -69,6 +72,7 @@ public class HospitalController {
      * 更新医院基本信息
      */
     @Operation(summary = "更新医院基本信息")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ApiResponse<HospitalResponse> update(@PathVariable UUID id,
                                                 @Valid @RequestBody HospitalUpdateRequest request) {
@@ -80,6 +84,7 @@ public class HospitalController {
      * 更新医院状态
      */
     @Operation(summary = "更新医院状态")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PutMapping("/{id}/status")
     public ApiResponse<Void> updateStatus(@PathVariable UUID id,
                                           @RequestParam HospitalStatus status) {
@@ -91,6 +96,7 @@ public class HospitalController {
      * 更新医院扩展配置
      */
     @Operation(summary = "更新医院扩展配置")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PutMapping("/{id}/config")
     public ApiResponse<Void> updateConfig(@PathVariable UUID id,
                                           @RequestBody Map<String, Object> config) {

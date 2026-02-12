@@ -16,4 +16,17 @@ public class DashboardKpiResponse {
     private long monthOrders;
     private BigDecimal monthRefunds;
     private BigDecimal settlementPending;
+
+    public static DashboardKpiResponse empty() {
+        return DashboardKpiResponse.builder()
+                .todayRevenue(BigDecimal.ZERO)
+                .todayOrders(0)
+                .todayRefunds(BigDecimal.ZERO)
+                .pendingRefunds(0)
+                .monthRevenue(BigDecimal.ZERO)
+                .monthOrders(0)
+                .monthRefunds(BigDecimal.ZERO)
+                .settlementPending(BigDecimal.ZERO)
+                .build();
+    }
 }

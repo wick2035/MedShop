@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useAuthStore } from '@/stores/auth.store';
+import { UserRole } from '@/types/enums';
 import {
   LayoutDashboard,
   Building2,
@@ -63,6 +65,19 @@ const sidebarGroups: SidebarGroup[] = [
 export default function AdminLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuthStore();
+  const isSuperAdmin = user?.role === UserRole.SUPER_ADMIN;
+
+  const filteredGroups = useMemo(
+    () =>
+      sidebarGroups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) => item.id !== 'hospitals' || isSuperAdmin),
+        }))
+        .filter((group) => group.items.length > 0),
+    [isSuperAdmin],
+  );
 
   const sidebarWidth = sidebarCollapsed ? 72 : 240;
 
@@ -71,7 +86,7 @@ export default function AdminLayout() {
       {/* Desktop sidebar */}
       <div className="hidden lg:block">
         <Sidebar
-          groups={sidebarGroups}
+          groups={filteredGroups}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
@@ -86,7 +101,7 @@ export default function AdminLayout() {
           />
           <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
             <Sidebar
-              groups={sidebarGroups}
+              groups={filteredGroups}
               collapsed={false}
               onToggleCollapse={() => setMobileMenuOpen(false)}
             />

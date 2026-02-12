@@ -1,5 +1,0 @@
-com\medpay\audit\domain\AuditLog.class
-com\medpay\audit\repository\AuditLogRepository.class
-com\medpay\audit\aspect\Audited.class
-com\medpay\audit\aspect\AuditAspect.class
-com\medpay\audit\controller\AuditController.class

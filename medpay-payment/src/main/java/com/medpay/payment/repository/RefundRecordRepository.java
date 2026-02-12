@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,4 +28,12 @@ public interface RefundRecordRepository extends JpaRepository<RefundRecord, UUID
     @Query("SELECT COALESCE(SUM(r.refundAmount), 0) FROM RefundRecord r " +
             "WHERE r.orderId = :orderId AND r.status IN ('APPROVED', 'SUCCESS')")
     BigDecimal sumApprovedRefundsByOrderId(@Param("orderId") UUID orderId);
+
+    @Query("SELECT COALESCE(SUM(r.refundAmount), 0) FROM RefundRecord r " +
+            "WHERE r.hospitalId = :hospitalId AND r.status = 'SUCCESS' " +
+            "AND r.refundedAt BETWEEN :start AND :end")
+    BigDecimal sumRefundsByHospitalAndRefundedAtBetween(
+            @Param("hospitalId") UUID hospitalId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }

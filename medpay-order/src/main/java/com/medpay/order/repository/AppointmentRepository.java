@@ -18,6 +18,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
 
     List<Appointment> findByPatientIdAndAppointmentDateOrderByTimeSlotStart(UUID patientId, LocalDate date);
 
+    List<Appointment> findByDoctorIdAndAppointmentDateOrderByQueueNumber(UUID doctorId, LocalDate appointmentDate);
+
     @Query("SELECT COALESCE(MAX(a.queueNumber), 0) FROM Appointment a WHERE a.doctorId = :doctorId AND a.appointmentDate = :date")
     int findMaxQueueNumber(@Param("doctorId") UUID doctorId, @Param("date") LocalDate date);
 }

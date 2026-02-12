@@ -217,7 +217,7 @@ export default function SettlementListPage() {
       />
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns} data={settlements} loading={loading} emptyMessage="No settlement records found" />
+        <DataTable columns={columns as any} data={settlements as any} loading={loading} emptyMessage="No settlement records found" />
       </motion.div>
 
       {totalPages > 1 && (

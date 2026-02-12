@@ -4,12 +4,26 @@ import type {
   PaymentInitiateResponse,
   PaymentStatusResponse,
 } from '@/types/payment';
+import type { PaginatedResponse } from '@/types/api';
 import type {
   SplitPayRequest,
   SplitPayResponse,
 } from '@/types/insurance';
 
+export interface PaymentListParams {
+  hospitalId?: string;
+  page?: number;
+  size?: number;
+}
+
 export const paymentsApi = {
+  /** List payment transactions with pagination */
+  list(params?: PaymentListParams): Promise<PaginatedResponse<PaymentStatusResponse>> {
+    return client
+      .get('/api/v1/payments', { params })
+      .then((r) => r.data as PaginatedResponse<PaymentStatusResponse>);
+  },
+
   /** Initiate a payment for an order */
   initiate(body: PaymentInitiateRequest): Promise<PaymentInitiateResponse> {
     return client

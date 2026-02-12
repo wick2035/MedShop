@@ -182,9 +182,34 @@ public class PrescriptionService {
         throw new BusinessException(ErrorCode.NOT_FOUND, "医生不存在");
     }
 
-    private Prescription findPrescriptionOrThrow(UUID id) {
+    /**
+     * Find prescription entity or throw (public for cross-module use).
+     */
+    @Transactional(readOnly = true)
+    public Prescription findByIdOrThrow(UUID id) {
         return prescriptionRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "处方不存在"));
+    }
+
+    /**
+     * Get prescription items by prescription ID (public for cross-module use).
+     */
+    @Transactional(readOnly = true)
+    public List<PrescriptionItem> findItemsByPrescriptionId(UUID prescriptionId) {
+        return prescriptionItemRepository.findByPrescriptionId(prescriptionId);
+    }
+
+    /**
+     * Mark prescription as FILLED after order is created.
+     */
+    public void markAsFilled(UUID prescriptionId) {
+        Prescription prescription = findByIdOrThrow(prescriptionId);
+        prescription.setStatus("FILLED");
+        prescriptionRepository.save(prescription);
+    }
+
+    private Prescription findPrescriptionOrThrow(UUID id) {
+        return findByIdOrThrow(id);
     }
 
     private PrescriptionResponse toResponse(Prescription p, List<PrescriptionItem> items) {

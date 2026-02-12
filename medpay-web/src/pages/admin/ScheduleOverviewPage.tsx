@@ -48,8 +48,7 @@ export default function ScheduleOverviewPage() {
     try {
       const data = await schedulesApi.list({
         hospitalId: selectedHospitalId ?? undefined,
-        startDate,
-        endDate,
+        date: startDate,
       });
       setSchedules(data);
     } catch (err) {
@@ -78,7 +77,7 @@ export default function ScheduleOverviewPage() {
   };
 
   const getSchedulesForDate = (dateStr: string) =>
-    schedules.filter((s) => s.date === dateStr);
+    schedules.filter((s) => s.scheduleDate === dateStr);
 
   if (error) {
     return (
@@ -162,24 +161,23 @@ export default function ScheduleOverviewPage() {
                       className="rounded bg-ivory-100 p-1.5 text-xs"
                     >
                       <p className="font-medium text-sage-700 truncate">
-                        {schedule.doctorName}
+                        Dr. {schedule.doctorId.slice(0, 8)}
                       </p>
                       <div className="flex items-center gap-1 text-gray-500">
                         <Clock className="h-3 w-3" />
                         <span>
-                          {schedule.startTime?.substring(0, 5)}-{schedule.endTime?.substring(0, 5)}
+                          {schedule.timeSlotStart?.substring(0, 5)}-{schedule.timeSlotEnd?.substring(0, 5)}
                         </span>
                       </div>
-                      <p className="text-gray-400 truncate">{schedule.departmentName}</p>
                       <Badge
                         variant={
-                          schedule.currentAppointments >= schedule.maxAppointments
+                          schedule.bookedCount >= schedule.maxPatients
                             ? 'error'
                             : 'success'
                         }
                         size="sm"
                       >
-                        {schedule.currentAppointments}/{schedule.maxAppointments}
+                        {schedule.bookedCount}/{schedule.maxPatients}
                       </Badge>
                     </div>
                   ))}

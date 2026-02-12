@@ -31,6 +31,8 @@
         <module>medpay-notification</module>
         <module>medpay-admin</module>
         <module>medpay-migration</module>
+        <module>medpay-open</module>
+        <module>medpay-open-sdk</module>
         <module>medpay-app</module>
     </modules>
 
@@ -104,6 +106,16 @@
             <dependency>
                 <groupId>com.medpay</groupId>
                 <artifactId>medpay-migration</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.medpay</groupId>
+                <artifactId>medpay-open</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.medpay</groupId>
+                <artifactId>medpay-open-sdk</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

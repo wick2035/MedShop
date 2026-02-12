@@ -7,7 +7,7 @@ import {
   PlayCircle,
   CheckCircle2,
 } from 'lucide-react';
-import type { OrderResponse } from '@/types/order';
+import type { AppointmentResponse } from '@/types/appointment';
 import { AppointmentStatus } from '@/types/enums';
 import PageContainer, {
   containerVariants,
@@ -22,7 +22,7 @@ import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/lib/cons
 
 export default function PatientListPage() {
   const user = useAuthStore((s) => s.user);
-  const [appointments, setAppointments] = useState<OrderResponse[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -84,16 +84,6 @@ export default function PatientListPage() {
     } finally {
       setActionLoading(null);
     }
-  }
-
-  // Derive appointment status from the order
-  function getAppointmentStatus(order: OrderResponse): string {
-    // If there is an appointmentTimeStart, use available statuses
-    // For simplicity, derive from order status
-    if (order.completedAt) return AppointmentStatus.COMPLETED;
-    if (order.status === 'PROCESSING') return AppointmentStatus.IN_PROGRESS;
-    if (order.status === 'PAID') return AppointmentStatus.BOOKED;
-    return AppointmentStatus.BOOKED;
   }
 
   if (loading) {
@@ -161,38 +151,38 @@ export default function PatientListPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ivory-100">
-                  {appointments.map((order, index) => {
-                    const status = getAppointmentStatus(order) as AppointmentStatus;
+                  {appointments.map((appt) => {
+                    const status = appt.status;
                     const statusLabel =
                       APPOINTMENT_STATUS_LABELS[status] ?? status;
                     const statusColor =
                       APPOINTMENT_STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-500';
-                    const isActioning = actionLoading === order.id;
+                    const isActioning = actionLoading === appt.id;
 
                     return (
                       <tr
-                        key={order.id}
+                        key={appt.id}
                         className="transition-colors hover:bg-ivory-50"
                       >
                         <td className="px-6 py-4">
                           <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sage-100 text-sm font-semibold text-sage-700">
-                            {index + 1}
+                            {appt.queueNumber}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <p className="text-sm font-medium text-sage-800">
-                            Patient {order.patientId.slice(0, 8)}
+                            Patient {appt.patientId.slice(0, 8)}
                           </p>
                           <p className="text-xs text-sage-500">
-                            Order: {order.orderNo}
+                            Appt: {appt.appointmentNo}
                           </p>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-sage-400" />
                             <span className="text-sm text-sage-700">
-                              {order.appointmentTimeStart
-                                ? `${formatTime(order.appointmentTimeStart)} - ${formatTime(order.appointmentTimeEnd)}`
+                              {appt.timeSlotStart
+                                ? `${formatTime(appt.timeSlotStart)} - ${formatTime(appt.timeSlotEnd)}`
                                 : '--'}
                             </span>
                           </div>
@@ -214,7 +204,7 @@ export default function PatientListPage() {
                                 variant="outline"
                                 size="sm"
                                 loading={isActioning}
-                                onClick={() => handleCheckIn(order.id)}
+                                onClick={() => handleCheckIn(appt.id)}
                                 icon={<UserCheck className="h-3.5 w-3.5" />}
                               >
                                 Check In
@@ -225,7 +215,7 @@ export default function PatientListPage() {
                                 variant="primary"
                                 size="sm"
                                 loading={isActioning}
-                                onClick={() => handleStartConsultation(order.id)}
+                                onClick={() => handleStartConsultation(appt.id)}
                                 icon={<PlayCircle className="h-3.5 w-3.5" />}
                               >
                                 Start
@@ -236,7 +226,7 @@ export default function PatientListPage() {
                                 variant="primary"
                                 size="sm"
                                 loading={isActioning}
-                                onClick={() => handleComplete(order.id)}
+                                onClick={() => handleComplete(appt.id)}
                                 icon={<CheckCircle2 className="h-3.5 w-3.5" />}
                               >
                                 Complete

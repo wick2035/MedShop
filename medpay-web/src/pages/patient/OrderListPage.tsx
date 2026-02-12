@@ -42,7 +42,7 @@ export default function OrderListPage() {
     setLoading(true);
     setError(null);
     try {
-      const result = await ordersApi.list(user.id, { page: currentPage, size: 10 });
+      const result = await ordersApi.list(user.patientId ?? user.id, { page: currentPage, size: 10 });
       const allOrders = result.content;
       // Client-side status filter since the API might not support it
       const filtered = activeStatus

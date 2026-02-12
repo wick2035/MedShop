@@ -9,6 +9,7 @@ import type {
 
 export interface InsuranceClaimListParams {
   hospitalId?: string;
+  patientId?: string;
   page?: number;
   size?: number;
 }
@@ -18,6 +19,13 @@ export const insuranceApi = {
   calculate(body: InsuranceCalculateRequest): Promise<InsuranceCoverageResult> {
     return client
       .post('/api/v1/insurance/calculate', body)
+      .then((r) => r.data as InsuranceCoverageResult);
+  },
+
+  /** Calculate insurance and apply to order (updates order amounts) */
+  applyInsurance(orderId: string): Promise<InsuranceCoverageResult> {
+    return client
+      .post(`/api/v1/insurance/apply/${orderId}`)
       .then((r) => r.data as InsuranceCoverageResult);
   },
 

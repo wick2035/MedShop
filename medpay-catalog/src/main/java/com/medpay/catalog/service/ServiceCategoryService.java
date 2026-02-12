@@ -7,6 +7,7 @@ import com.medpay.catalog.repository.ServiceCategoryRepository;
 import com.medpay.common.exception.BusinessException;
 import com.medpay.common.exception.ErrorCode;
 import com.medpay.common.security.TenantContext;
+import com.medpay.common.security.TenantUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +47,7 @@ public class ServiceCategoryService {
     public ServiceCategoryResponse update(UUID id, ServiceCategoryRequest request) {
         ServiceCategory category = serviceCategoryRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "分类不存在"));
+        TenantUtil.verifyAccess(category.getHospitalId());
 
         category.setName(request.name());
         category.setCode(request.code());

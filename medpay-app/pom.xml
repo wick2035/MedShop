@@ -63,6 +63,10 @@
             <groupId>com.medpay</groupId>
             <artifactId>medpay-migration</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.medpay</groupId>
+            <artifactId>medpay-open</artifactId>
+        </dependency>
 
         <!-- Infrastructure -->
         <dependency>

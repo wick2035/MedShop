@@ -8,6 +8,7 @@ import com.medpay.catalog.repository.MedicalServiceRepository;
 import com.medpay.common.exception.BusinessException;
 import com.medpay.common.exception.ErrorCode;
 import com.medpay.common.security.TenantContext;
+import com.medpay.common.security.TenantUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +37,7 @@ public class MedicalServiceService {
 
     public MedicalServiceResponse update(UUID id, MedicalServiceRequest request) {
         MedicalService entity = findByIdOrThrow(id);
+        TenantUtil.verifyAccess(entity.getHospitalId());
         mapRequestToEntity(request, entity);
 
         entity = medicalServiceRepository.save(entity);
@@ -44,6 +46,7 @@ public class MedicalServiceService {
 
     public void delete(UUID id) {
         MedicalService entity = findByIdOrThrow(id);
+        TenantUtil.verifyAccess(entity.getHospitalId());
         entity.setStatus("INACTIVE");
         medicalServiceRepository.save(entity);
     }

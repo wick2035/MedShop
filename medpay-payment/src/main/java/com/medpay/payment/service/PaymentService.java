@@ -21,6 +21,8 @@ import com.medpay.payment.statemachine.PaymentEvent;
 import com.medpay.payment.statemachine.PaymentStateMachine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,7 +97,7 @@ public class PaymentService {
         transaction.setStatus(PaymentStatus.PENDING);
         transaction.setIdempotencyKey(idempotencyKey);
         transaction.setExpiredAt(LocalDateTime.now().plusMinutes(30));
-        paymentTransactionRepository.save(transaction);
+        transaction = paymentTransactionRepository.save(transaction);
 
         // Call payment channel
         PrepayResult result = channel.prepay(PrepayRequest.builder()
@@ -109,14 +111,14 @@ public class PaymentService {
         if (!result.isSuccess()) {
             transaction.setStatus(PaymentStatus.FAILED);
             transaction.setLastError(result.getErrorMessage());
-            paymentTransactionRepository.save(transaction);
+            transaction = paymentTransactionRepository.save(transaction);
             throw new BusinessException(ErrorCode.PAYMENT_CHANNEL_ERROR, result.getErrorMessage());
         }
 
         // Update to PROCESSING
         transaction.setStatus(stateMachine.transition(PaymentStatus.PENDING, PaymentEvent.SUBMIT));
         transaction.setChannelTransactionId(result.getChannelTransactionId());
-        paymentTransactionRepository.save(transaction);
+        transaction = paymentTransactionRepository.save(transaction);
 
         // Update order to PAYING
         orderService.updateOrderStatus(order.getId(), OrderEvent.BEGIN_PAYING);
@@ -214,5 +216,18 @@ public class PaymentService {
 
     public List<PaymentTransaction> getByOrderId(UUID orderId) {
         return paymentTransactionRepository.findByOrderId(orderId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PaymentStatusResponse> listPayments(UUID hospitalId, Pageable pageable) {
+        Page<PaymentTransaction> page = paymentTransactionRepository.findByHospitalId(hospitalId, pageable);
+        return page.map(tx -> PaymentStatusResponse.builder()
+                .transactionNo(tx.getTransactionNo())
+                .status(tx.getStatus().name())
+                .totalAmount(tx.getTotalAmount())
+                .paymentChannel(tx.getPaymentChannel())
+                .paidAt(tx.getPaidAt())
+                .createdAt(tx.getCreatedAt())
+                .build());
     }
 }

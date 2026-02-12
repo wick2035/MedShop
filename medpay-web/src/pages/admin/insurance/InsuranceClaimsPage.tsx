@@ -29,7 +29,8 @@ export default function InsuranceClaimsPage() {
       const data = await insuranceApi.getClaims({
         hospitalId: selectedHospitalId ?? undefined,
       });
-      setClaims(Array.isArray(data) ? data : []);
+      const items = Array.isArray(data) ? data : (data as any)?.content ?? [];
+      setClaims(items);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load claims';
       setError(msg);
@@ -49,17 +50,17 @@ export default function InsuranceClaimsPage() {
       header: 'Claim No.',
       render: (row) => <span className="font-mono text-xs text-sage-700">#{row.id.substring(0, 8)}</span>,
     },
-    { key: 'patientName', header: 'Patient' },
+    { key: 'patientId', header: 'Patient', render: (row) => <span className="font-mono text-xs">{row.patientId.slice(0, 8)}</span> },
     {
       key: 'claimAmount',
       header: 'Total Amount',
       sortable: true,
-      render: (row) => <span className="font-medium">{formatCurrency(row.claimAmount)}</span>,
+      render: (row) => <span className="font-medium">{formatCurrency(row.totalAmount)}</span>,
     },
     {
-      key: 'approvedAmount',
-      header: 'Approved',
-      render: (row) => <span className="text-emerald-600">{formatCurrency(row.approvedAmount)}</span>,
+      key: 'insurancePays',
+      header: 'Insurance Pays',
+      render: (row) => <span className="text-emerald-600">{formatCurrency(row.insurancePays)}</span>,
     },
     {
       key: 'status',
@@ -92,7 +93,7 @@ export default function InsuranceClaimsPage() {
     <PageContainer>
       <PageHeader title="Insurance Claims" subtitle="View and track insurance claim submissions" />
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns} data={claims} loading={loading} emptyMessage="No insurance claims found" />
+        <DataTable columns={columns as any} data={claims as any} loading={loading} emptyMessage="No insurance claims found" />
       </motion.div>
     </PageContainer>
   );

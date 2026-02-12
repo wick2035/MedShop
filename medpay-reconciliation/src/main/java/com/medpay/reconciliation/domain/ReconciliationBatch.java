@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -64,6 +66,7 @@ public class ReconciliationBatch {
     @Column(name = "status", nullable = false, length = 20)
     private String status = "PENDING";
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "exception_details", columnDefinition = "jsonb")
     private String exceptionDetails;
 

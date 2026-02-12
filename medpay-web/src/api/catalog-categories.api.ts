@@ -6,9 +6,11 @@ import type {
 
 export const catalogCategoriesApi = {
   /** List all service categories */
-  list(): Promise<ServiceCategoryResponse[]> {
+  list(hospitalId?: string): Promise<ServiceCategoryResponse[]> {
     return client
-      .get('/api/v1/catalog/categories')
+      .get('/api/v1/catalog/categories', {
+        params: hospitalId ? { hospitalId } : undefined,
+      })
       .then((r) => r.data as ServiceCategoryResponse[]);
   },
 

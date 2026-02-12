@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "hospital")
@@ -46,6 +48,7 @@ public class Hospital extends BaseEntity {
     @Column(name = "subscription_tier", length = 30)
     private String subscriptionTier = "STANDARD";
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "config_json", columnDefinition = "jsonb")
     private String configJson = "{}";
 

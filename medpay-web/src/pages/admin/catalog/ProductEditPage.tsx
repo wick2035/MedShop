@@ -28,11 +28,10 @@ export default function ProductEditPage() {
   const [form, setForm] = useState({
     name: '',
     productType: ProductType.MEDICINE as string,
-    description: '',
     price: '',
     specification: '',
     manufacturer: '',
-    enabled: true,
+    status: 'ACTIVE',
   });
 
   const fetchProduct = async () => {
@@ -45,11 +44,10 @@ export default function ProductEditPage() {
       setForm({
         name: data.name,
         productType: data.productType,
-        description: data.description ?? '',
         price: String(data.price),
         specification: data.specification ?? '',
         manufacturer: data.manufacturer ?? '',
-        enabled: data.enabled,
+        status: data.status,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load product';
@@ -64,7 +62,7 @@ export default function ProductEditPage() {
     fetchProduct();
   }, [id]);
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -78,12 +76,13 @@ export default function ProductEditPage() {
     try {
       await productsApi.update(id, {
         name: form.name,
+        code: form.name.toUpperCase().replace(/\s+/g, '-'),
         productType: form.productType as ProductType,
-        description: form.description || undefined,
         price: Number(form.price),
         specification: form.specification || undefined,
         manufacturer: form.manufacturer || undefined,
-        enabled: form.enabled,
+        requiresPrescription: false,
+        insuranceCovered: false,
       });
       toast.success('Product updated');
       navigate('/admin/catalog/products');
@@ -138,11 +137,14 @@ export default function ProductEditPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Product Type</label>
-            <Select value={form.productType} onChange={(e) => handleChange('productType', e.target.value)}>
-              {Object.entries(PRODUCT_TYPE_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </Select>
+            <Select
+              value={form.productType}
+              onChange={(e) => handleChange('productType', e.target.value)}
+              options={Object.entries(PRODUCT_TYPE_LABELS).map(([key, label]) => ({
+                value: key,
+                label: label,
+              }))}
+            />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Manufacturer</label>
@@ -161,19 +163,8 @@ export default function ProductEditPage() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
-          <Textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} rows={3} />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="enabled"
-            checked={form.enabled}
-            onChange={(e) => handleChange('enabled', e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-sage-600 focus:ring-sage-500"
-          />
-          <label htmlFor="enabled" className="text-sm text-gray-700">Enabled</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Status</label>
+          <p className="text-sm text-gray-700">{form.status}</p>
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

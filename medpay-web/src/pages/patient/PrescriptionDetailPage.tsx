@@ -8,12 +8,14 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { prescriptionsApi } from '@/api/prescriptions.api';
+import { useAuthStore } from '@/stores/auth.store';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import type { PrescriptionResponse } from '@/types/prescription';
 
 export default function PrescriptionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
 
   const [prescription, setPrescription] = useState<PrescriptionResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,8 @@ export default function PrescriptionDetailPage() {
     if (!prescription) return;
     setConverting(true);
     try {
-      const order = await prescriptionsApi.createOrder(prescription.id);
+      const patientId = user?.patientId ?? user?.id ?? '';
+      const order = await prescriptionsApi.createOrder(prescription.id, patientId);
       toast.success('Prescription converted to order!');
       navigate(`/patient/orders/${order.id}`);
     } catch (err) {

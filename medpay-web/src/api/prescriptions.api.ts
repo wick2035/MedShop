@@ -49,9 +49,11 @@ export const prescriptionsApi = {
   },
 
   /** Convert a prescription into an order */
-  createOrder(id: string): Promise<OrderResponse> {
+  createOrder(id: string, patientId: string): Promise<OrderResponse> {
     return client
-      .post(`/api/v1/prescriptions/${id}/order`)
+      .post(`/api/v1/orders/from-prescription/${id}`, null, {
+        headers: { 'X-Patient-Id': patientId },
+      })
       .then((r) => r.data as OrderResponse);
   },
 };

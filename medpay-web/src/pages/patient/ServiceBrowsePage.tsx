@@ -168,7 +168,7 @@ export default function ServiceBrowsePage() {
                 </p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 text-xs text-sage-700/60">
-                    {service.durationMinutes > 0 && (
+                    {(service.durationMinutes ?? 0) > 0 && (
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
                         {service.durationMinutes} min

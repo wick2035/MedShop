@@ -39,7 +39,10 @@ public class AdminOrderController {
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) OrderType type,
             Pageable pageable) {
-        UUID hospitalId = TenantContext.requireCurrentHospitalId();
+        UUID hospitalId = TenantContext.getCurrentHospitalId();
+        if (hospitalId == null) {
+            return ApiResponse.success(Page.empty(pageable));
+        }
         Page<OrderResponse> page = orderService.adminListOrders(hospitalId, status, type, pageable);
         return ApiResponse.success(page);
     }
@@ -56,11 +59,18 @@ public class AdminOrderController {
     @GetMapping("/statistics")
     @Operation(summary = "订单状态统计")
     public ApiResponse<Map<String, Long>> statistics() {
-        UUID hospitalId = TenantContext.requireCurrentHospitalId();
+        UUID hospitalId = TenantContext.getCurrentHospitalId();
+        if (hospitalId == null) {
+            Map<String, Long> empty = new LinkedHashMap<>();
+            for (OrderStatus s : OrderStatus.values()) {
+                empty.put(s.name(), 0L);
+            }
+            return ApiResponse.success(empty);
+        }
         Map<String, Long> stats = new LinkedHashMap<>();
-        for (OrderStatus status : OrderStatus.values()) {
-            long count = orderRepository.countByHospitalIdAndStatus(hospitalId, status.name());
-            stats.put(status.name(), count);
+        for (OrderStatus s : OrderStatus.values()) {
+            long count = orderRepository.countByHospitalIdAndStatus(hospitalId, s.name());
+            stats.put(s.name(), count);
         }
         return ApiResponse.success(stats);
     }

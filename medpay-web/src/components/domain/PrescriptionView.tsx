@@ -71,13 +71,13 @@ export default function PrescriptionView({
         {/* Patient + Doctor */}
         <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
           <span className="text-gray-500">
-            患者：<span className="text-gray-700">{prescription.patientName}</span>
+            患者：<span className="text-gray-700">{prescription.patientId.slice(0, 8)}</span>
           </span>
           <span className="text-gray-500">
-            医生：<span className="text-gray-700">{prescription.doctorName}</span>
+            医生：<span className="text-gray-700">{prescription.doctorId.slice(0, 8)}</span>
           </span>
           <span className="text-gray-500">
-            医院：<span className="text-gray-700">{prescription.hospitalName}</span>
+            处方号：<span className="text-gray-700">{prescription.prescriptionNo}</span>
           </span>
         </div>
       </div>
@@ -119,7 +119,7 @@ export default function PrescriptionView({
                   className="border-b border-ivory-200/40"
                 >
                   <td className="py-2 pr-4 text-gray-800">{item.productName}</td>
-                  <td className="py-2 pr-4 text-gray-600">{item.dosage}</td>
+                  <td className="py-2 pr-4 text-gray-600">{item.dosageInstruction}</td>
                   <td className="py-2 pr-4 text-gray-600">{item.frequency}</td>
                   <td className="py-2 pr-4 text-right text-gray-700">
                     {item.quantity}

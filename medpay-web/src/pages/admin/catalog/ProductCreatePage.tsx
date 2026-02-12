@@ -47,14 +47,15 @@ export default function ProductCreatePage() {
     setSubmitting(true);
     try {
       await productsApi.create({
-        hospitalId: selectedHospitalId,
         name: form.name,
+        code: form.name.toUpperCase().replace(/\s+/g, '-'),
         productType: form.productType as ProductType,
-        description: form.description || undefined,
         price: Number(form.price),
         specification: form.specification || undefined,
         manufacturer: form.manufacturer || undefined,
         stockQuantity: Number(form.stockQuantity) || 0,
+        requiresPrescription: false,
+        insuranceCovered: false,
       });
       toast.success('Product created successfully');
       navigate('/admin/catalog/products');
@@ -89,11 +90,14 @@ export default function ProductCreatePage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Product Type</label>
-            <Select value={form.productType} onChange={(e) => handleChange('productType', e.target.value)}>
-              {Object.entries(PRODUCT_TYPE_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </Select>
+            <Select
+              value={form.productType}
+              onChange={(e) => handleChange('productType', e.target.value)}
+              options={Object.entries(PRODUCT_TYPE_LABELS).map(([key, label]) => ({
+                value: key,
+                label: label,
+              }))}
+            />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Manufacturer</label>

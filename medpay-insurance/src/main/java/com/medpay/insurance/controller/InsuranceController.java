@@ -1,6 +1,7 @@
 package com.medpay.insurance.controller;
 
 import com.medpay.common.domain.ApiResponse;
+import com.medpay.common.security.TenantUtil;
 import com.medpay.insurance.domain.InsuranceClaim;
 import com.medpay.insurance.domain.Reimbursement;
 import com.medpay.insurance.dto.InsuranceCalculateRequest;
@@ -31,15 +32,34 @@ public class InsuranceController {
         return ApiResponse.success(result);
     }
 
+    @PostMapping("/apply/{orderId}")
+    public ApiResponse<InsuranceCoverageResult> applyInsurance(@PathVariable UUID orderId) {
+        InsuranceCoverageResult result = calculationService.calculateAndApply(orderId);
+        return ApiResponse.success(result);
+    }
+
     @GetMapping("/claims")
     public ApiResponse<Page<InsuranceClaim>> getClaims(
-            @RequestParam UUID hospitalId, Pageable pageable) {
-        return ApiResponse.success(claimRepository.findByHospitalId(hospitalId, pageable));
+            @RequestParam(required = false) UUID hospitalId,
+            @RequestParam(required = false) UUID patientId,
+            Pageable pageable) {
+        if (patientId != null) {
+            return ApiResponse.success(claimRepository.findByPatientId(patientId, pageable));
+        }
+        UUID resolvedHospitalId = TenantUtil.resolveHospitalId(hospitalId);
+        if (resolvedHospitalId != null) {
+            return ApiResponse.success(claimRepository.findByHospitalId(resolvedHospitalId, pageable));
+        }
+        return ApiResponse.success(Page.empty(pageable));
     }
 
     @GetMapping("/reimbursements")
     public ApiResponse<Page<Reimbursement>> getReimbursements(
-            @RequestParam UUID hospitalId, Pageable pageable) {
-        return ApiResponse.success(reimbursementRepository.findByHospitalId(hospitalId, pageable));
+            @RequestParam(required = false) UUID hospitalId, Pageable pageable) {
+        UUID resolvedHospitalId = TenantUtil.resolveHospitalId(hospitalId);
+        if (resolvedHospitalId == null) {
+            return ApiResponse.success(Page.empty(pageable));
+        }
+        return ApiResponse.success(reimbursementRepository.findByHospitalId(resolvedHospitalId, pageable));
     }
 }

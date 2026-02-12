@@ -39,7 +39,7 @@ export default function PaymentListPage() {
         setPayments(result);
         setTotalPages(1);
       } else {
-        const paginated = result as unknown as PaginatedResponse<PaymentStatusResponse>;
+        const paginated = result as PaginatedResponse<PaymentStatusResponse>;
         setPayments(paginated.content ?? []);
         setTotalPages(paginated.totalPages ?? 1);
       }
@@ -63,24 +63,19 @@ export default function PaymentListPage() {
       render: (row) => <span className="font-mono text-xs text-sage-700">{row.transactionNo}</span>,
     },
     {
-      key: 'orderId',
-      header: 'Order ID',
-      render: (row) => <span className="font-mono text-xs text-gray-500">{row.orderId?.substring(0, 8) ?? '--'}...</span>,
-    },
-    {
-      key: 'channel',
+      key: 'paymentChannel',
       header: 'Channel',
       render: (row) => (
         <Badge variant="sage" size="sm">
-          {PAYMENT_CHANNEL_LABELS[row.channel] ?? row.channel}
+          {PAYMENT_CHANNEL_LABELS[row.paymentChannel] ?? row.paymentChannel}
         </Badge>
       ),
     },
     {
-      key: 'amount',
+      key: 'totalAmount',
       header: 'Amount',
       sortable: true,
-      render: (row) => <span className="font-medium">{formatCurrency(row.amount)}</span>,
+      render: (row) => <span className="font-medium">{formatCurrency(row.totalAmount)}</span>,
     },
     {
       key: 'status',
@@ -120,7 +115,7 @@ export default function PaymentListPage() {
       <PageHeader title="Payment Records" subtitle="View all payment transactions" />
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns} data={payments} loading={loading} emptyMessage="No payments found" />
+        <DataTable columns={columns as any} data={payments as any} loading={loading} emptyMessage="No payments found" />
       </motion.div>
 
       {totalPages > 1 && (

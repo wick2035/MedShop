@@ -4,7 +4,7 @@ import com.medpay.catalog.dto.ServiceCategoryRequest;
 import com.medpay.catalog.dto.ServiceCategoryResponse;
 import com.medpay.catalog.service.ServiceCategoryService;
 import com.medpay.common.domain.ApiResponse;
-import com.medpay.common.security.TenantContext;
+import com.medpay.common.security.TenantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,7 +33,7 @@ public class ServiceCategoryController {
     @Operation(summary = "获取分类树")
     public ApiResponse<List<ServiceCategoryResponse>> list(
             @RequestParam(required = false) UUID hospitalId) {
-        UUID resolvedId = hospitalId != null ? hospitalId : TenantContext.getCurrentHospitalId();
+        UUID resolvedId = TenantUtil.resolveHospitalId(hospitalId);
         if (resolvedId == null) {
             return ApiResponse.success(List.of());
         }

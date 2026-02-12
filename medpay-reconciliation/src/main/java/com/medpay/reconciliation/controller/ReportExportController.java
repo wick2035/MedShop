@@ -16,6 +16,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
+import com.medpay.common.security.TenantUtil;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -30,6 +32,7 @@ public class ReportExportController {
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate,
             HttpServletResponse response) throws Exception {
+        hospitalId = TenantUtil.resolveHospitalId(hospitalId);
 
         response.setContentType("text/csv;charset=UTF-8");
         response.setHeader("Content-Disposition",

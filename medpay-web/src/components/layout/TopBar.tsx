@@ -6,6 +6,8 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useHospitalContextStore } from '@/stores/hospital-context.store';
 import { UserRole } from '@/types/enums';
 import { cn, getInitials } from '@/lib/utils';
+import type { HospitalResponse } from '@/types/hospital';
+import { hospitalsApi } from '@/api/hospitals.api';
 
 interface TopBarProps {
   title?: string;
@@ -26,9 +28,22 @@ export default function TopBar({
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [hospitals, setHospitals] = useState<HospitalResponse[]>([]);
 
   const isSuperAdmin = user?.role === UserRole.SUPER_ADMIN;
   const shouldShowHospitalSelector = showHospitalSelector && isSuperAdmin;
+
+  // Fetch hospitals for super admin selector
+  useEffect(() => {
+    if (!shouldShowHospitalSelector) return;
+    hospitalsApi.list().then((data) => {
+      setHospitals(data);
+      // Auto-select first hospital if none selected
+      if (!selectedHospitalId && data.length > 0) {
+        setHospitalId(data[0].id);
+      }
+    }).catch(() => {});
+  }, [shouldShowHospitalSelector]);
 
   // Close user menu on click outside
   useEffect(() => {
@@ -86,7 +101,9 @@ export default function TopBar({
               className="h-9 rounded-md border border-ivory-300 bg-white/80 px-3 pr-8 text-sm text-sage-700 transition-colors focus:border-sage-400 focus:outline-none focus:ring-1 focus:ring-sage-400"
             >
               <option value="">All Hospitals</option>
-              {/* Hospital options will be populated by the parent or a data-fetching hook */}
+              {hospitals.map((h) => (
+                <option key={h.id} value={h.id}>{h.name}</option>
+              ))}
             </select>
           </div>
         )}

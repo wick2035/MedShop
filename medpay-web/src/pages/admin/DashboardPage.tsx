@@ -12,7 +12,13 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import type { DashboardKpiResponse, RevenueByMonth } from '@/types/report';
+import type { DashboardKpiResponse } from '@/types/report';
+
+interface RevenueByMonth {
+  month: string;
+  revenue: number;
+  orderCount: number;
+}
 import type { HospitalResponse } from '@/types/hospital';
 import { UserRole } from '@/types/enums';
 
@@ -152,10 +158,7 @@ export default function DashboardPage() {
     fetchData();
   }, [selectedHospitalId]);
 
-  const revenueData =
-    kpi?.revenueByMonth && kpi.revenueByMonth.length > 0
-      ? kpi.revenueByMonth
-      : SAMPLE_REVENUE_DATA;
+  const revenueData = SAMPLE_REVENUE_DATA;
 
   if (loading) {
     return (
@@ -231,7 +234,7 @@ export default function DashboardPage() {
           <StatCard
             icon={RotateCcw}
             label="Today Refunds"
-            value={kpi?.totalRefunds ?? 0}
+            value={kpi?.todayRefunds ?? 0}
             prefix="¥"
           />
         </motion.div>
@@ -239,7 +242,7 @@ export default function DashboardPage() {
           <StatCard
             icon={Clock}
             label="Pending Refunds"
-            value={kpi?.ordersByStatus?.REFUND_REQUESTED ?? 0}
+            value={kpi?.pendingRefunds ?? 0}
             prefix=""
           />
         </motion.div>
@@ -256,7 +259,7 @@ export default function DashboardPage() {
           <StatCard
             icon={TrendingUp}
             label="Month Revenue"
-            value={kpi?.totalRevenue ?? 0}
+            value={kpi?.monthRevenue ?? 0}
             prefix="¥"
           />
         </motion.div>
@@ -264,7 +267,7 @@ export default function DashboardPage() {
           <StatCard
             icon={Package}
             label="Month Orders"
-            value={kpi?.totalOrders ?? 0}
+            value={kpi?.monthOrders ?? 0}
             prefix=""
           />
         </motion.div>
@@ -272,7 +275,7 @@ export default function DashboardPage() {
           <StatCard
             icon={RotateCcw}
             label="Month Refunds"
-            value={kpi?.totalRefunds ?? 0}
+            value={kpi?.monthRefunds ?? 0}
             prefix="¥"
           />
         </motion.div>
@@ -280,7 +283,7 @@ export default function DashboardPage() {
           <StatCard
             icon={CreditCard}
             label="Settlement Pending"
-            value={kpi?.ordersByStatus?.PAID ?? 0}
+            value={kpi?.settlementPending ?? 0}
             prefix=""
           />
         </motion.div>
@@ -299,10 +302,10 @@ export default function DashboardPage() {
         className="grid grid-cols-1 gap-6 lg:grid-cols-2"
       >
         <motion.div variants={itemVariants}>
-          <OrderPieChartFallback data={kpi?.ordersByStatus ?? {}} />
+          <OrderPieChartFallback data={{}} />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <StatusBarChartFallback data={kpi?.revenueByChannel ?? {}} />
+          <StatusBarChartFallback data={{}} />
         </motion.div>
       </motion.div>
     </PageContainer>

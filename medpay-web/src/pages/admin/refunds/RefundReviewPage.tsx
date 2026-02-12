@@ -49,7 +49,7 @@ export default function RefundReviewPage() {
     if (!id) return;
     setSubmitting(true);
     try {
-      await refundsApi.approve(id, { comment });
+      await refundsApi.approve(id, comment || undefined);
       toast.success('Refund approved');
       navigate('/admin/refunds');
     } catch (err) {
@@ -66,7 +66,7 @@ export default function RefundReviewPage() {
     }
     setSubmitting(true);
     try {
-      await refundsApi.reject(id, { comment });
+      await refundsApi.reject(id, comment || undefined);
       toast.success('Refund rejected');
       navigate('/admin/refunds');
     } catch (err) {
@@ -129,15 +129,15 @@ export default function RefundReviewPage() {
             </div>
             <div>
               <p className="text-xs text-gray-400">Patient</p>
-              <p className="text-sm font-medium text-gray-700">{refund.patientName}</p>
+              <p className="text-sm font-medium text-gray-700">{refund.orderNo}</p>
             </div>
             <div>
               <p className="text-xs text-gray-400">Amount</p>
-              <p className="text-lg font-bold text-red-600">{formatCurrency(refund.amount)}</p>
+              <p className="text-lg font-bold text-red-600">{formatCurrency(refund.refundAmount)}</p>
             </div>
             <div className="col-span-2">
               <p className="text-xs text-gray-400">Reason</p>
-              <p className="mt-1 text-sm text-gray-700">{refund.reason}</p>
+              <p className="mt-1 text-sm text-gray-700">{refund.refundReason}</p>
             </div>
             <div>
               <p className="text-xs text-gray-400">Requested At</p>
@@ -182,13 +182,13 @@ export default function RefundReviewPage() {
         )}
 
         {/* Previous decision */}
-        {refund.status !== 'PENDING' && refund.comment && (
+        {refund.status !== 'PENDING' && refund.reviewComment && (
           <motion.div variants={itemVariants} className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
             <h3 className="mb-2 font-display text-lg font-semibold text-sage-800">Decision</h3>
-            <p className="text-sm text-gray-600">{refund.comment}</p>
-            {refund.approvedBy && (
+            <p className="text-sm text-gray-600">{refund.reviewComment}</p>
+            {refund.reviewedAt && (
               <p className="mt-2 text-xs text-gray-400">
-                By: {refund.approvedBy} at {formatDateTime(refund.approvedAt)}
+                Reviewed at: {formatDateTime(refund.reviewedAt)}
               </p>
             )}
           </motion.div>

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -47,6 +49,7 @@ public class SettlementRecord extends TenantEntity {
     @Column(name = "settled_at")
     private LocalDateTime settledAt;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "bank_account_info", columnDefinition = "jsonb")
     private String bankAccountInfo;
 }

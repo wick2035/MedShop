@@ -127,8 +127,8 @@ export default function PackageListPage() {
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
         <DataTable
-          columns={columns}
-          data={packages}
+          columns={columns as any}
+          data={packages as any}
           loading={loading}
           emptyMessage="No packages found"
         />

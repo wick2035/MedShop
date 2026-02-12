@@ -32,6 +32,10 @@ export function formatDate(date: string | undefined | null): string {
   if (!date) {
     return '--';
   }
+  // Pure date string "YYYY-MM-DD" — return as-is to avoid UTC timezone shift
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date;
+  }
   try {
     const d = new Date(date);
     if (isNaN(d.getTime())) {

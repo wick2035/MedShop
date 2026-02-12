@@ -1,5 +1,7 @@
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
+import { RoleGuard } from './guards';
+import { UserRole } from '@/types/enums';
 
 /* ----- Lazy-loaded admin pages ----- */
 
@@ -71,24 +73,24 @@ export const adminRoutes: RouteObject[] = [
   /* Overview */
   { index: true, element: <DashboardPage /> },
 
-  /* Hospitals */
-  { path: 'hospitals', element: <HospitalListPage /> },
-  { path: 'hospitals/new', element: <HospitalCreatePage /> },
-  { path: 'hospitals/:id', element: <HospitalDetailPage /> },
-  { path: 'hospitals/:id/edit', element: <HospitalEditPage /> },
-  { path: 'hospitals/:id/departments', element: <HospitalDepartmentsPage /> },
+  /* Hospitals (Super Admin only) */
+  { path: 'hospitals', element: <RoleGuard allowedRoles={[UserRole.SUPER_ADMIN]}><HospitalListPage /></RoleGuard> },
+  { path: 'hospitals/create', element: <RoleGuard allowedRoles={[UserRole.SUPER_ADMIN]}><HospitalCreatePage /></RoleGuard> },
+  { path: 'hospitals/:id', element: <RoleGuard allowedRoles={[UserRole.SUPER_ADMIN]}><HospitalDetailPage /></RoleGuard> },
+  { path: 'hospitals/:id/edit', element: <RoleGuard allowedRoles={[UserRole.SUPER_ADMIN]}><HospitalEditPage /></RoleGuard> },
+  { path: 'hospitals/:id/departments', element: <RoleGuard allowedRoles={[UserRole.SUPER_ADMIN]}><HospitalDepartmentsPage /></RoleGuard> },
 
   /* Catalog */
   { path: 'catalog/categories', element: <CategoryListPage /> },
   { path: 'catalog/services', element: <ServiceListPage /> },
-  { path: 'catalog/services/new', element: <ServiceCreatePage /> },
+  { path: 'catalog/services/create', element: <ServiceCreatePage /> },
   { path: 'catalog/services/:id/edit', element: <ServiceEditPage /> },
   { path: 'catalog/products', element: <ProductListPage /> },
-  { path: 'catalog/products/new', element: <ProductCreatePage /> },
+  { path: 'catalog/products/create', element: <ProductCreatePage /> },
   { path: 'catalog/products/:id/edit', element: <ProductEditPage /> },
   { path: 'catalog/products/:id/stock', element: <ProductStockPage /> },
   { path: 'catalog/packages', element: <PackageListPage /> },
-  { path: 'catalog/packages/new', element: <PackageCreatePage /> },
+  { path: 'catalog/packages/create', element: <PackageCreatePage /> },
   { path: 'catalog/packages/:id/edit', element: <PackageEditPage /> },
 
   /* Schedules */
@@ -107,7 +109,7 @@ export const adminRoutes: RouteObject[] = [
 
   /* Refunds */
   { path: 'refunds', element: <RefundListPage /> },
-  { path: 'refunds/:id', element: <RefundReviewPage /> },
+  { path: 'refunds/:id/review', element: <RefundReviewPage /> },
 
   /* Insurance */
   { path: 'insurance/claims', element: <InsuranceClaimsPage /> },

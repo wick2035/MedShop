@@ -38,7 +38,7 @@ export default function InsurancePage() {
     setClaimsLoading(true);
     setClaimsError(null);
     try {
-      const result = await insuranceApi.getClaims({ page: 0, size: 50 });
+      const result = await insuranceApi.getClaims({ patientId: user?.patientId ?? undefined, page: 0, size: 50 });
       const items = 'content' in result ? (result as { content: InsuranceClaim[] }).content : (result as unknown as InsuranceClaim[]);
       setClaims(Array.isArray(items) ? items : []);
     } catch (err) {

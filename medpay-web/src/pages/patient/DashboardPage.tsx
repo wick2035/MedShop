@@ -37,7 +37,7 @@ export default function DashboardPage() {
       setError(null);
       try {
         const [ordersResult, unread] = await Promise.all([
-          ordersApi.list(user.id, { page: 0, size: 5 }),
+          ordersApi.list(user.patientId ?? user.id, { page: 0, size: 5 }),
           notificationsApi.getUnreadCount(),
         ]);
         setRecentOrders(ordersResult.content);

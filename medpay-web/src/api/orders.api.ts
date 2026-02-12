@@ -5,6 +5,7 @@ import type {
   AppointmentOrderRequest,
   OrderResponse,
 } from '@/types/order';
+import { insuranceApi } from './insurance.api';
 
 export interface OrderListParams {
   page?: number;
@@ -12,13 +13,15 @@ export interface OrderListParams {
 }
 
 export const ordersApi = {
-  /** Create a new order (requires X-Patient-Id header) */
-  create(body: OrderCreateRequest, patientId: string): Promise<OrderResponse> {
-    return client
+  /** Create a new order (requires X-Patient-Id header), then apply insurance */
+  async create(body: OrderCreateRequest, patientId: string): Promise<OrderResponse> {
+    const order = await client
       .post('/api/v1/orders', body, {
         headers: { 'X-Patient-Id': patientId },
       })
       .then((r) => r.data as OrderResponse);
+    await applyInsuranceSilently(order.id);
+    return ordersApi.getById(order.id);
   },
 
   /** List orders for the current patient (requires X-Patient-Id header) */
@@ -50,15 +53,26 @@ export const ordersApi = {
       .then(() => undefined);
   },
 
-  /** Create an appointment-type order (requires X-Patient-Id header) */
-  createAppointment(
+  /** Create an appointment-type order (requires X-Patient-Id header), then apply insurance */
+  async createAppointment(
     body: AppointmentOrderRequest,
     patientId: string,
   ): Promise<OrderResponse> {
-    return client
+    const order = await client
       .post('/api/v1/orders/appointment', body, {
         headers: { 'X-Patient-Id': patientId },
       })
       .then((r) => r.data as OrderResponse);
+    await applyInsuranceSilently(order.id);
+    return ordersApi.getById(order.id);
   },
 };
+
+/** Apply insurance calculation silently (failures don't block order creation) */
+async function applyInsuranceSilently(orderId: string): Promise<void> {
+  try {
+    await insuranceApi.applyInsurance(orderId);
+  } catch {
+    // Insurance calculation failure should not block order creation
+  }
+}

@@ -260,7 +260,7 @@ export default function OrderForm({
                   <option value="">请选择排班</option>
                   {schedules.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.doctorName} - {s.date} {s.startTime}
+                      {s.doctorId.slice(0, 8)} - {s.scheduleDate} {s.timeSlotStart}
                     </option>
                   ))}
                 </select>

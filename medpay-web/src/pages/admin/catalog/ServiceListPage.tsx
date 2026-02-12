@@ -50,8 +50,8 @@ export default function ServiceListPage() {
         setTotalPages(1);
       } else {
         const paginated = result as unknown as PaginatedResponse<MedicalServiceResponse>;
-        setServices(paginated.content);
-        setTotalPages(paginated.totalPages);
+        setServices(paginated.content ?? []);
+        setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load services';
@@ -89,21 +89,21 @@ export default function ServiceListPage() {
       render: (row) => <span className="font-medium">{formatCurrency(row.price)}</span>,
     },
     {
-      key: 'requiresAppointment',
-      header: 'Appointment',
+      key: 'requiresPrescription',
+      header: 'Prescription',
       render: (row) =>
-        row.requiresAppointment ? (
+        row.requiresPrescription ? (
           <Badge variant="terracotta" size="sm">Required</Badge>
         ) : (
           <span className="text-xs text-gray-400">No</span>
         ),
     },
     {
-      key: 'enabled',
+      key: 'status',
       header: 'Status',
       render: (row) => (
-        <Badge variant={row.enabled ? 'success' : 'error'} size="sm">
-          {row.enabled ? 'Active' : 'Disabled'}
+        <Badge variant={row.status === 'ACTIVE' ? 'success' : 'error'} size="sm">
+          {row.status}
         </Badge>
       ),
     },
@@ -158,19 +158,24 @@ export default function ServiceListPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Search services..."
         filters={
-          <Select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}>
-            <option value="">All Types</option>
-            {Object.entries(SERVICE_TYPE_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </Select>
+          <Select
+            value={typeFilter}
+            onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}
+            options={[
+              { value: '', label: 'All Types' },
+              ...Object.entries(SERVICE_TYPE_LABELS).map(([key, label]) => ({
+                value: key,
+                label: label,
+              })),
+            ]}
+          />
         }
       />
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
         <DataTable
-          columns={columns}
-          data={filtered}
+          columns={columns as any}
+          data={filtered as any}
           loading={loading}
           emptyMessage="No services found"
           onRowClick={(row) => navigate(`/admin/catalog/services/${row.id}/edit`)}

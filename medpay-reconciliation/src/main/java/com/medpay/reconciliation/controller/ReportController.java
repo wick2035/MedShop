@@ -1,6 +1,7 @@
 package com.medpay.reconciliation.controller;
 
 import com.medpay.common.domain.ApiResponse;
+import com.medpay.common.security.TenantUtil;
 import com.medpay.payment.domain.SettlementRecord;
 import com.medpay.reconciliation.dto.DashboardKpiResponse;
 import com.medpay.reconciliation.dto.SettlementGenerateRequest;
@@ -23,8 +24,12 @@ public class ReportController {
     private final SettlementService settlementService;
 
     @GetMapping("/dashboard")
-    public ApiResponse<DashboardKpiResponse> getDashboard(@RequestParam UUID hospitalId) {
-        return ApiResponse.success(reportService.getDashboardKpi(hospitalId));
+    public ApiResponse<DashboardKpiResponse> getDashboard(@RequestParam(required = false) UUID hospitalId) {
+        UUID resolvedHospitalId = TenantUtil.resolveHospitalId(hospitalId);
+        if (resolvedHospitalId == null) {
+            return ApiResponse.success(DashboardKpiResponse.empty());
+        }
+        return ApiResponse.success(reportService.getDashboardKpi(resolvedHospitalId));
     }
 
     @PostMapping("/settlements/generate")
@@ -36,12 +41,17 @@ public class ReportController {
 
     @GetMapping("/settlements")
     public ApiResponse<Page<SettlementRecord>> getSettlements(
-            @RequestParam UUID hospitalId, Pageable pageable) {
-        return ApiResponse.success(settlementService.getSettlements(hospitalId, pageable));
+            @RequestParam(required = false) UUID hospitalId, Pageable pageable) {
+        UUID resolvedHospitalId = TenantUtil.resolveHospitalId(hospitalId);
+        if (resolvedHospitalId == null) {
+            return ApiResponse.success(Page.empty(pageable));
+        }
+        return ApiResponse.success(settlementService.getSettlements(resolvedHospitalId, pageable));
     }
 
     @PutMapping("/settlements/{settlementId}/confirm")
     public ApiResponse<SettlementRecord> confirmSettlement(@PathVariable UUID settlementId) {
         return ApiResponse.success(settlementService.confirmSettlement(settlementId));
     }
+
 }

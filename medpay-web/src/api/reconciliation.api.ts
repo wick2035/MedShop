@@ -1,4 +1,4 @@
-import { client } from './client';
+import { client, unwrapPage } from './client';
 import type { PaginatedResponse } from '@/types/api';
 import type {
   ReconciliationTriggerRequest,
@@ -33,7 +33,7 @@ export const reconciliationApi = {
   getDetails(batchId: string): Promise<ReconciliationDetail[]> {
     return client
       .get(`/api/v1/reconciliation/batches/${batchId}/details`)
-      .then((r) => r.data as ReconciliationDetail[]);
+      .then((r) => unwrapPage<ReconciliationDetail>(r.data));
   },
 
   /** Resolve a reconciliation discrepancy */

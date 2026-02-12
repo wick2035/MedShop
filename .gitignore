@@ -1,6 +1,37 @@
-/.claude
-/.idea
+# === Build outputs ===
+**/target/
+**/build/
+
+# === IDE ===
+/.idea/
+/.claude/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+
+# === Java ===
+*.class
+*.jar
+*.war
+*.ear
+
+# === Node / Frontend ===
+**/node_modules/
+medpay-web/dist/
+
+# === OS ===
+.DS_Store
+Thumbs.db
 /nul
+
+# === Logs ===
+*.log
+**/*.dumpstream
+
+# === Project internal docs (not for repo) ===
 /程序员A-基础架构与用户体系.txt
 /程序员B-业务模块开发.txt
 /程序员C-支付与财务体系.txt

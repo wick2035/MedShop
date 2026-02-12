@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -37,6 +38,7 @@ public class InsuranceCalculationService {
     @Value("${medpay.insurance.base-ratio:0.70}")
     private BigDecimal baseRatio;
 
+    @Transactional(readOnly = true)
     public InsuranceCoverageResult calculate(UUID orderId) {
         Order order = orderService.findOrderById(orderId);
         List<InsuranceCoverageResult.ItemDetail> itemDetails = new ArrayList<>();
@@ -112,6 +114,16 @@ public class InsuranceCalculationService {
                 .coverageRatio(coverageRatio)
                 .itemDetails(itemDetails)
                 .build();
+    }
+
+    @Transactional
+    public InsuranceCoverageResult calculateAndApply(UUID orderId) {
+        InsuranceCoverageResult result = calculate(orderId);
+        BigDecimal selfPay = result.getTotalAmount().subtract(result.getInsurancePays());
+        orderService.updateInsuranceAmounts(orderId, result.getInsurancePays(), selfPay);
+        log.info("Insurance applied to order: orderId={}, insurancePays={}, selfPay={}",
+                orderId, result.getInsurancePays(), selfPay);
+        return result;
     }
 
     private String getInsuranceCategory(OrderItem item) {

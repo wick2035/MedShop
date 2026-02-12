@@ -40,7 +40,7 @@ export default function DoctorDetailPage() {
           schedulesApi.list({ doctorId: id }),
         ]);
         setDoctor(doc);
-        setSchedules(sched.filter((s) => s.status === 'ACTIVE' && s.bookedCount < s.maxPatients));
+        setSchedules(sched.filter((s) => s.status === 'AVAILABLE' && s.bookedCount < s.maxPatients));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load doctor');
       } finally {
@@ -113,7 +113,7 @@ export default function DoctorDetailPage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <MapPin className="h-4 w-4 text-sage-400" />
-                  {doctor.specialty}
+                  {doctor.departmentId ? 'Department' : 'General Practice'}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Star className="h-4 w-4 fill-muted-gold text-muted-gold" />

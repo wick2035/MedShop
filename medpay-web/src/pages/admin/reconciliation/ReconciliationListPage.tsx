@@ -132,8 +132,8 @@ export default function ReconciliationListPage() {
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
         <DataTable
-          columns={columns}
-          data={batches}
+          columns={columns as any}
+          data={batches as any}
           loading={loading}
           emptyMessage="No reconciliation batches found"
           onRowClick={(row) => navigate(`/admin/reconciliation/${row.id}`)}

@@ -40,12 +40,10 @@ export default function HospitalCreatePage() {
     try {
       await hospitalsApi.create({
         name: form.name,
-        address: form.address,
-        phone: form.phone,
-        email: form.email || undefined,
-        level: form.level || undefined,
-        subscriptionTier: form.subscriptionTier as SubscriptionTier,
-        description: form.description || undefined,
+        code: form.name.toUpperCase().replace(/\s+/g, '-'),
+        address: form.address || undefined,
+        contactPhone: form.phone || undefined,
+        contactEmail: form.email || undefined,
       });
       toast.success('Hospital created successfully');
       navigate('/admin/hospitals');
@@ -129,13 +127,11 @@ export default function HospitalCreatePage() {
             <Select
               value={form.subscriptionTier}
               onChange={(e) => handleChange('subscriptionTier', e.target.value)}
-            >
-              {Object.values(SubscriptionTier).map((tier) => (
-                <option key={tier} value={tier}>
-                  {tier}
-                </option>
-              ))}
-            </Select>
+              options={Object.values(SubscriptionTier).map((tier) => ({
+                value: tier,
+                label: tier,
+              }))}
+            />
           </div>
         </div>
 

@@ -93,11 +93,14 @@ export default function PackageCreatePage() {
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">Package Type</label>
-          <Select value={form.packageType} onChange={(e) => handleChange('packageType', e.target.value)}>
-            {Object.entries(PACKAGE_TYPE_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </Select>
+          <Select
+            value={form.packageType}
+            onChange={(e) => handleChange('packageType', e.target.value)}
+            options={Object.entries(PACKAGE_TYPE_LABELS).map(([key, label]) => ({
+              value: key,
+              label: label,
+            }))}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">

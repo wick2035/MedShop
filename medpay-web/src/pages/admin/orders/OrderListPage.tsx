@@ -106,7 +106,7 @@ export default function OrderListPage() {
         </Badge>
       ),
     },
-    { key: 'patientName', header: 'Patient' },
+    { key: 'patientId', header: 'Patient', render: (row) => <span className="font-mono text-xs">{row.patientId.slice(0, 8)}</span> },
     {
       key: 'totalAmount',
       header: 'Amount',
@@ -217,8 +217,8 @@ export default function OrderListPage() {
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
         <DataTable
-          columns={columns}
-          data={orders}
+          columns={columns as any}
+          data={orders as any}
           loading={loading}
           emptyMessage="No orders found"
           onRowClick={(row) => navigate(`/admin/orders/${row.id}`)}

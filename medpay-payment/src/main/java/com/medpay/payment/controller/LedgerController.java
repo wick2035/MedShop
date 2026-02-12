@@ -1,6 +1,7 @@
 package com.medpay.payment.controller;
 
 import com.medpay.common.domain.ApiResponse;
+import com.medpay.common.security.TenantUtil;
 import com.medpay.payment.dto.LedgerResponse;
 import com.medpay.payment.service.PaymentLedgerService;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +20,13 @@ public class LedgerController {
 
     @GetMapping
     public ApiResponse<Page<LedgerResponse>> getLedger(
-            @RequestParam UUID hospitalId,
+            @RequestParam(required = false) UUID hospitalId,
             Pageable pageable) {
-        Page<LedgerResponse> page = ledgerService.getLedger(hospitalId, pageable);
+        UUID resolvedHospitalId = TenantUtil.resolveHospitalId(hospitalId);
+        if (resolvedHospitalId == null) {
+            return ApiResponse.success(Page.empty(pageable));
+        }
+        Page<LedgerResponse> page = ledgerService.getLedger(resolvedHospitalId, pageable);
         return ApiResponse.success(page);
     }
 }

@@ -47,13 +47,13 @@ export default function ScheduleCalendar({
   const schedulesByDate = useMemo(() => {
     const map = new Map<string, DoctorScheduleResponse[]>();
     for (const s of schedules) {
-      const dateKey = s.date.slice(0, 10);
+      const dateKey = s.scheduleDate.slice(0, 10);
       if (!map.has(dateKey)) map.set(dateKey, []);
       map.get(dateKey)!.push(s);
     }
     // Sort each day by start time
     for (const [, list] of map) {
-      list.sort((a, b) => a.startTime.localeCompare(b.startTime));
+      list.sort((a, b) => a.timeSlotStart.localeCompare(b.timeSlotStart));
     }
     return map;
   }, [schedules]);
@@ -116,7 +116,7 @@ export default function ScheduleCalendar({
                 )}
                 {daySchedules.map((schedule) => {
                   const isFull =
-                    schedule.currentAppointments >= schedule.maxAppointments;
+                    schedule.bookedCount >= schedule.maxPatients;
                   return (
                     <button
                       key={schedule.id}
@@ -129,13 +129,13 @@ export default function ScheduleCalendar({
                       )}
                     >
                       <p className="font-medium truncate">
-                        {schedule.doctorName}
+                        {schedule.doctorId.slice(0, 8)}
                       </p>
                       <p className="text-[10px] opacity-70">
-                        {formatTime(schedule.startTime)}-{formatTime(schedule.endTime)}
+                        {formatTime(schedule.timeSlotStart)}-{formatTime(schedule.timeSlotEnd)}
                       </p>
                       <p className="text-[10px] opacity-60">
-                        {schedule.currentAppointments}/{schedule.maxAppointments}
+                        {schedule.bookedCount}/{schedule.maxPatients}
                       </p>
                     </button>
                   );

@@ -66,6 +66,15 @@ public class OrderController {
         return ApiResponse.success();
     }
 
+    @PostMapping("/from-prescription/{prescriptionId}")
+    @Operation(summary = "处方转订单")
+    public ApiResponse<OrderResponse> createPrescriptionOrder(
+            @RequestHeader(value = "X-Patient-Id") UUID patientId,
+            @PathVariable UUID prescriptionId) {
+        OrderResponse response = orderService.createPrescriptionOrder(prescriptionId, patientId);
+        return ApiResponse.success(response);
+    }
+
     @PostMapping("/appointment")
     @Operation(summary = "创建挂号预约订单")
     public ApiResponse<OrderResponse> createAppointmentOrder(

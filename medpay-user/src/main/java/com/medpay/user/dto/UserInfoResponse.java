@@ -20,4 +20,5 @@ public class UserInfoResponse {
     private String fullName;
     private UUID hospitalId;
     private UUID doctorId;
+    private UUID patientId;
 }

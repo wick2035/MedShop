@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import type { ApiResponse } from '@/types/api';
+import { useHospitalContextStore } from '@/stores/hospital-context.store';
 
 /**
  * Extract an array from a Spring Boot Page object or return the data as-is if
@@ -58,6 +59,12 @@ client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // Inject hospital context for super admin
+  const hospitalId = useHospitalContextStore.getState().selectedHospitalId;
+  if (hospitalId) {
+    config.headers['X-Hospital-Id'] = hospitalId;
   }
 
   // Auto-generate Idempotency-Key for mutating methods
@@ -159,8 +166,8 @@ client.interceptors.response.use(
         ApiResponse<{ accessToken: string; refreshToken: string }>
       >(
         `${client.defaults.baseURL}/api/v1/auth/refresh`,
-        { refreshToken },
-        { headers: { 'Content-Type': 'application/json' } },
+        null,
+        { headers: { 'Content-Type': 'application/json', 'X-Refresh-Token': refreshToken } },
       );
 
       if (data.code !== 0) {

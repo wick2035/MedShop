@@ -39,8 +39,9 @@ export default function ServiceCreatePage() {
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setLoading(true);
       try {
-        const data = await catalogCategoriesApi.list();
+        const data = await catalogCategoriesApi.list(selectedHospitalId ?? undefined);
         setCategories(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load categories');
@@ -49,7 +50,7 @@ export default function ServiceCreatePage() {
       }
     };
     fetchCategories();
-  }, []);
+  }, [selectedHospitalId]);
 
   const handleChange = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -68,14 +69,15 @@ export default function ServiceCreatePage() {
     setSubmitting(true);
     try {
       await medicalServicesApi.create({
-        hospitalId: selectedHospitalId,
         categoryId: form.categoryId,
         name: form.name,
+        code: form.name.toUpperCase().replace(/\s+/g, '-'),
         serviceType: form.serviceType as ServiceType,
         description: form.description || undefined,
         price: Number(form.price),
         durationMinutes: form.durationMinutes ? Number(form.durationMinutes) : undefined,
-        requiresAppointment: form.requiresAppointment,
+        requiresPrescription: false,
+        insuranceCovered: false,
       });
       toast.success('Service created successfully');
       navigate('/admin/catalog/services');
@@ -133,20 +135,28 @@ export default function ServiceCreatePage() {
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
               Category <span className="text-red-500">*</span>
             </label>
-            <Select value={form.categoryId} onChange={(e) => handleChange('categoryId', e.target.value)}>
-              <option value="">Select category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </Select>
+            <Select
+              value={form.categoryId}
+              onChange={(e) => handleChange('categoryId', e.target.value)}
+              options={[
+                { value: '', label: 'Select category' },
+                ...categories.map((cat) => ({
+                  value: cat.id,
+                  label: cat.name,
+                })),
+              ]}
+            />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Service Type</label>
-            <Select value={form.serviceType} onChange={(e) => handleChange('serviceType', e.target.value)}>
-              {Object.entries(SERVICE_TYPE_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </Select>
+            <Select
+              value={form.serviceType}
+              onChange={(e) => handleChange('serviceType', e.target.value)}
+              options={Object.entries(SERVICE_TYPE_LABELS).map(([key, label]) => ({
+                value: key,
+                label: label,
+              }))}
+            />
           </div>
         </div>
 

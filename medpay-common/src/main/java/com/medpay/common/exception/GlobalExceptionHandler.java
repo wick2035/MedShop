@@ -41,11 +41,19 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(ErrorCode.CONCURRENT_OPERATION));
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(IllegalStateException e) {
+        log.error("IllegalStateException: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.fail(ErrorCode.SYSTEM_ERROR, e.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
         log.error("Unexpected error", e);
+        String detail = e.getClass().getSimpleName() + ": " + e.getMessage();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail(ErrorCode.SYSTEM_ERROR));
+                .body(ApiResponse.fail(ErrorCode.SYSTEM_ERROR, detail));
     }
 
     private HttpStatus mapToHttpStatus(ErrorCode code) {

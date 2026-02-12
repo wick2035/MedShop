@@ -4,6 +4,7 @@ import com.medpay.catalog.dto.HealthPackageRequest;
 import com.medpay.catalog.dto.HealthPackageResponse;
 import com.medpay.catalog.service.HealthPackageService;
 import com.medpay.common.domain.ApiResponse;
+import com.medpay.common.security.TenantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,7 +35,7 @@ public class HealthPackageController {
     public ApiResponse<Page<HealthPackageResponse>> list(
             @RequestParam(required = false) UUID hospitalId,
             Pageable pageable) {
-        return ApiResponse.success(healthPackageService.list(hospitalId, pageable));
+        return ApiResponse.success(healthPackageService.list(TenantUtil.resolveHospitalId(hospitalId), pageable));
     }
 
     @Operation(summary = "创建健康套餐")

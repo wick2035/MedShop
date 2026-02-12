@@ -1,6 +1,7 @@
 package com.medpay.hospital.controller;
 
 import com.medpay.common.domain.ApiResponse;
+import com.medpay.common.security.TenantUtil;
 import com.medpay.hospital.dto.DepartmentRequest;
 import com.medpay.hospital.dto.DepartmentResponse;
 import com.medpay.hospital.service.DepartmentService;
@@ -37,6 +38,7 @@ public class DepartmentController {
     @Operation(summary = "获取科室树形结构")
     @GetMapping
     public ApiResponse<List<DepartmentResponse>> getTree(@PathVariable UUID hospitalId) {
+        TenantUtil.verifyAccess(hospitalId);
         List<DepartmentResponse> tree = departmentService.getTree(hospitalId);
         return ApiResponse.success(tree);
     }
@@ -48,6 +50,7 @@ public class DepartmentController {
     @PostMapping
     public ApiResponse<DepartmentResponse> create(@PathVariable UUID hospitalId,
                                                   @Valid @RequestBody DepartmentRequest request) {
+        TenantUtil.verifyAccess(hospitalId);
         DepartmentResponse response = departmentService.create(hospitalId, request);
         return ApiResponse.success(response);
     }
@@ -60,6 +63,7 @@ public class DepartmentController {
     public ApiResponse<DepartmentResponse> update(@PathVariable UUID hospitalId,
                                                   @PathVariable UUID id,
                                                   @Valid @RequestBody DepartmentRequest request) {
+        TenantUtil.verifyAccess(hospitalId);
         DepartmentResponse response = departmentService.update(hospitalId, id, request);
         return ApiResponse.success(response);
     }
@@ -71,6 +75,7 @@ public class DepartmentController {
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable UUID hospitalId,
                                     @PathVariable UUID id) {
+        TenantUtil.verifyAccess(hospitalId);
         departmentService.delete(hospitalId, id);
         return ApiResponse.success();
     }

@@ -44,11 +44,11 @@ export default function HospitalEditPage() {
       setForm({
         name: data.name,
         address: data.address,
-        phone: data.phone,
-        email: data.email ?? '',
-        level: data.level ?? '',
+        phone: data.contactPhone ?? '',
+        email: data.contactEmail ?? '',
+        level: '',
         subscriptionTier: data.subscriptionTier,
-        description: data.description ?? '',
+        description: '',
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load hospital';
@@ -77,12 +77,9 @@ export default function HospitalEditPage() {
     try {
       await hospitalsApi.update(id, {
         name: form.name,
-        address: form.address,
-        phone: form.phone,
-        email: form.email || undefined,
-        level: form.level || undefined,
-        subscriptionTier: form.subscriptionTier as SubscriptionTier,
-        description: form.description || undefined,
+        address: form.address || undefined,
+        contactPhone: form.phone || undefined,
+        contactEmail: form.email || undefined,
       });
       toast.success('Hospital updated successfully');
       navigate(`/admin/hospitals/${id}`);
@@ -191,13 +188,11 @@ export default function HospitalEditPage() {
             <Select
               value={form.subscriptionTier}
               onChange={(e) => handleChange('subscriptionTier', e.target.value)}
-            >
-              {Object.values(SubscriptionTier).map((tier) => (
-                <option key={tier} value={tier}>
-                  {tier}
-                </option>
-              ))}
-            </Select>
+              options={Object.values(SubscriptionTier).map((tier) => ({
+                value: tier,
+                label: tier,
+              }))}
+            />
           </div>
         </div>
 

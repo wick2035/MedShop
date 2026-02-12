@@ -5,6 +5,7 @@ import com.medpay.catalog.dto.MedicalServiceRequest;
 import com.medpay.catalog.dto.MedicalServiceResponse;
 import com.medpay.catalog.service.MedicalServiceService;
 import com.medpay.common.domain.ApiResponse;
+import com.medpay.common.security.TenantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -39,7 +40,7 @@ public class MedicalServiceController {
             @RequestParam(required = false) ServiceType type,
             @RequestParam(required = false) UUID deptId,
             Pageable pageable) {
-        Page<MedicalServiceResponse> page = medicalServiceService.search(hospitalId, keyword, type, deptId, pageable);
+        Page<MedicalServiceResponse> page = medicalServiceService.search(TenantUtil.resolveHospitalId(hospitalId), keyword, type, deptId, pageable);
         return ApiResponse.success(page);
     }
 

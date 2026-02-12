@@ -1,0 +1,2811 @@
+================================================================================
+                    MedPay 医疗支付系统 — API 接口文档
+                         版本: 1.0.0
+                         更新日期: 2026-02-12
+================================================================================
+
+目录
+────────────────────────────────────────────────────────────────────────────────
+  第一部分  系统概述与快速开始
+  第二部分  认证与鉴权
+  第三部分  通用规范（响应格式、分页、错误码、特殊请求头）
+  第四部分  各模块 API 详细文档
+    4.1  认证模块 (medpay-user)
+    4.2  医院管理模块 (medpay-hospital)
+    4.3  目录模块 (medpay-catalog)
+    4.4  订单模块 (medpay-order)
+    4.5  支付模块 (medpay-payment)
+    4.6  保险模块 (medpay-insurance)
+    4.7  审计模块 (medpay-audit)
+    4.8  对账与报表模块 (medpay-reconciliation)
+    4.9  通知模块 (medpay-notification)
+  第五部分  枚举常量参考
+  第六部分  核心业务流程
+  第七部分  测试账号与演示数据速查
+────────────────────────────────────────────────────────────────────────────────
+
+
+================================================================================
+第一部分  系统概述与快速开始
+================================================================================
+
+1.1 系统简介
+──────────────
+MedPay 是一套医疗商城支付系统，基于 Java 17 + Spring Boot 3.3.7 + PostgreSQL
+构建，采用多模块 Maven 架构，支持多医院多租户运营。
+
+核心功能涵盖：
+  - 医院与科室管理
+  - 医疗服务/药品/健康套餐目录
+  - 医生排班与患者预约挂号
+  - 处方管理
+  - 订单全生命周期管理（状态机驱动）
+  - 多渠道支付（微信/支付宝/银联/Mock）
+  - 保险分账与医保计算
+  - 退款审核
+  - 财务台账、对账、结算
+  - 审计日志
+  - 通知推送
+
+1.2 模块列表
+──────────────
+  模块名                   说明
+  ─────────────────────    ─────────────────────────────
+  medpay-user              用户认证、JWT、角色管理
+  medpay-hospital          医院与科室管理
+  medpay-catalog           服务分类、医疗服务、药品、套餐、排班、处方
+  medpay-order             订单、预约
+  medpay-payment           支付、退款、台账
+  medpay-insurance         医保计算、分账支付
+  medpay-audit             审计日志
+  medpay-reconciliation    对账、结算、报表、CSV导出
+  medpay-notification      站内通知
+  medpay-admin             管理后台页面（非REST API）
+  medpay-common            公共工具、常量、异常、事件
+  medpay-migration         数据库迁移脚本（Flyway）
+  medpay-app               应用启动入口、配置
+
+1.3 基础信息
+──────────────
+  基础 URL:      http://<host>:8080
+  API 前缀:      /api/v1
+  协议:          HTTP（开发环境），建议生产环境使用 HTTPS
+  内容类型:      application/json (UTF-8)
+  Swagger UI:    http://<host>:8080/swagger-ui.html
+  API 文档:      http://<host>:8080/v3/api-docs
+
+1.4 快速开始
+──────────────
+步骤1: 登录获取 Token
+
+  curl -X POST http://localhost:8080/api/v1/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"username":"patient_test","password":"admin123"}'
+
+返回示例:
+  {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiJ9...",
+      "tokenType": "Bearer",
+      "expiresIn": 7200,
+      "user": {
+        "id": "a0000000-0000-0000-0000-000000000020",
+        "username": "patient_test",
+        "role": "PATIENT",
+        "patientId": "30000000-0000-0000-0000-000000000001",
+        ...
+      }
+    }
+  }
+
+步骤2: 使用 Token 调用需认证接口
+
+  curl http://localhost:8080/api/v1/users/me \
+    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
+
+
+================================================================================
+第二部分  认证与鉴权
+================================================================================
+
+2.1 认证方式
+──────────────
+本系统使用 JWT (JSON Web Token) 进行认证。
+
+请求头格式:
+  Authorization: Bearer <access_token>
+
+Token 算法: HS256 (HMAC-SHA256)
+
+Token 有效期:
+  - access token:  2 小时 (7200000ms)
+  - refresh token: 7 天 (604800000ms)
+
+Token Claims 结构:
+  {
+    "sub": "<userId>",            // 用户 UUID
+    "role": "PATIENT",            // 用户角色
+    "username": "patient_test",   // 用户名
+    "hospitalId": "<uuid>",       // 所属医院（SUPER_ADMIN 为 null）
+    "iat": 1707234000,            // 签发时间（epoch 秒）
+    "exp": 1707241200             // 过期时间（epoch 秒）
+  }
+
+2.2 Token 刷新
+──────────────
+当 access token 过期时，使用 refresh token 换取新的 token 对。
+
+  POST /api/v1/auth/refresh
+  请求头: X-Refresh-Token: <refresh_token>
+
+2.3 角色体系
+──────────────
+  角色              Spring Security Authority    说明
+  ───────────────  ─────────────────────────    ─────────────────────
+  PATIENT           ROLE_PATIENT                 患者/用户
+  DOCTOR            ROLE_DOCTOR                  医生
+  HOSPITAL_ADMIN    ROLE_HOSPITAL_ADMIN          医院管理员
+  SUPER_ADMIN       ROLE_SUPER_ADMIN             超级管理员（跨医院）
+
+2.4 多租户机制
+──────────────
+系统通过 hospitalId 实现数据隔离：
+  - 普通用户: hospitalId 从 JWT token 自动提取，无需额外传递
+  - SUPER_ADMIN: 可通过请求头 X-Hospital-Id 指定要操作的医院
+    示例: X-Hospital-Id: c0000000-0000-0000-0000-000000000001
+
+2.5 公开端点（无需认证）
+──────────────
+  POST  /api/v1/auth/register         患者注册
+  POST  /api/v1/auth/login            登录
+  POST  /api/v1/auth/refresh          刷新 Token
+  POST  /api/v1/payments/callback/**  支付回调
+  GET   /api/v1/doctors               医生列表
+  GET   /api/v1/doctors/{id}          医生详情
+  GET   /api/v1/hospitals             医院列表
+  GET   /api/v1/hospitals/{id}        医院详情
+  GET   /api/v1/catalog/**            目录浏览（服务/药品/套餐等）
+  GET   /api/v1/schedules             排班查询
+  GET   /api/v1/schedules/{id}        排班详情
+  GET   /swagger-ui/**                Swagger UI
+  GET   /actuator/health              健康检查
+
+2.6 需认证端点
+──────────────
+  除上述公开端点外的所有 /api/v1/** 路径均需要有效的 Bearer Token。
+
+2.7 账号安全
+──────────────
+  - 密码: BCrypt 加密存储
+  - 登录失败: 连续 5 次失败后账号锁定 30 分钟
+  - 账号状态: ACTIVE / LOCKED / DEACTIVATED
+
+
+================================================================================
+第三部分  通用规范
+================================================================================
+
+3.1 响应包装格式
+──────────────
+所有 API 响应均使用 ApiResponse 包装:
+
+  {
+    "code": 0,            // 业务码，0 表示成功，非 0 表示错误
+    "message": "success", // 描述信息
+    "data": { ... }       // 业务数据，成功时返回；失败时此字段可能不存在
+  }
+
+注意: data 为 null 时不会出现在 JSON 中（@JsonInclude(NON_NULL)）
+
+3.2 分页请求与响应
+──────────────
+分页请求参数（查询参数）:
+  page    int     页码，从 0 开始，默认 0
+  size    int     每页条数，默认 20
+  sort    String  排序字段，格式: field,asc 或 field,desc
+
+示例: GET /api/v1/orders?page=0&size=10&sort=createdAt,desc
+
+分页响应结构（data 字段内容）:
+  {
+    "content": [ ... ],        // 当前页数据数组
+    "totalElements": 100,      // 总记录数
+    "totalPages": 10,          // 总页数
+    "number": 0,               // 当前页码
+    "size": 10,                // 每页条数
+    "first": true,             // 是否第一页
+    "last": false,             // 是否最后一页
+    "empty": false             // 是否为空
+  }
+
+3.3 特殊请求头
+──────────────
+  请求头              类型      说明
+  ──────────────────  ──────    ──────────────────────────────────────
+  Authorization       必填*     Bearer <access_token>（认证端点必填）
+  X-Patient-Id        必填*     患者 UUID（创建订单等患者操作时必填）
+  X-Hospital-Id       可选      医院 UUID（仅 SUPER_ADMIN 使用，切换租户）
+  X-Refresh-Token     必填*     refresh token（仅刷新令牌时使用）
+  Idempotency-Key     可选      幂等键（支付发起、退款创建时推荐传入）
+  Content-Type        必填*     application/json（POST/PUT 请求必填）
+
+3.4 幂等性说明
+──────────────
+以下接口支持幂等控制，推荐传入 Idempotency-Key 头（UUID 格式）:
+  - POST /api/v1/payments/initiate  (发起支付)
+  - POST /api/v1/refunds            (创建退款)
+  - POST /api/v1/orders             (创建订单)
+
+同一个 Idempotency-Key 重复请求将返回首次执行的结果，避免重复操作。
+
+3.5 完整错误码表
+──────────────
+
+  错误码    HTTP状态    说明
+  ──────    ────────    ──────────────────────────────────
+
+  [系统错误 50xxx]
+  50000     500         系统内部错误
+  50003     500         服务暂不可用
+
+  [参数错误 40xxx]
+  40001     400         参数校验失败
+  40002     400         缺少必要参数
+
+  [认证错误 401xx]
+  40100     401         未认证，请先登录
+  40101     401         Token已过期
+  40102     401         Token无效
+  40103     401         用户名或密码错误
+  40104     401         账号已被锁定
+  40105     401         账号已被禁用
+
+  [权限错误 403xx]
+  40300     403         无权限执行此操作
+  40301     403         无权访问该医院数据
+
+  [资源不存在 404xx]
+  40400     404         资源不存在
+  40401     404         用户不存在
+  40402     404         医院不存在
+  40403     404         科室不存在
+  40404     404         服务不存在
+  40405     404         产品不存在
+
+  [冲突 409xx]
+  40900     409         数据已存在
+  40901     409         用户名已存在
+  40902     409         手机号已注册
+  40903     409         邮箱已注册
+
+  [订单错误 60xxx]
+  60001     400         订单不存在
+  60002     400         订单状态不允许此操作
+  60003     400         订单已过期
+  60004     400         订单取消失败
+
+  [支付错误 70xxx]
+  70001     400         重复支付
+  70002     400         支付金额不匹配
+  70003     400         支付渠道异常
+  70004     400         支付渠道不存在
+  70005     400         支付回调签名验证失败
+  70006     400         退款金额超出限制
+  70007     400         当前状态不允许退款
+
+  [库存/排班错误 80xxx]
+  80001     400         库存不足
+  80002     400         该时段已约满
+
+  [幂等/并发 90xxx]
+  90001     400         缺少幂等键
+  90002     409         请求正在处理中，请勿重复提交
+  90003     409         操作冲突，请稍后重试
+
+
+================================================================================
+第四部分  各模块 API 详细文档
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+4.1  认证模块 (medpay-user)
+────────────────────────────────────────────────────────────────────────────────
+
+【4.1.1】患者注册
+─────────────────
+  POST /api/v1/auth/register
+  认证: 不需要
+
+  用途: 注册新患者账号，注册成功后直接返回 token，无需再登录。
+
+  请求体:
+    字段          类型      必填    校验规则                说明
+    ──────────    ──────    ────    ──────────────────      ──────────
+    username      String    是      @NotBlank @Size(3~50)   用户名
+    phone         String    是      @NotBlank               手机号
+    password      String    是      @NotBlank @Size(6~50)   密码
+    fullName      String    是      @NotBlank               真实姓名
+    gender        String    否      -                       性别
+    email         String    否      -                       邮箱
+
+  响应体: ApiResponse<LoginResponse>
+    data 字段:
+      accessToken   String    访问令牌
+      refreshToken  String    刷新令牌
+      tokenType     String    固定 "Bearer"
+      expiresIn     long      过期秒数（7200）
+      user          Object    用户信息（见下方 UserInfoResponse）
+
+  UserInfoResponse 结构:
+    id            UUID      用户ID
+    username      String    用户名
+    phone         String    手机号
+    email         String    邮箱
+    role          String    角色（PATIENT）
+    status        String    状态（ACTIVE）
+    avatarUrl     String    头像URL
+    fullName      String    姓名
+    hospitalId    UUID      所属医院ID
+    doctorId      UUID      医生ID（非医生为null）
+    patientId     UUID      患者ID（非患者为null）
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/auth/register \
+      -H "Content-Type: application/json" \
+      -d '{
+        "username": "zhang_san",
+        "phone": "13812345678",
+        "password": "secure123",
+        "fullName": "张三",
+        "gender": "MALE"
+      }'
+
+
+【4.1.2】登录
+─────────────
+  POST /api/v1/auth/login
+  认证: 不需要
+
+  用途: 通过用户名（或手机号）和密码登录，获取 JWT Token。
+
+  请求体:
+    字段          类型      必填    校验规则          说明
+    ──────────    ──────    ────    ──────────────    ──────────────
+    username      String    是      @NotBlank         用户名或手机号
+    password      String    是      @NotBlank         密码
+
+  响应体: ApiResponse<LoginResponse>（同注册返回）
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/auth/login \
+      -H "Content-Type: application/json" \
+      -d '{"username":"patient_test","password":"admin123"}'
+
+
+【4.1.3】刷新令牌
+─────────────────
+  POST /api/v1/auth/refresh
+  认证: 不需要（使用 refresh token）
+
+  用途: access token 过期后，用 refresh token 换取新的 token 对。
+
+  请求头:
+    X-Refresh-Token: <refresh_token_string>
+
+  响应体: ApiResponse<LoginResponse>（返回新的 token 对）
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/auth/refresh \
+      -H "X-Refresh-Token: eyJhbGciOiJIUzI1NiJ9..."
+
+
+【4.1.4】获取当前用户信息
+───────────────────────
+  GET /api/v1/users/me
+  认证: 需要
+
+  用途: 获取当前登录用户的详细信息。
+
+  响应体: ApiResponse<UserInfoResponse>
+
+  示例:
+    curl http://localhost:8080/api/v1/users/me \
+      -H "Authorization: Bearer <token>"
+
+
+【4.1.5】医生列表
+─────────────────
+  GET /api/v1/doctors
+  认证: 不需要
+
+  用途: 查询医生列表，支持按医院和科室筛选。
+
+  查询参数:
+    参数            类型      必填    说明
+    ────────────    ──────    ────    ──────────────────
+    hospitalId      UUID      否      按医院筛选
+    departmentId    UUID      否      按科室筛选
+    page            int       否      页码，默认 0
+    size            int       否      每页条数，默认 20
+
+  响应体: ApiResponse<Page<Doctor>>
+
+  示例:
+    curl "http://localhost:8080/api/v1/doctors?hospitalId=c0000000-0000-0000-0000-000000000001&page=0&size=10"
+
+
+【4.1.6】医生详情
+─────────────────
+  GET /api/v1/doctors/{id}
+  认证: 不需要
+
+  用途: 获取指定医生的详细信息。
+
+  路径参数:
+    id    UUID    医生ID
+
+  响应体: ApiResponse<Doctor>
+
+  示例:
+    curl http://localhost:8080/api/v1/doctors/e0000000-0000-0000-0000-000000000001
+
+
+────────────────────────────────────────────────────────────────────────────────
+4.2  医院管理模块 (medpay-hospital)
+────────────────────────────────────────────────────────────────────────────────
+
+【4.2.1】创建医院
+─────────────────
+  POST /api/v1/hospitals
+  认证: 需要
+
+  用途: 创建新医院（通常由超级管理员操作）。
+
+  请求体:
+    字段              类型      必填    说明
+    ──────────────    ──────    ────    ──────────────────
+    name              String    是      医院名称
+    code              String    是      医院编码（唯一）
+    licenseNumber     String    否      执照号
+    address           String    否      地址
+    city              String    否      城市
+    province          String    否      省份
+    contactPhone      String    否      联系电话
+    contactEmail      String    否      联系邮箱
+    logoUrl           String    否      Logo URL
+    timezone          String    否      时区
+
+  响应体: ApiResponse<HospitalResponse>
+
+  HospitalResponse 结构:
+    id                UUID            医院ID
+    name              String          名称
+    code              String          编码
+    licenseNumber     String          执照号
+    address           String          地址
+    city              String          城市
+    province          String          省份
+    contactPhone      String          联系电话
+    contactEmail      String          联系邮箱
+    logoUrl           String          Logo URL
+    status            String          状态（ACTIVE/SUSPENDED/DEACTIVATED）
+    subscriptionTier  String          订阅等级
+    configJson        String          配置JSON
+    timezone          String          时区
+    createdAt         LocalDateTime   创建时间
+    updatedAt         LocalDateTime   更新时间
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/hospitals \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "广州中山医院",
+        "code": "ZSHOSP-001",
+        "address": "广州市越秀区中山路1号",
+        "city": "广州",
+        "province": "广东",
+        "contactPhone": "020-88888888"
+      }'
+
+
+【4.2.2】医院列表
+─────────────────
+  GET /api/v1/hospitals
+  认证: 不需要
+
+  用途: 分页查询医院列表。
+
+  查询参数:
+    page    int    否    页码，默认 0
+    size    int    否    每页条数，默认 20
+
+  响应体: ApiResponse<Page<HospitalResponse>>
+
+  示例:
+    curl "http://localhost:8080/api/v1/hospitals?page=0&size=10"
+
+
+【4.2.3】医院详情
+─────────────────
+  GET /api/v1/hospitals/{id}
+  认证: 不需要
+
+  路径参数: id (UUID) - 医院ID
+
+  响应体: ApiResponse<HospitalResponse>
+
+  示例:
+    curl http://localhost:8080/api/v1/hospitals/c0000000-0000-0000-0000-000000000001
+
+
+【4.2.4】更新医院信息
+─────────────────────
+  PUT /api/v1/hospitals/{id}
+  认证: 需要
+
+  用途: 更新医院基本信息，仅传入需要修改的字段（null 字段不更新）。
+
+  路径参数: id (UUID) - 医院ID
+
+  请求体:
+    字段              类型      必填    说明
+    ──────────────    ──────    ────    ──────────────
+    name              String    否      医院名称
+    licenseNumber     String    否      执照号
+    address           String    否      地址
+    city              String    否      城市
+    province          String    否      省份
+    contactPhone      String    否      联系电话
+    contactEmail      String    否      联系邮箱
+    logoUrl           String    否      Logo URL
+    timezone          String    否      时区
+
+  响应体: ApiResponse<HospitalResponse>
+
+  示例:
+    curl -X PUT http://localhost:8080/api/v1/hospitals/c0000000-0000-0000-0000-000000000001 \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"contactPhone":"010-69156200"}'
+
+
+【4.2.5】更新医院状态
+─────────────────────
+  PUT /api/v1/hospitals/{id}/status
+  认证: 需要
+
+  用途: 更改医院启用/停用状态。
+
+  路径参数: id (UUID) - 医院ID
+  查询参数: status (HospitalStatus) - 目标状态: ACTIVE / SUSPENDED / DEACTIVATED
+
+  响应体: ApiResponse<Void>
+
+  示例:
+    curl -X PUT "http://localhost:8080/api/v1/hospitals/c0000000-0000-0000-0000-000000000001/status?status=SUSPENDED" \
+      -H "Authorization: Bearer <token>"
+
+
+【4.2.6】更新医院配置
+─────────────────────
+  PUT /api/v1/hospitals/{id}/config
+  认证: 需要
+
+  用途: 更新医院自定义配置（JSON 格式）。
+
+  路径参数: id (UUID) - 医院ID
+  请求体: Map<String, Object> — 自定义配置键值对
+
+  响应体: ApiResponse<Void>
+
+  示例:
+    curl -X PUT http://localhost:8080/api/v1/hospitals/c0000000-0000-0000-0000-000000000001/config \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"maxDailyOrders": 1000, "enableInsurance": true}'
+
+
+【4.2.7】获取科室树
+─────────────────────
+  GET /api/v1/hospitals/{hospitalId}/departments
+  认证: 不需要
+
+  用途: 获取指定医院的科室树形结构。
+
+  路径参数: hospitalId (UUID) - 医院ID
+
+  响应体: ApiResponse<List<DepartmentResponse>>
+
+  DepartmentResponse 结构:
+    id          UUID                        科室ID
+    name        String                      名称
+    code        String                      编码
+    parentId    UUID                        父科室ID（根节点为null）
+    description String                      描述
+    sortOrder   Integer                     排序号
+    status      String                      状态
+    children    List<DepartmentResponse>    子科室列表
+
+  示例:
+    curl http://localhost:8080/api/v1/hospitals/c0000000-0000-0000-0000-000000000001/departments
+
+
+【4.2.8】创建科室
+─────────────────
+  POST /api/v1/hospitals/{hospitalId}/departments
+  认证: 需要
+
+  路径参数: hospitalId (UUID) - 医院ID
+
+  请求体:
+    字段          类型      必填    说明
+    ──────────    ──────    ────    ──────────────
+    name          String    是      科室名称
+    code          String    是      科室编码
+    parentId      UUID      否      父科室ID
+    description   String    否      描述
+    sortOrder     Integer   否      排序号
+
+  响应体: ApiResponse<DepartmentResponse>
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/hospitals/c0000000-0000-0000-0000-000000000001/departments \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"急诊科","code":"JZK","sortOrder":6}'
+
+
+【4.2.9】更新科室
+─────────────────
+  PUT /api/v1/hospitals/{hospitalId}/departments/{id}
+  认证: 需要
+
+  路径参数:
+    hospitalId (UUID) - 医院ID
+    id (UUID) - 科室ID
+
+  请求体: 同创建科室
+
+  响应体: ApiResponse<DepartmentResponse>
+
+  示例:
+    curl -X PUT http://localhost:8080/api/v1/hospitals/c0000000-0000-0000-0000-000000000001/departments/d0000000-0000-0000-0000-000000000001 \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"大内科","code":"NK","sortOrder":1}'
+
+
+【4.2.10】删除科室
+──────────────────
+  DELETE /api/v1/hospitals/{hospitalId}/departments/{id}
+  认证: 需要
+
+  路径参数:
+    hospitalId (UUID) - 医院ID
+    id (UUID) - 科室ID
+
+  响应体: ApiResponse<Void>
+
+  示例:
+    curl -X DELETE http://localhost:8080/api/v1/hospitals/c0000000-0000-0000-0000-000000000001/departments/d0000000-0000-0000-0000-000000000001 \
+      -H "Authorization: Bearer <token>"
+
+
+────────────────────────────────────────────────────────────────────────────────
+4.3  目录模块 (medpay-catalog)
+────────────────────────────────────────────────────────────────────────────────
+
+=== 4.3.A  服务分类 ===
+
+【4.3.1】服务分类列表
+─────────────────────
+  GET /api/v1/catalog/categories
+  认证: 不需要
+
+  用途: 获取服务分类列表（树形结构）。
+
+  查询参数:
+    hospitalId    UUID    否    按医院筛选
+
+  响应体: ApiResponse<List<ServiceCategoryResponse>>
+
+  ServiceCategoryResponse 结构:
+    id          UUID                            分类ID
+    name        String                          名称
+    code        String                          编码
+    parentId    UUID                            父分类ID
+    iconUrl     String                          图标URL
+    sortOrder   Integer                         排序号
+    status      String                          状态
+    children    List<ServiceCategoryResponse>   子分类
+
+  示例:
+    curl "http://localhost:8080/api/v1/catalog/categories?hospitalId=c0000000-0000-0000-0000-000000000001"
+
+
+【4.3.2】创建服务分类
+─────────────────────
+  POST /api/v1/catalog/categories
+  认证: 需要
+
+  请求体:
+    字段          类型      必填    说明
+    ──────────    ──────    ────    ──────────
+    name          String    是      分类名称
+    code          String    是      分类编码
+    parentId      UUID      否      父分类ID
+    iconUrl       String    否      图标URL
+    sortOrder     Integer   否      排序号
+
+  响应体: ApiResponse<ServiceCategoryResponse>
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/catalog/categories \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -H "X-Hospital-Id: c0000000-0000-0000-0000-000000000001" \
+      -d '{"name":"中医理疗","code":"TCM","sortOrder":4}'
+
+
+【4.3.3】更新服务分类
+─────────────────────
+  PUT /api/v1/catalog/categories/{id}
+  认证: 需要
+
+  路径参数: id (UUID) - 分类ID
+  请求体: 同创建
+
+  响应体: ApiResponse<ServiceCategoryResponse>
+
+
+=== 4.3.B  医疗服务 ===
+
+【4.3.4】医疗服务搜索
+─────────────────────
+  GET /api/v1/catalog/services
+  认证: 不需要
+
+  用途: 搜索医疗服务，支持多条件筛选和分页。
+
+  查询参数:
+    参数          类型          必填    说明
+    ──────────    ──────────    ────    ──────────────────
+    hospitalId    UUID          否      医院ID
+    keyword       String        否      关键词搜索（名称）
+    type          ServiceType   否      服务类型
+    deptId        UUID          否      科室ID
+    page          int           否      页码
+    size          int           否      每页条数
+
+  ServiceType 可选值:
+    REGISTRATION / EXAMINATION / CONSULTATION / TELEMEDICINE
+    VIP_PACKAGE / HEALTH_CHECKUP / SECOND_OPINION / REHABILITATION
+
+  响应体: ApiResponse<Page<MedicalServiceResponse>>
+
+  MedicalServiceResponse 结构:
+    id                    UUID          服务ID
+    hospitalId            UUID          医院ID
+    categoryId            UUID          分类ID
+    departmentId          UUID          科室ID
+    name                  String        名称
+    code                  String        编码
+    serviceType           String        服务类型
+    description           String        描述
+    price                 BigDecimal    价格
+    originalPrice         BigDecimal    原价
+    insuranceCovered      boolean       是否医保
+    insuranceCategory     String        医保类别（甲类/乙类/丙类）
+    insuranceRatio        BigDecimal    报销比例
+    maxDailyQuota         Integer       每日限额
+    durationMinutes       Integer       时长（分钟）
+    requiresPrescription  boolean       是否需要处方
+    imageUrls             List<String>  图片列表
+    tags                  List<String>  标签
+    sortOrder             Integer       排序
+    status                String        状态
+    createdAt             LocalDateTime 创建时间
+    updatedAt             LocalDateTime 更新时间
+
+  示例:
+    curl "http://localhost:8080/api/v1/catalog/services?hospitalId=c0000000-0000-0000-0000-000000000001&type=REGISTRATION&page=0&size=20"
+
+
+【4.3.5】创建医疗服务
+─────────────────────
+  POST /api/v1/catalog/services
+  认证: 需要
+
+  请求体:
+    字段                    类型          必填    说明
+    ──────────────────      ──────────    ────    ──────────────────
+    categoryId              UUID          否      分类ID
+    departmentId            UUID          否      科室ID
+    name                    String        是      名称
+    code                    String        是      编码
+    serviceType             ServiceType   是      服务类型
+    description             String        否      描述
+    price                   BigDecimal    是      价格
+    originalPrice           BigDecimal    否      原价
+    insuranceCovered        boolean       否      是否医保（默认false）
+    insuranceCategory       String        否      医保类别
+    insuranceRatio          BigDecimal    否      报销比例
+    maxDailyQuota           Integer       否      每日限额
+    durationMinutes         Integer       否      时长
+    requiresPrescription    boolean       否      是否需处方（默认false）
+    imageUrls               List<String>  否      图片URL列表
+    tags                    List<String>  否      标签列表
+    sortOrder               Integer       否      排序
+
+  响应体: ApiResponse<MedicalServiceResponse>
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/catalog/services \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -H "X-Hospital-Id: c0000000-0000-0000-0000-000000000001" \
+      -d '{
+        "name": "心电图检查",
+        "code": "EXAM-ECG",
+        "serviceType": "EXAMINATION",
+        "price": 80.00,
+        "insuranceCovered": true,
+        "insuranceCategory": "甲类",
+        "insuranceRatio": 0.85,
+        "durationMinutes": 20
+      }'
+
+
+【4.3.6】医疗服务详情
+─────────────────────
+  GET /api/v1/catalog/services/{id}
+  认证: 不需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<MedicalServiceResponse>
+
+  示例:
+    curl http://localhost:8080/api/v1/catalog/services/10000000-0000-0000-0000-000000000001
+
+
+【4.3.7】更新医疗服务
+─────────────────────
+  PUT /api/v1/catalog/services/{id}
+  认证: 需要
+
+  路径参数: id (UUID)
+  请求体: 同创建
+
+  响应体: ApiResponse<MedicalServiceResponse>
+
+
+【4.3.8】删除医疗服务
+─────────────────────
+  DELETE /api/v1/catalog/services/{id}
+  认证: 需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<Void>
+
+
+=== 4.3.C  药品/产品 ===
+
+【4.3.9】药品搜索
+─────────────────
+  GET /api/v1/catalog/products
+  认证: 不需要
+
+  查询参数:
+    hospitalId    UUID          否    医院ID
+    keyword       String        否    关键词
+    type          ProductType   否    产品类型
+    page          int           否    页码
+    size          int           否    每页条数
+
+  ProductType 可选值: MEDICINE / MEDICAL_DEVICE / HEALTH_PRODUCT / SUPPLEMENT
+
+  响应体: ApiResponse<Page<ProductResponse>>
+
+  ProductResponse 结构:
+    id                    UUID          产品ID
+    hospitalId            UUID          医院ID
+    categoryId            UUID          分类ID
+    name                  String        名称
+    code                  String        编码
+    productType           String        类型
+    genericName           String        通用名
+    manufacturer          String        厂商
+    specification         String        规格
+    unit                  String        单位
+    price                 BigDecimal    价格
+    costPrice             BigDecimal    成本价
+    stockQuantity         Integer       库存
+    lowStockThreshold     Integer       低库存阈值
+    requiresPrescription  boolean       是否需处方
+    insuranceCovered      boolean       是否医保
+    insuranceCategory     String        医保类别
+    insuranceRatio        BigDecimal    报销比例
+    contraindications     String        禁忌症
+    sideEffects           String        副作用
+    storageConditions     String        储存条件
+    expiryWarningDays     Integer       过期预警天数
+    imageUrls             List<String>  图片列表
+    barcode               String        条形码
+    status                String        状态
+    createdAt             LocalDateTime 创建时间
+    updatedAt             LocalDateTime 更新时间
+
+  示例:
+    curl "http://localhost:8080/api/v1/catalog/products?hospitalId=c0000000-0000-0000-0000-000000000001&type=MEDICINE"
+
+
+【4.3.10】创建药品
+──────────────────
+  POST /api/v1/catalog/products
+  认证: 需要
+
+  请求体:
+    字段                    类型          必填    说明
+    ──────────────────      ──────────    ────    ──────────────
+    categoryId              UUID          否      分类ID
+    name                    String        是      名称
+    code                    String        是      编码
+    productType             ProductType   是      类型
+    genericName             String        否      通用名
+    manufacturer            String        否      厂商
+    specification           String        否      规格
+    unit                    String        否      单位
+    price                   BigDecimal    是      价格
+    costPrice               BigDecimal    否      成本价
+    stockQuantity           Integer       否      初始库存
+    lowStockThreshold       Integer       否      低库存阈值
+    requiresPrescription    boolean       否      是否需处方
+    insuranceCovered        boolean       否      是否医保
+    insuranceCategory       String        否      医保类别
+    insuranceRatio          BigDecimal    否      报销比例
+    contraindications       String        否      禁忌症
+    sideEffects             String        否      副作用
+    storageConditions       String        否      储存条件
+    expiryWarningDays       Integer       否      过期预警天数
+    imageUrls               List<String>  否      图片URL列表
+    barcode                 String        否      条形码
+
+  响应体: ApiResponse<ProductResponse>
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/catalog/products \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -H "X-Hospital-Id: c0000000-0000-0000-0000-000000000001" \
+      -d '{
+        "name": "头孢克肟分散片",
+        "code": "MED-TBKW",
+        "productType": "MEDICINE",
+        "genericName": "头孢克肟",
+        "manufacturer": "广州白云山",
+        "specification": "0.1g*12片",
+        "unit": "盒",
+        "price": 28.00,
+        "stockQuantity": 200,
+        "insuranceCovered": true,
+        "insuranceCategory": "乙类",
+        "insuranceRatio": 0.75
+      }'
+
+
+【4.3.11】药品详情
+──────────────────
+  GET /api/v1/catalog/products/{id}
+  认证: 不需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<ProductResponse>
+
+  示例:
+    curl http://localhost:8080/api/v1/catalog/products/20000000-0000-0000-0000-000000000001
+
+
+【4.3.12】更新药品
+──────────────────
+  PUT /api/v1/catalog/products/{id}
+  认证: 需要
+
+  路径参数: id (UUID)
+  请求体: 同创建
+
+  响应体: ApiResponse<ProductResponse>
+
+
+【4.3.13】调整库存
+──────────────────
+  PUT /api/v1/catalog/products/{id}/stock
+  认证: 需要
+
+  用途: 直接设置产品库存数量。
+
+  路径参数: id (UUID)
+  查询参数: quantity (int) - 新库存数量
+
+  响应体: ApiResponse<ProductResponse>
+
+  示例:
+    curl -X PUT "http://localhost:8080/api/v1/catalog/products/20000000-0000-0000-0000-000000000001/stock?quantity=600" \
+      -H "Authorization: Bearer <token>"
+
+
+=== 4.3.D  健康套餐 ===
+
+【4.3.14】套餐列表
+──────────────────
+  GET /api/v1/catalog/packages
+  认证: 不需要
+
+  查询参数:
+    hospitalId    UUID    否    医院ID
+    page          int     否    页码
+    size          int     否    每页条数
+
+  响应体: ApiResponse<Page<HealthPackageResponse>>
+
+  HealthPackageResponse 结构:
+    id              UUID                      套餐ID
+    hospitalId      UUID                      医院ID
+    name            String                    名称
+    code            String                    编码
+    description     String                    描述
+    packageType     String                    类型
+    price           BigDecimal                价格
+    originalPrice   BigDecimal                原价
+    validityDays    Integer                   有效天数
+    maxUsage        Integer                   最大使用次数
+    includedItems   List<Map<String,Object>>  包含项目
+    imageUrl        String                    图片
+    sortOrder       Integer                   排序
+    status          String                    状态
+    createdAt       LocalDateTime             创建时间
+
+  PackageType 可选值: CHECKUP / MEMBERSHIP / ...
+    (注: 实际存储可能使用 HEALTH_CHECKUP / VIP_CARE / CHRONIC_MANAGEMENT / MATERNITY)
+
+  示例:
+    curl "http://localhost:8080/api/v1/catalog/packages?hospitalId=c0000000-0000-0000-0000-000000000001"
+
+
+【4.3.15】创建套餐
+──────────────────
+  POST /api/v1/catalog/packages
+  认证: 需要
+
+  请求体:
+    字段            类型                      必填    说明
+    ────────────    ──────────────────────    ────    ──────────────
+    name            String                    是      名称
+    code            String                    是      编码
+    description     String                    否      描述
+    packageType     PackageType               是      类型
+    price           BigDecimal                是      价格
+    originalPrice   BigDecimal                否      原价
+    validityDays    Integer                   否      有效天数
+    maxUsage        Integer                   否      最大使用次数
+    includedItems   List<Map<String,Object>>  否      包含项目 JSON
+    imageUrl        String                    否      图片URL
+    sortOrder       Integer                   否      排序
+
+  includedItems 示例:
+    [
+      {"name":"血常规检查","type":"SERVICE","referenceId":"10000000-0000-0000-0000-000000000003"},
+      {"name":"胸部CT","type":"SERVICE","referenceId":"10000000-0000-0000-0000-000000000004"}
+    ]
+
+  响应体: ApiResponse<HealthPackageResponse>
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/catalog/packages \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -H "X-Hospital-Id: c0000000-0000-0000-0000-000000000001" \
+      -d '{
+        "name": "入职体检套餐",
+        "code": "PKG-ENTRY-001",
+        "description": "含血常规、胸片、肝功等入职必检项目",
+        "packageType": "HEALTH_CHECKUP",
+        "price": 199.00,
+        "originalPrice": 350.00,
+        "validityDays": 30,
+        "maxUsage": 1,
+        "includedItems": [{"name":"血常规","type":"SERVICE"}]
+      }'
+
+
+【4.3.16】套餐详情
+──────────────────
+  GET /api/v1/catalog/packages/{id}
+  认证: 不需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<HealthPackageResponse>
+
+  示例:
+    curl http://localhost:8080/api/v1/catalog/packages/50000000-0000-0000-0000-000000000001
+
+
+【4.3.17】更新套餐
+──────────────────
+  PUT /api/v1/catalog/packages/{id}
+  认证: 需要
+
+  路径参数: id (UUID)
+  请求体: 同创建
+
+  响应体: ApiResponse<HealthPackageResponse>
+
+
+=== 4.3.E  医生排班 ===
+
+【4.3.18】查询排班
+──────────────────
+  GET /api/v1/schedules
+  认证: 不需要
+
+  用途: 查询可用排班，支持按医生和日期筛选。
+
+  查询参数:
+    doctorId    UUID        否    医生ID
+    date        LocalDate   否    日期（格式: yyyy-MM-dd）
+    page        int         否    页码
+    size        int         否    每页条数
+
+  响应体: ApiResponse<Page<DoctorScheduleResponse>>
+
+  DoctorScheduleResponse 结构:
+    id              UUID          排班ID
+    doctorId        UUID          医生ID
+    serviceId       UUID          关联服务ID
+    scheduleDate    LocalDate     日期
+    timeSlotStart   LocalTime     开始时间
+    timeSlotEnd     LocalTime     结束时间
+    maxPatients     Integer       最大接诊数
+    bookedCount     Integer       已预约数
+    status          String        状态（AVAILABLE/FULL/CANCELLED）
+    createdAt       LocalDateTime 创建时间
+
+  示例:
+    curl "http://localhost:8080/api/v1/schedules?doctorId=e0000000-0000-0000-0000-000000000001&date=2026-02-13"
+
+
+【4.3.19】排班详情
+──────────────────
+  GET /api/v1/schedules/{id}
+  认证: 不需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<DoctorScheduleResponse>
+
+  示例:
+    curl http://localhost:8080/api/v1/schedules/40000000-0000-0000-0000-000000000001
+
+
+【4.3.20】创建排班
+──────────────────
+  POST /api/v1/schedules
+  认证: 需要
+
+  用途: 为医生创建排班时段。
+
+  请求体:
+    字段            类型        必填    说明
+    ────────────    ────────    ────    ──────────────────
+    doctorId        UUID        是      医生ID
+    serviceId       UUID        是      关联挂号服务ID
+    scheduleDate    LocalDate   是      日期
+    timeSlotStart   LocalTime   是      开始时间（HH:mm）
+    timeSlotEnd     LocalTime   是      结束时间（HH:mm）
+    maxPatients     Integer     是      最大接诊人数
+
+  响应体: ApiResponse<DoctorScheduleResponse>
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/schedules \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "doctorId": "e0000000-0000-0000-0000-000000000001",
+        "serviceId": "10000000-0000-0000-0000-000000000001",
+        "scheduleDate": "2026-02-20",
+        "timeSlotStart": "08:30",
+        "timeSlotEnd": "11:30",
+        "maxPatients": 20
+      }'
+
+
+【4.3.21】更新排班
+──────────────────
+  PUT /api/v1/schedules/{id}
+  认证: 需要
+
+  路径参数: id (UUID)
+  请求体: 同创建
+
+  响应体: ApiResponse<DoctorScheduleResponse>
+
+
+【4.3.22】取消排班
+──────────────────
+  DELETE /api/v1/schedules/{id}
+  认证: 需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<Void>
+
+
+=== 4.3.F  处方管理 ===
+
+【4.3.23】创建处方
+──────────────────
+  POST /api/v1/prescriptions
+  认证: 需要
+
+  用途: 医生为患者开具处方。
+
+  查询参数: doctorId (UUID) - 开方医生ID
+
+  请求体:
+    字段            类型                        必填    说明
+    ────────────    ──────────────────────      ────    ──────────────
+    patientId       UUID                        是      患者ID
+    appointmentId   UUID                        否      关联预约ID
+    diagnosis       String                      是      诊断
+    diagnosisCode   String                      否      诊断编码
+    notes           String                      否      备注
+    items           List<PrescriptionItemReq>   是      处方项列表
+
+  PrescriptionItemRequest:
+    productId           UUID      是      药品ID
+    quantity            int       是      数量（>=1）
+    dosageInstruction   String    否      用法用量
+    frequency           String    否      频次
+    durationDays        Integer   否      疗程天数
+
+  响应体: ApiResponse<PrescriptionResponse>
+
+  PrescriptionResponse 结构:
+    id                UUID          处方ID
+    prescriptionNo    String        处方编号
+    doctorId          UUID          医生ID
+    patientId         UUID          患者ID
+    appointmentId     UUID          预约ID
+    diagnosis         String        诊断
+    diagnosisCode     String        诊断编码
+    notes             String        备注
+    totalAmount       BigDecimal    总金额
+    insuranceAmount   BigDecimal    医保金额
+    selfPayAmount     BigDecimal    自费金额
+    status            String        状态
+    validUntil        LocalDateTime 有效期至
+    createdAt         LocalDateTime 创建时间
+    items             List          处方项列表
+
+  处方项 PrescriptionItemResponse:
+    id                  UUID          项ID
+    productId           UUID          药品ID
+    productName         String        药品名
+    specification       String        规格
+    quantity            Integer       数量
+    unitPrice           BigDecimal    单价
+    subtotal            BigDecimal    小计
+    dosageInstruction   String        用法
+    frequency           String        频次
+    durationDays        Integer       疗程
+    insuranceCovered    boolean       是否医保
+    insuranceRatio      BigDecimal    报销比例
+
+  示例:
+    curl -X POST "http://localhost:8080/api/v1/prescriptions?doctorId=e0000000-0000-0000-0000-000000000001" \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "patientId": "30000000-0000-0000-0000-000000000001",
+        "diagnosis": "上呼吸道感染",
+        "items": [
+          {
+            "productId": "20000000-0000-0000-0000-000000000001",
+            "quantity": 2,
+            "dosageInstruction": "每次1粒，每日3次",
+            "frequency": "tid",
+            "durationDays": 7
+          }
+        ]
+      }'
+
+
+【4.3.24】处方详情
+──────────────────
+  GET /api/v1/prescriptions/{id}
+  认证: 需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<PrescriptionResponse>
+
+
+【4.3.25】按患者查询处方
+────────────────────────
+  GET /api/v1/prescriptions?patientId={patientId}
+  认证: 需要
+
+  查询参数:
+    patientId   UUID    是    患者ID
+    page        int     否    页码
+    size        int     否    每页条数
+
+  响应体: ApiResponse<Page<PrescriptionResponse>>
+
+  示例:
+    curl "http://localhost:8080/api/v1/prescriptions?patientId=30000000-0000-0000-0000-000000000001&page=0&size=10" \
+      -H "Authorization: Bearer <token>"
+
+
+【4.3.26】按医生查询处方
+────────────────────────
+  GET /api/v1/prescriptions?doctorId={doctorId}
+  认证: 需要
+
+  查询参数:
+    doctorId    UUID    是    医生ID
+    page        int     否    页码
+    size        int     否    每页条数
+
+  响应体: ApiResponse<Page<PrescriptionResponse>>
+
+
+【4.3.27】确认处方
+──────────────────
+  PUT /api/v1/prescriptions/{id}/confirm
+  认证: 需要
+
+  用途: 确认处方（状态从 DRAFT → CONFIRMED）。
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<PrescriptionResponse>
+
+
+【4.3.28】取消处方
+──────────────────
+  PUT /api/v1/prescriptions/{id}/cancel
+  认证: 需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<PrescriptionResponse>
+
+
+【4.3.29】处方转订单
+──────────────────
+  POST /api/v1/prescriptions/{id}/order
+  认证: 需要
+
+  用途: 将确认后的处方转换为药品订单。
+
+  路径参数: id (UUID) - 处方ID
+
+  响应体: ApiResponse<PrescriptionResponse>
+
+  说明: 此接口会自动创建药品订单，处方中的药品项会转换为订单项，
+        价格以创建时快照为准。
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/prescriptions/xxx/order \
+      -H "Authorization: Bearer <token>"
+
+
+────────────────────────────────────────────────────────────────────────────────
+4.4  订单模块 (medpay-order)
+────────────────────────────────────────────────────────────────────────────────
+
+=== 4.4.A  患者订单操作 ===
+
+【4.4.1】创建订单
+─────────────────
+  POST /api/v1/orders
+  认证: 需要
+
+  用途: 创建通用订单（药品/服务/套餐等）。
+
+  请求头（特殊）:
+    X-Patient-Id:     患者UUID（必填）
+    Idempotency-Key:  幂等键UUID（推荐）
+
+  请求体:
+    字段              类型                    必填    说明
+    ──────────────    ──────────────────      ────    ──────────────────
+    orderType         OrderType               是      订单类型
+    items             List<OrderItemRequest>  是      订单项列表
+    appointmentInfo   AppointmentInfo         否      预约信息
+    deliveryInfo      DeliveryInfo            否      配送信息
+    couponCode        String                  否      优惠券码
+    remark            String                  否      备注
+
+  OrderItemRequest:
+    itemType      ItemType    是    项目类型: SERVICE / PRODUCT
+    referenceId   UUID        是    关联ID（服务ID或产品ID）
+    quantity      int         是    数量（>=1）
+
+  AppointmentInfo:
+    scheduleId        UUID        排班ID
+    appointmentDate   LocalDate   预约日期
+
+  DeliveryInfo:
+    type      String    配送方式
+    address   String    配送地址
+
+  OrderType 可选值:
+    REGISTRATION / MEDICINE / PRODUCT / SERVICE / PACKAGE
+    EXAMINATION / INPATIENT_DEPOSIT / REHABILITATION / HOME_CARE
+
+  响应体: ApiResponse<OrderResponse>
+
+  OrderResponse 结构:
+    id                    UUID          订单ID
+    orderNo               String        订单编号
+    patientId             UUID          患者ID
+    doctorId              UUID          医生ID
+    orderType             String        订单类型
+    orderSource           String        订单来源
+    totalAmount           BigDecimal    总金额
+    discountAmount        BigDecimal    优惠金额
+    insuranceAmount       BigDecimal    医保金额
+    selfPayAmount         BigDecimal    自费金额
+    status                String        状态
+    items                 List          订单项
+    paidAt                LocalDateTime 支付时间
+    completedAt           LocalDateTime 完成时间
+    cancelReason          String        取消原因
+    expireAt              LocalDateTime 过期时间（30分钟）
+    appointmentDate       LocalDate     预约日期
+    appointmentTimeStart  LocalTime     预约开始时间
+    appointmentTimeEnd    LocalTime     预约结束时间
+    deliveryType          String        配送方式
+    deliveryAddress       String        配送地址
+    remark                String        备注
+    createdAt             LocalDateTime 创建时间
+
+  OrderItemResponse:
+    id              UUID          项ID
+    itemType        String        类型
+    referenceId     UUID          关联ID
+    name            String        名称
+    specification   String        规格
+    quantity        int           数量
+    unitPrice       BigDecimal    单价
+    subtotal        BigDecimal    小计
+    insuranceAmount BigDecimal    医保金额
+    selfPayAmount   BigDecimal    自费金额
+
+  示例（购买药品）:
+    curl -X POST http://localhost:8080/api/v1/orders \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -H "X-Patient-Id: 30000000-0000-0000-0000-000000000001" \
+      -d '{
+        "orderType": "MEDICINE",
+        "items": [
+          {"itemType": "PRODUCT", "referenceId": "20000000-0000-0000-0000-000000000001", "quantity": 2},
+          {"itemType": "PRODUCT", "referenceId": "20000000-0000-0000-0000-000000000002", "quantity": 1}
+        ],
+        "remark": "请尽快配送"
+      }'
+
+
+【4.4.2】创建预约挂号订单
+─────────────────────────
+  POST /api/v1/orders/appointment
+  认证: 需要
+
+  用途: 快捷创建预约挂号订单（选择排班 → 自动创建订单 + 预约记录）。
+
+  请求头: X-Patient-Id (UUID) - 患者ID
+
+  请求体:
+    字段          类型    必填    说明
+    ──────────    ────    ────    ──────────────
+    scheduleId    UUID    是      排班ID
+    doctorId      UUID    否      医生ID
+
+  响应体: ApiResponse<OrderResponse>
+
+  说明:
+    - 自动根据排班关联的服务计算价格
+    - 原子操作: UPDATE doctor_schedule SET booked_count = booked_count + 1
+      WHERE booked_count < max_patients（防超卖）
+    - 订单创建后30分钟内未支付将自动取消
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/orders/appointment \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -H "X-Patient-Id: 30000000-0000-0000-0000-000000000001" \
+      -d '{
+        "scheduleId": "40000000-0000-0000-0000-000000000001",
+        "doctorId": "e0000000-0000-0000-0000-000000000001"
+      }'
+
+
+【4.4.3】从处方创建订单
+───────────────────────
+  POST /api/v1/orders/from-prescription/{prescriptionId}
+  认证: 需要
+
+  用途: 将处方转化为药品订单。
+
+  请求头: X-Patient-Id (UUID) - 患者ID
+  路径参数: prescriptionId (UUID) - 处方ID
+
+  响应体: ApiResponse<OrderResponse>
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/orders/from-prescription/xxx \
+      -H "Authorization: Bearer <token>" \
+      -H "X-Patient-Id: 30000000-0000-0000-0000-000000000001"
+
+
+【4.4.4】患者订单列表
+─────────────────────
+  GET /api/v1/orders
+  认证: 需要
+
+  请求头: X-Patient-Id (UUID) - 患者ID
+
+  查询参数:
+    page    int    否    页码
+    size    int    否    每页条数
+
+  响应体: ApiResponse<Page<OrderResponse>>
+
+  示例:
+    curl "http://localhost:8080/api/v1/orders?page=0&size=10" \
+      -H "Authorization: Bearer <token>" \
+      -H "X-Patient-Id: 30000000-0000-0000-0000-000000000001"
+
+
+【4.4.5】订单详情
+─────────────────
+  GET /api/v1/orders/{id}
+  认证: 需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<OrderResponse>
+
+  示例:
+    curl http://localhost:8080/api/v1/orders/<order-uuid> \
+      -H "Authorization: Bearer <token>"
+
+
+【4.4.6】取消订单
+─────────────────
+  PUT /api/v1/orders/{id}/cancel
+  认证: 需要
+
+  用途: 取消订单（仅在 CREATED / PENDING_PAYMENT 状态下可取消）。
+
+  路径参数: id (UUID)
+  查询参数: reason (String, 可选) - 取消原因
+
+  响应体: ApiResponse<Void>
+
+  说明:
+    - 取消会触发库存回滚（药品）和排班名额释放（预约）
+    - 已支付订单不能直接取消，需走退款流程
+
+  示例:
+    curl -X PUT "http://localhost:8080/api/v1/orders/<order-uuid>/cancel?reason=不需要了" \
+      -H "Authorization: Bearer <token>"
+
+
+=== 4.4.B  管理员订单操作 ===
+
+【4.4.7】管理员订单列表
+───────────────────────
+  GET /api/v1/admin/orders
+  认证: 需要
+
+  用途: 管理员查看所有订单，支持按状态和类型筛选。
+
+  查询参数:
+    status    OrderStatus   否    订单状态
+    type      OrderType     否    订单类型
+    page      int           否    页码
+    size      int           否    每页条数
+
+  响应体: ApiResponse<Page<OrderResponse>>
+
+  示例:
+    curl "http://localhost:8080/api/v1/admin/orders?status=PAID&page=0&size=20" \
+      -H "Authorization: Bearer <token>"
+
+
+【4.4.8】更新订单状态
+─────────────────────
+  PUT /api/v1/admin/orders/{id}/status
+  认证: 需要
+
+  用途: 通过状态机事件驱动订单状态转换。
+
+  路径参数: id (UUID)
+  查询参数: event (OrderEvent) - 触发事件
+
+  OrderEvent 可选值:
+    PAY / CONFIRM / COMPLETE / CANCEL / REQUEST_REFUND
+    APPROVE_REFUND / EXECUTE_REFUND / CLOSE
+    REQUEST_PARTIAL_REFUND / APPROVE_PARTIAL_REFUND / EXECUTE_PARTIAL_REFUND
+
+  响应体: ApiResponse<Void>
+
+  示例:
+    curl -X PUT "http://localhost:8080/api/v1/admin/orders/<order-uuid>/status?event=COMPLETE" \
+      -H "Authorization: Bearer <token>"
+
+
+【4.4.9】订单统计
+─────────────────
+  GET /api/v1/admin/orders/statistics
+  认证: 需要
+
+  用途: 获取各状态订单数量统计。
+
+  响应体: ApiResponse<Map<String, Long>>
+
+  示例响应:
+    {
+      "code": 0,
+      "data": {
+        "CREATED": 5,
+        "PENDING_PAYMENT": 12,
+        "PAID": 45,
+        "COMPLETED": 230,
+        "CANCELLED": 18
+      }
+    }
+
+
+=== 4.4.C  预约管理 ===
+
+【4.4.10】预约列表
+──────────────────
+  GET /api/v1/appointments
+  认证: 不需要
+
+  用途: 查询指定医生指定日期的预约列表。
+
+  查询参数:
+    doctorId    UUID        是    医生ID
+    date        LocalDate   是    日期
+
+  响应体: ApiResponse<List<AppointmentResponse>>
+
+  AppointmentResponse 结构:
+    id                UUID                预约ID
+    appointmentNo     String              预约编号
+    patientId         UUID                患者ID
+    doctorId          UUID                医生ID
+    scheduleId        UUID                排班ID
+    orderId           UUID                订单ID
+    appointmentDate   LocalDate           预约日期
+    timeSlotStart     LocalTime           开始时间
+    timeSlotEnd       LocalTime           结束时间
+    queueNumber       Integer             排队号
+    status            AppointmentStatus   状态
+    checkInTime       LocalDateTime       签到时间
+    createdAt         LocalDateTime       创建时间
+
+  示例:
+    curl "http://localhost:8080/api/v1/appointments?doctorId=e0000000-0000-0000-0000-000000000001&date=2026-02-13" \
+      -H "Authorization: Bearer <token>"
+
+
+【4.4.11】预约详情
+──────────────────
+  GET /api/v1/appointments/{id}
+  认证: 不需要
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<AppointmentResponse>
+
+
+【4.4.12】预约签到
+──────────────────
+  PUT /api/v1/appointments/{id}/check-in
+  认证: 需要
+
+  用途: 患者到达医院后签到（BOOKED → CHECKED_IN）。
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<Void>
+
+
+【4.4.13】开始就诊
+──────────────────
+  PUT /api/v1/appointments/{id}/start
+  认证: 需要
+
+  用途: 医生开始接诊（CHECKED_IN → IN_PROGRESS）。
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<Void>
+
+
+【4.4.14】完成就诊
+──────────────────
+  PUT /api/v1/appointments/{id}/complete
+  认证: 需要
+
+  用途: 就诊结束（IN_PROGRESS → COMPLETED）。
+
+  路径参数: id (UUID)
+
+  响应体: ApiResponse<Void>
+
+
+────────────────────────────────────────────────────────────────────────────────
+4.5  支付模块 (medpay-payment)
+────────────────────────────────────────────────────────────────────────────────
+
+【4.5.1】发起支付
+─────────────────
+  POST /api/v1/payments/initiate
+  认证: 需要
+  幂等: 支持 @Idempotent（推荐传 Idempotency-Key）
+
+  用途: 为订单发起支付，获取支付URL/二维码。
+
+  请求体:
+    字段              类型      必填    说明
+    ──────────────    ──────    ────    ──────────────────
+    orderId           UUID      是      订单ID
+    paymentChannel    String    是      支付渠道
+
+  paymentChannel 可选值: WECHAT / ALIPAY / UNIONPAY / BANK_CARD / MOCK
+
+  响应体: ApiResponse<PaymentInitiateResponse>
+
+  PaymentInitiateResponse:
+    transactionNo   String          交易编号
+    payUrl          String          支付跳转URL
+    qrCodeUrl       String          二维码URL
+    expiresAt       LocalDateTime   过期时间
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/payments/initiate \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"orderId":"<order-uuid>","paymentChannel":"MOCK"}'
+
+  注意:
+    使用 MOCK 渠道时，返回的 payUrl 指向内置模拟支付页面，
+    点击确认后自动触发回调完成支付流程。
+
+
+【4.5.2】支付状态查询
+─────────────────────
+  GET /api/v1/payments/{transactionNo}
+  认证: 不需要
+
+  路径参数: transactionNo (String) - 交易编号
+
+  响应体: ApiResponse<PaymentStatusResponse>
+
+  PaymentStatusResponse:
+    transactionNo   String          交易编号
+    status          String          支付状态
+    totalAmount     BigDecimal      金额
+    paymentChannel  String          渠道
+    paidAt          LocalDateTime   支付时间
+    createdAt       LocalDateTime   创建时间
+
+  PaymentStatus 可选值:
+    PENDING / PROCESSING / SUCCESS / FAILED / EXPIRED
+    REFUNDING / REFUNDED / SETTLED
+
+  示例:
+    curl http://localhost:8080/api/v1/payments/PAY202602120001
+
+
+【4.5.3】支付列表
+─────────────────
+  GET /api/v1/payments
+  认证: 不需要
+
+  查询参数:
+    hospitalId    String    否    医院ID
+    page          int       否    页码，默认 0
+    size          int       否    每页条数，默认 20
+
+  响应体: ApiResponse<Page<PaymentStatusResponse>>
+
+
+【4.5.4】支付回调
+─────────────────
+  POST /api/v1/payments/callback/{channel}
+  认证: 不需要（支付渠道服务器调用）
+
+  用途: 接收支付渠道的异步通知，更新支付状态。
+
+  路径参数: channel (String) - 渠道名: wechat / alipay / mock 等
+  请求体: String - 渠道原始回调报文
+  请求头（可选）: signature - 签名字符串
+
+  响应体: ResponseEntity<String>（直接返回字符串，非ApiResponse）
+    成功: "SUCCESS"
+    失败: "FAIL"
+
+  说明: 此接口由支付渠道服务器调用，非客户端调用。
+
+
+【4.5.5】创建退款
+─────────────────
+  POST /api/v1/refunds
+  认证: 需要
+  幂等: 支持 @Idempotent
+
+  请求体:
+    字段          类型          必填    校验规则              说明
+    ──────────    ──────────    ────    ──────────────────    ──────────
+    orderId       UUID          是      @NotNull              订单ID
+    refundType    String        是      @NotBlank             退款类型
+    refundAmount  BigDecimal    是      @NotNull @Min(0.01)   退款金额
+    refundReason  String        是      @NotBlank             退款原因
+
+  refundType 可选值: FULL_REFUND / PARTIAL_REFUND
+
+  响应体: ApiResponse<RefundResponse>
+
+  RefundResponse:
+    id              UUID          退款ID
+    refundNo        String        退款编号
+    orderNo         String        订单编号
+    status          String        状态
+    refundAmount    BigDecimal    退款金额
+    refundType      String        退款类型
+    refundReason    String        退款原因
+    reviewComment   String        审核评论
+    reviewedAt      LocalDateTime 审核时间
+    refundedAt      LocalDateTime 退款时间
+    createdAt       LocalDateTime 创建时间
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/refunds \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "orderId": "<order-uuid>",
+        "refundType": "FULL_REFUND",
+        "refundAmount": 50.00,
+        "refundReason": "挂号后无法就诊"
+      }'
+
+
+【4.5.6】退款列表
+─────────────────
+  GET /api/v1/refunds
+  认证: 需要
+
+  查询参数:
+    hospitalId    UUID      否    医院ID
+    status        String    否    退款状态
+    page          int       否    页码
+    size          int       否    每页条数
+
+  响应体: ApiResponse<Page<RefundResponse>>
+
+
+【4.5.7】退款详情
+─────────────────
+  GET /api/v1/refunds/{refundId}
+  认证: 需要
+
+  路径参数: refundId (UUID)
+
+  响应体: ApiResponse<RefundResponse>
+
+
+【4.5.8】审批退款（通过）
+───────────────────────
+  PUT /api/v1/refunds/{refundId}/approve
+  认证: 需要
+
+  路径参数: refundId (UUID)
+
+  请求体（可选）:
+    comment    String    否    审核评论
+
+  响应体: ApiResponse<RefundResponse>
+
+  示例:
+    curl -X PUT http://localhost:8080/api/v1/refunds/<refund-uuid>/approve \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"comment":"情况属实，同意退款"}'
+
+
+【4.5.9】审批退款（拒绝）
+───────────────────────
+  PUT /api/v1/refunds/{refundId}/reject
+  认证: 需要
+
+  路径参数: refundId (UUID)
+
+  请求体（可选）:
+    comment    String    否    拒绝原因
+
+  响应体: ApiResponse<RefundResponse>
+
+
+【4.5.10】财务台账
+──────────────────
+  GET /api/v1/ledger
+  认证: 不需要
+
+  用途: 查询财务流水台账。
+
+  查询参数:
+    hospitalId    UUID    否    医院ID
+    page          int     否    页码
+    size          int     否    每页条数
+
+  响应体: ApiResponse<Page<LedgerResponse>>
+
+  LedgerResponse:
+    ledgerNo          String          台账编号
+    transactionType   String          交易类型
+    direction         String          方向（IN/OUT）
+    referenceType     String          关联类型
+    amount            BigDecimal      金额
+    description       String          描述
+    createdAt         LocalDateTime   创建时间
+
+
+【4.5.11】分账支付
+──────────────────
+  POST /api/v1/payments/split-pay
+  认证: 不需要
+
+  用途: 医保+自费分账支付（先扣医保、再扣自费）。
+
+  请求体:
+    字段              类型      必填    说明
+    ──────────────    ──────    ────    ──────────────────
+    orderId           UUID      是      订单ID
+    useInsurance      boolean   否      是否使用医保（默认true）
+    insuranceType     String    是      医保类型
+    insuranceNumber   String    是      医保卡号
+    insuranceRegion   String    否      医保地区
+    paymentChannel    String    否      自费部分支付渠道（默认MOCK）
+
+  响应体: ApiResponse<SplitPayResponse>
+
+  SplitPayResponse:
+    splits                  List<SplitDetail>   分账明细
+    selfPayTransactionNo    String              自费部分交易号
+
+  SplitDetail:
+    payerType   String        支付方（INSURANCE/SELF）
+    amount      BigDecimal    金额
+    status      String        状态
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/payments/split-pay \
+      -H "Content-Type: application/json" \
+      -d '{
+        "orderId": "<order-uuid>",
+        "useInsurance": true,
+        "insuranceType": "URBAN_EMPLOYEE",
+        "insuranceNumber": "110101199001011234",
+        "paymentChannel": "MOCK"
+      }'
+
+
+【4.5.12】查询分账详情
+─────────────────────
+  GET /api/v1/payments/{orderId}/splits
+  认证: 不需要
+
+  路径参数: orderId (UUID) - 订单ID
+
+  响应体: ApiResponse<List<SplitPayResponse.SplitDetail>>
+
+
+────────────────────────────────────────────────────────────────────────────────
+4.6  保险模块 (medpay-insurance)
+────────────────────────────────────────────────────────────────────────────────
+
+【4.6.1】医保费用计算
+─────────────────────
+  POST /api/v1/insurance/calculate
+  认证: 不需要
+
+  用途: 根据订单中的项目计算医保报销明细。
+
+  请求体:
+    orderId    UUID    是    订单ID
+
+  响应体: ApiResponse<InsuranceCoverageResult>
+
+  InsuranceCoverageResult:
+    totalAmount       BigDecimal    总金额
+    eligibleAmount    BigDecimal    可报销金额
+    deductibleAmount  BigDecimal    起付线
+    insurancePays     BigDecimal    医保支付
+    patientCopay      BigDecimal    患者自付
+    coverageRatio     BigDecimal    报销比例
+    itemDetails       List          项目明细
+
+  ItemDetail:
+    itemName        String        项目名
+    category        String        医保类别
+    amount          BigDecimal    金额
+    eligibleAmount  BigDecimal    可报销金额
+    insurancePays   BigDecimal    医保支付
+    patientPays     BigDecimal    患者支付
+
+  医保计算规则:
+    - 甲类: 按 insuranceRatio 全额报销
+    - 乙类: 先扣 10% 自付比例，再按 insuranceRatio 报销
+    - 丙类/无类别: 不报销
+    - 起付线: 200 元（低于此金额全部自费）
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/insurance/calculate \
+      -H "Content-Type: application/json" \
+      -d '{"orderId":"<order-uuid>"}'
+
+
+【4.6.2】理赔记录查询
+─────────────────────
+  GET /api/v1/insurance/claims
+  认证: 不需要
+
+  查询参数:
+    hospitalId    UUID    否    医院ID
+    page          int     否    页码
+    size          int     否    每页条数
+
+  响应体: ApiResponse<Page<InsuranceClaim>>
+
+
+【4.6.3】报销记录查询
+─────────────────────
+  GET /api/v1/insurance/reimbursements
+  认证: 不需要
+
+  查询参数:
+    hospitalId    UUID    否    医院ID
+    page          int     否    页码
+    size          int     否    每页条数
+
+  响应体: ApiResponse<Page<Reimbursement>>
+
+
+────────────────────────────────────────────────────────────────────────────────
+4.7  审计模块 (medpay-audit)
+────────────────────────────────────────────────────────────────────────────────
+
+【4.7.1】审计日志查询
+─────────────────────
+  GET /api/v1/audit/logs
+  认证: 需要
+  权限: @PreAuthorize("hasAnyRole('HOSPITAL_ADMIN', 'SUPER_ADMIN')")
+
+  用途: 查询系统操作审计日志。
+
+  查询参数:
+    hospitalId    UUID            否    医院ID
+    action        String          否    操作类型
+    entityType    String          否    实体类型
+    startDate     LocalDateTime   否    开始时间
+    endDate       LocalDateTime   否    结束时间
+    page          int             否    页码
+    size          int             否    每页条数
+
+  响应体: ApiResponse<Page<AuditLog>>
+
+  说明: 仅医院管理员和超级管理员可访问。
+
+  示例:
+    curl "http://localhost:8080/api/v1/audit/logs?page=0&size=20" \
+      -H "Authorization: Bearer <admin_token>"
+
+
+────────────────────────────────────────────────────────────────────────────────
+4.8  对账与报表模块 (medpay-reconciliation)
+────────────────────────────────────────────────────────────────────────────────
+
+【4.8.1】触发对账
+─────────────────
+  POST /api/v1/reconciliation/trigger
+  认证: 需要
+
+  用途: 手动触发对账任务。
+
+  请求体:
+    字段                  类型        必填    说明
+    ──────────────────    ────────    ────    ──────────────
+    reconciliationDate    LocalDate   否      对账日期（默认昨天）
+    channel               String      否      渠道
+    hospitalId            UUID        否      医院ID
+
+  响应体: ApiResponse<ReconciliationBatchResponse>
+
+  ReconciliationBatchResponse:
+    id                          UUID          批次ID
+    batchNo                     String        批次编号
+    reconciliationDate          LocalDate     对账日期
+    channel                     String        渠道
+    systemTransactionCount      int           系统交易数
+    channelTransactionCount     int           渠道交易数
+    matchedCount                int           匹配数
+    mismatchedCount             int           不匹配数
+    missingInSystem             int           系统缺失数
+    missingInChannel            int           渠道缺失数
+    systemTotalAmount           BigDecimal    系统总金额
+    channelTotalAmount          BigDecimal    渠道总金额
+    differenceAmount            BigDecimal    差异金额
+    status                      String        状态
+    completedAt                 LocalDateTime 完成时间
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/reconciliation/trigger \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"reconciliationDate":"2026-02-11"}'
+
+
+【4.8.2】对账批次列表
+─────────────────────
+  GET /api/v1/reconciliation/batches
+  认证: 需要
+
+  查询参数: page, size
+
+  响应体: ApiResponse<Page<ReconciliationBatchResponse>>
+
+
+【4.8.3】对账明细
+─────────────────
+  GET /api/v1/reconciliation/batches/{batchId}/details
+  认证: 需要
+
+  路径参数: batchId (UUID)
+  查询参数: page, size
+
+  响应体: ApiResponse<Page<ReconciliationDetail>>
+
+
+【4.8.4】解决对账差异
+─────────────────────
+  PUT /api/v1/reconciliation/details/{detailId}/resolve
+  认证: 需要
+
+  路径参数: detailId (UUID)
+
+  请求体:
+    resolutionNote    String    否    解决备注
+
+  响应体: ApiResponse<Void>
+
+
+【4.8.5】仪表盘 KPI
+──────────────────
+  GET /api/v1/reports/dashboard
+  认证: 不需要
+
+  用途: 获取运营仪表盘关键指标。
+
+  查询参数:
+    hospitalId    UUID    否    医院ID
+
+  响应体: ApiResponse<DashboardKpiResponse>
+
+  DashboardKpiResponse:
+    todayRevenue        BigDecimal    今日营收
+    todayOrders         long          今日订单数
+    todayRefunds        BigDecimal    今日退款
+    pendingRefunds      long          待处理退款
+    monthRevenue        BigDecimal    本月营收
+    monthOrders         long          本月订单数
+    monthRefunds        BigDecimal    本月退款
+    settlementPending   BigDecimal    待结算金额
+
+  示例:
+    curl "http://localhost:8080/api/v1/reports/dashboard?hospitalId=c0000000-0000-0000-0000-000000000001"
+
+
+【4.8.6】生成结算
+─────────────────
+  POST /api/v1/reports/settlements/generate
+  认证: 需要
+
+  请求体:
+    hospitalId    UUID        是    医院ID
+    periodStart   LocalDate   是    结算起始日期
+    periodEnd     LocalDate   是    结算截止日期
+
+  响应体: ApiResponse<SettlementRecord>
+
+  示例:
+    curl -X POST http://localhost:8080/api/v1/reports/settlements/generate \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "hospitalId": "c0000000-0000-0000-0000-000000000001",
+        "periodStart": "2026-02-01",
+        "periodEnd": "2026-02-11"
+      }'
+
+
+【4.8.7】结算列表
+─────────────────
+  GET /api/v1/reports/settlements
+  认证: 需要
+
+  查询参数:
+    hospitalId    UUID    否    医院ID
+    page          int     否    页码
+    size          int     否    每页条数
+
+  响应体: ApiResponse<Page<SettlementRecord>>
+
+
+【4.8.8】确认结算
+─────────────────
+  PUT /api/v1/reports/settlements/{settlementId}/confirm
+  认证: 需要
+
+  路径参数: settlementId (UUID)
+
+  响应体: ApiResponse<SettlementRecord>
+
+
+【4.8.9】导出 CSV 报表
+─────────────────────
+  GET /api/v1/reports/export/csv
+  认证: 不需要
+
+  用途: 导出指定时间范围的交易报表为 CSV 文件。
+
+  查询参数:
+    hospitalId    UUID        是    医院ID
+    startDate     LocalDate   是    开始日期
+    endDate       LocalDate   是    结束日期
+
+  响应: 直接返回 CSV 文件流（Content-Type: text/csv）
+
+  示例:
+    curl -o report.csv "http://localhost:8080/api/v1/reports/export/csv?hospitalId=c0000000-0000-0000-0000-000000000001&startDate=2026-02-01&endDate=2026-02-11"
+
+
+────────────────────────────────────────────────────────────────────────────────
+4.9  通知模块 (medpay-notification)
+────────────────────────────────────────────────────────────────────────────────
+
+【4.9.1】通知列表
+─────────────────
+  GET /api/v1/notifications
+  认证: 需要
+
+  用途: 获取当前用户的通知列表。
+
+  查询参数:
+    unreadOnly    Boolean   否    是否仅显示未读
+    page          int       否    页码
+    size          int       否    每页条数
+
+  响应体: ApiResponse<Page<Notification>>
+
+  示例:
+    curl "http://localhost:8080/api/v1/notifications?unreadOnly=true&page=0&size=20" \
+      -H "Authorization: Bearer <token>"
+
+
+【4.9.2】未读通知计数
+─────────────────────
+  GET /api/v1/notifications/unread-count
+  认证: 需要
+
+  响应体: ApiResponse<Long>
+
+  示例:
+    curl http://localhost:8080/api/v1/notifications/unread-count \
+      -H "Authorization: Bearer <token>"
+
+
+【4.9.3】标记单条已读
+─────────────────────
+  PUT /api/v1/notifications/{id}/read
+  认证: 需要
+
+  路径参数: id (UUID) - 通知ID
+
+  响应体: ApiResponse<Void>
+
+
+【4.9.4】全部标记已读
+─────────────────────
+  PUT /api/v1/notifications/read-all
+  认证: 需要
+
+  响应体: ApiResponse<Integer>（返回标记数量）
+
+  示例:
+    curl -X PUT http://localhost:8080/api/v1/notifications/read-all \
+      -H "Authorization: Bearer <token>"
+
+
+================================================================================
+第五部分  枚举常量参考
+================================================================================
+
+5.1 OrderStatus（订单状态）
+──────────────────────────
+  值                          说明
+  ────────────────────────    ─────────────────
+  CREATED                     已创建
+  PENDING_PAYMENT             待支付
+  PAYING                      支付中
+  PAID                        已支付
+  PROCESSING                  处理中
+  COMPLETED                   已完成
+  CANCELLED                   已取消
+  REFUND_REQUESTED            退款申请中
+  REFUND_APPROVED             退款已批准
+  REFUNDED                    已退款
+  PARTIAL_REFUND_REQUESTED    部分退款申请中
+  PARTIAL_REFUND_APPROVED     部分退款已批准
+  PARTIALLY_REFUNDED          已部分退款
+  CLOSED                      已关闭
+
+5.2 OrderType（订单类型）
+─────────────────────────
+  值                    说明
+  ──────────────────    ──────────
+  REGISTRATION          挂号
+  MEDICINE              药品
+  PRODUCT               商品
+  SERVICE               服务
+  PACKAGE               套餐
+  EXAMINATION           检查
+  INPATIENT_DEPOSIT     住院押金
+  REHABILITATION        康复
+  HOME_CARE             居家护理
+
+5.3 OrderEvent（订单事件，用于状态转换）
+────────────────────────────────────────
+  值                          说明
+  ────────────────────────    ─────────────────
+  PAY                         支付
+  CONFIRM                     确认
+  COMPLETE                    完成
+  CANCEL                      取消
+  REQUEST_REFUND              申请退款
+  APPROVE_REFUND              批准退款
+  EXECUTE_REFUND              执行退款
+  CLOSE                       关闭
+  REQUEST_PARTIAL_REFUND      申请部分退款
+  APPROVE_PARTIAL_REFUND      批准部分退款
+  EXECUTE_PARTIAL_REFUND      执行部分退款
+
+5.4 PaymentStatus（支付状态）
+─────────────────────────────
+  值            说明
+  ──────────    ──────────
+  PENDING       待支付
+  PROCESSING    处理中
+  SUCCESS       支付成功
+  FAILED        支付失败
+  EXPIRED       已过期
+  REFUNDING     退款中
+  REFUNDED      已退款
+  SETTLED       已结算
+
+5.5 PaymentChannelEnum（支付渠道）
+──────────────────────────────────
+  值          说明
+  ────────    ──────────
+  WECHAT      微信支付
+  ALIPAY      支付宝
+  UNIONPAY    银联
+  BANK_CARD   银行卡
+  MOCK        模拟支付（开发测试用）
+
+5.6 ServiceType（医疗服务类型）
+───────────────────────────────
+  值                说明
+  ──────────────    ──────────
+  REGISTRATION      挂号
+  EXAMINATION       检查检验
+  CONSULTATION      会诊
+  TELEMEDICINE      远程问诊
+  VIP_PACKAGE       VIP套餐
+  HEALTH_CHECKUP    健康体检
+  SECOND_OPINION    二次诊疗
+  REHABILITATION    康复治疗
+
+5.7 ProductType（产品类型）
+───────────────────────────
+  值                说明
+  ──────────────    ──────────
+  MEDICINE          药品
+  MEDICAL_DEVICE    医疗器械
+  HEALTH_PRODUCT    健康产品
+  SUPPLEMENT        保健品
+
+5.8 PackageType（套餐类型）
+───────────────────────────
+  值                    说明
+  ──────────────────    ──────────
+  HEALTH_CHECKUP        健康体检
+  VIP_CARE              VIP护理
+  CHRONIC_MANAGEMENT    慢病管理
+  MATERNITY             母婴
+
+5.9 AppointmentStatus（预约状态）
+─────────────────────────────────
+  值            说明
+  ──────────    ──────────
+  BOOKED        已预约
+  CHECKED_IN    已签到
+  IN_PROGRESS   就诊中
+  COMPLETED     已完成
+  NO_SHOW       爽约
+  CANCELLED     已取消
+
+5.10 HospitalStatus（医院状态）
+───────────────────────────────
+  值              说明
+  ────────────    ──────────
+  ACTIVE          启用
+  SUSPENDED       暂停
+  DEACTIVATED     停用
+
+5.11 UserRole（用户角色）
+─────────────────────────
+  值                说明
+  ──────────────    ──────────
+  PATIENT           患者
+  DOCTOR            医生
+  HOSPITAL_ADMIN    医院管理员
+  SUPER_ADMIN       超级管理员
+
+5.12 ItemType（订单项类型）
+───────────────────────────
+  值          说明
+  ────────    ──────────
+  SERVICE     服务项
+  PRODUCT     产品项
+
+
+================================================================================
+第六部分  核心业务流程
+================================================================================
+
+6.1 预约挂号全流程
+──────────────────
+
+步骤1: 患者登录
+  POST /api/v1/auth/login
+  → 获取 accessToken
+
+步骤2: 查看医生列表
+  GET /api/v1/doctors?hospitalId=c0000000-0000-0000-0000-000000000001
+  → 选择医生
+
+步骤3: 查看医生排班
+  GET /api/v1/schedules?doctorId=e0000000-0000-0000-0000-000000000001&date=2026-02-13
+  → 选择一个 AVAILABLE 的排班
+
+步骤4: 创建预约订单
+  POST /api/v1/orders/appointment
+  Header: X-Patient-Id: 30000000-0000-0000-0000-000000000001
+  Body: {"scheduleId":"40000000-0000-0000-0000-000000000001"}
+  → 返回订单（状态: PENDING_PAYMENT）
+
+步骤5: 发起支付
+  POST /api/v1/payments/initiate
+  Body: {"orderId":"<上一步返回的订单ID>","paymentChannel":"MOCK"}
+  → 返回 payUrl
+
+步骤6: 完成支付（Mock 环境自动回调）
+  → 订单状态变为 PAID，预约状态为 BOOKED
+
+步骤7: 到院签到
+  PUT /api/v1/appointments/<appointmentId>/check-in
+  → 预约状态变为 CHECKED_IN
+
+步骤8: 医生开始接诊
+  PUT /api/v1/appointments/<appointmentId>/start
+  → 预约状态变为 IN_PROGRESS
+
+步骤9: 就诊完成
+  PUT /api/v1/appointments/<appointmentId>/complete
+  → 预约状态变为 COMPLETED
+
+
+6.2 药品购买流程（含处方）
+──────────────────────────
+
+步骤1: 医生开处方
+  POST /api/v1/prescriptions?doctorId=e0000000-0000-0000-0000-000000000001
+  Body: {"patientId":"30000000-...", "diagnosis":"...", "items":[...]}
+
+步骤2: 医生确认处方
+  PUT /api/v1/prescriptions/<prescriptionId>/confirm
+
+步骤3: 处方转订单
+  POST /api/v1/prescriptions/<prescriptionId>/order
+  或: POST /api/v1/orders/from-prescription/<prescriptionId>
+  → 返回药品订单
+
+步骤4: 发起支付
+  POST /api/v1/payments/initiate
+  Body: {"orderId":"<订单ID>","paymentChannel":"MOCK"}
+
+步骤5: 完成支付 → 订单状态 PAID
+
+步骤6（可选）: 管理员确认发货
+  PUT /api/v1/admin/orders/<orderId>/status?event=CONFIRM
+
+
+6.3 直接购买药品（无处方）
+──────────────────────────
+
+步骤1: 浏览药品
+  GET /api/v1/catalog/products?hospitalId=c0000000-0000-0000-0000-000000000001&type=MEDICINE
+
+步骤2: 创建订单
+  POST /api/v1/orders
+  Header: X-Patient-Id: 30000000-...
+  Body: {
+    "orderType": "MEDICINE",
+    "items": [{"itemType":"PRODUCT","referenceId":"20000000-...","quantity":2}]
+  }
+
+步骤3: 支付 → 完成
+
+
+6.4 退款流程
+────────────
+
+步骤1: 创建退款申请
+  POST /api/v1/refunds
+  Body: {"orderId":"...", "refundType":"FULL_REFUND", "refundAmount":50.00, "refundReason":"..."}
+
+步骤2: 管理员审核
+  PUT /api/v1/refunds/<refundId>/approve   （通过）
+  PUT /api/v1/refunds/<refundId>/reject    （拒绝）
+
+步骤3: 审核通过后系统自动执行退款
+  → 退款到原支付渠道
+  → 订单状态变为 REFUNDED 或 PARTIALLY_REFUNDED
+
+
+6.5 医保分账支付流程
+────────────────────
+
+步骤1: 创建订单（同常规流程）
+
+步骤2: 计算医保金额
+  POST /api/v1/insurance/calculate
+  Body: {"orderId":"<订单ID>"}
+  → 查看医保支付多少、自费多少
+
+步骤3: 分账支付
+  POST /api/v1/payments/split-pay
+  Body: {
+    "orderId": "<订单ID>",
+    "useInsurance": true,
+    "insuranceType": "URBAN_EMPLOYEE",
+    "insuranceNumber": "110101199001011234",
+    "paymentChannel": "MOCK"
+  }
+  → 医保部分自动扣除，自费部分通过指定渠道支付
+
+
+6.6 订单状态机转换表
+────────────────────
+
+  当前状态              事件                      目标状态
+  ──────────────────    ────────────────────      ──────────────────────
+  CREATED               PAY                       PENDING_PAYMENT
+  PENDING_PAYMENT       PAY                       PAYING
+  PAYING                CONFIRM                   PAID
+  PAID                  CONFIRM                   PROCESSING
+  PROCESSING            COMPLETE                  COMPLETED
+  CREATED               CANCEL                    CANCELLED
+  PENDING_PAYMENT       CANCEL                    CANCELLED
+  PAID                  REQUEST_REFUND            REFUND_REQUESTED
+  REFUND_REQUESTED      APPROVE_REFUND            REFUND_APPROVED
+  REFUND_APPROVED       EXECUTE_REFUND            REFUNDED
+  PAID                  REQUEST_PARTIAL_REFUND    PARTIAL_REFUND_REQUESTED
+  PARTIAL_REFUND_REQ    APPROVE_PARTIAL_REFUND    PARTIAL_REFUND_APPROVED
+  PARTIAL_REFUND_APP    EXECUTE_PARTIAL_REFUND    PARTIALLY_REFUNDED
+  COMPLETED             CLOSE                     CLOSED
+  REFUNDED              CLOSE                     CLOSED
+  PARTIALLY_REFUNDED    CLOSE                     CLOSED
+  CANCELLED             CLOSE                     CLOSED
+
+  注: 30 分钟未支付的订单（CREATED/PENDING_PAYMENT）由定时任务自动取消。
+
+
+================================================================================
+第七部分  测试账号与演示数据速查
+================================================================================
+
+7.1 测试账号
+────────────
+所有测试账号密码统一: admin123
+
+  用户名            角色              所属医院        说明
+  ──────────────    ──────────────    ──────────      ──────────────
+  superadmin        SUPER_ADMIN       无              系统超级管理员
+  admin_pumch       HOSPITAL_ADMIN    北京协和        协和医院管理员
+  admin_huashan     HOSPITAL_ADMIN    上海华山        华山医院管理员
+  dr_zhang          DOCTOR            北京协和        张明 - 心血管内科主任
+  dr_li             DOCTOR            北京协和        李华 - 普通外科副主任
+  dr_wang           DOCTOR            上海华山        王芳 - 神经内科主任
+  dr_chen           DOCTOR            北京协和        陈晓芳 - 儿科副主任
+  dr_zhao           DOCTOR            上海华山        赵敏 - 皮肤科主治
+  patient_test      PATIENT           北京协和        测试患者
+  patient_li        PATIENT           北京协和        李小明
+  patient_wang      PATIENT           上海华山        王丽华
+
+
+7.2 医院速查
+────────────
+  ID                                        名称          编码
+  ─────────────────────────────────────     ──────────    ────────────
+  c0000000-0000-0000-0000-000000000001      北京协和医院  PUMCH-001
+  c0000000-0000-0000-0000-000000000002      上海华山医院  HSHOSP-001
+
+
+7.3 科室速查
+────────────
+  北京协和:
+  ID                                        名称      编码
+  ─────────────────────────────────────     ────────  ────
+  d0000000-0000-0000-0000-000000000001      内科      NK
+  d0000000-0000-0000-0000-000000000002      外科      WK
+  d0000000-0000-0000-0000-000000000003      儿科      EK
+  d0000000-0000-0000-0000-000000000004      妇产科    FCK
+  d0000000-0000-0000-0000-000000000005      骨科      GK
+
+  上海华山:
+  d0000000-0000-0000-0000-000000000006      神经内科  SJNK
+  d0000000-0000-0000-0000-000000000007      皮肤科    PFK
+  d0000000-0000-0000-0000-000000000008      感染科    GRK
+
+
+7.4 医生速查
+────────────
+  ID                                        姓名      科室            医院
+  ─────────────────────────────────────     ────────  ──────────      ──────
+  e0000000-0000-0000-0000-000000000001      张明      心血管内科      协和
+  e0000000-0000-0000-0000-000000000002      李华      普通外科        协和
+  e0000000-0000-0000-0000-000000000003      王芳      神经内科        华山
+  e0000000-0000-0000-0000-000000000004      陈晓芳    小儿呼吸内科    协和
+  e0000000-0000-0000-0000-000000000005      赵敏      皮肤美容科      华山
+
+
+7.5 患者速查
+────────────
+  患者ID                                    用户ID                                  姓名      医保类型
+  ─────────────────────────────────────     ─────────────────────────────────────   ────────  ──────────────
+  30000000-0000-0000-0000-000000000001      a0000000-0000-0000-0000-000000000020    测试患者  城镇职工
+  30000000-0000-0000-0000-000000000002      a0000000-0000-0000-0000-000000000021    李小明    城镇职工
+  30000000-0000-0000-0000-000000000003      a0000000-0000-0000-0000-000000000022    王丽华    城镇居民
+
+
+7.6 医疗服务速查
+────────────────
+  北京协和:
+  ID                                        名称                  类型          价格
+  ─────────────────────────────────────     ──────────────────    ──────────    ──────
+  10000000-0000-0000-0000-000000000001      内科普通门诊挂号      REGISTRATION  50.00
+  10000000-0000-0000-0000-000000000002      内科专家门诊挂号      REGISTRATION  200.00
+  10000000-0000-0000-0000-000000000003      血常规检查            EXAMINATION   30.00
+  10000000-0000-0000-0000-000000000004      胸部CT                EXAMINATION   350.00
+  10000000-0000-0000-0000-000000000005      远程视频问诊          TELEMEDICINE  100.00
+  10000000-0000-0000-0000-000000000020      外科普通门诊挂号      REGISTRATION  35.00
+  10000000-0000-0000-0000-000000000021      儿科普通门诊挂号      REGISTRATION  40.00
+  10000000-0000-0000-0000-000000000022      妇产科普通门诊挂号    REGISTRATION  45.00
+  10000000-0000-0000-0000-000000000023      骨科普通门诊挂号      REGISTRATION  40.00
+
+  上海华山:
+  10000000-0000-0000-0000-000000000010      神经内科普通门诊挂号  REGISTRATION  60.00
+  10000000-0000-0000-0000-000000000011      神经内科专家门诊挂号  REGISTRATION  300.00
+  10000000-0000-0000-0000-000000000012      皮肤科普通门诊挂号    REGISTRATION  45.00
+  10000000-0000-0000-0000-000000000013      脑电图检查            EXAMINATION   200.00
+  10000000-0000-0000-0000-000000000014      头颅MRI               EXAMINATION   800.00
+  10000000-0000-0000-0000-000000000015      远程视频问诊          TELEMEDICINE  120.00
+
+
+7.7 药品/产品速查
+─────────────────
+  北京协和:
+  ID                                        名称              类型              价格    库存
+  ─────────────────────────────────────     ──────────────    ──────────────    ──────  ────
+  20000000-0000-0000-0000-000000000001      阿莫西林胶囊      MEDICINE          15.00   500
+  20000000-0000-0000-0000-000000000002      布洛芬缓释胶囊    MEDICINE          25.00   300
+  20000000-0000-0000-0000-000000000003      电子血压计        MEDICAL_DEVICE    299.00  50
+  20000000-0000-0000-0000-000000000004      维生素C片         SUPPLEMENT        68.00   200
+  20000000-0000-0000-0000-000000000005      医用外科口罩      MEDICAL_DEVICE    12.00   1000
+
+  上海华山:
+  20000000-0000-0000-0000-000000000010      卡马西平片        MEDICINE          35.00   300
+  20000000-0000-0000-0000-000000000011      丙戊酸钠缓释片    MEDICINE          68.00   200
+  20000000-0000-0000-0000-000000000012      氯雷他定片        MEDICINE          22.00   500
+  20000000-0000-0000-0000-000000000013      血压计(臂式)      MEDICAL_DEVICE    198.00  80
+  20000000-0000-0000-0000-000000000014      维生素B族片       SUPPLEMENT        45.00   150
+
+
+7.8 健康套餐速查
+────────────────
+  北京协和:
+  ID                                        名称            类型        价格      原价
+  ─────────────────────────────────────     ──────────      ────────    ──────    ──────
+  50000000-0000-0000-0000-000000000001      基础体检套餐    CHECKUP     299.00    450.00
+  50000000-0000-0000-0000-000000000002      心血管专项套餐  CHECKUP     599.00    880.00
+  50000000-0000-0000-0000-000000000003      慢病管理年卡    MEMBERSHIP  1999.00   3600.00
+
+  上海华山:
+  50000000-0000-0000-0000-000000000010      神经系统筛查    CHECKUP     999.00    1500.00
+  50000000-0000-0000-0000-000000000011      基础体检套餐    CHECKUP     358.00    520.00
+  50000000-0000-0000-0000-000000000012      皮肤病专项套餐  CHECKUP     480.00    720.00
+
+
+7.9 服务分类速查
+────────────────
+  北京协和:
+  ID                                        名称      编码
+  ─────────────────────────────────────     ────────  ────
+  f0000000-0000-0000-0000-000000000001      门诊挂号  REG
+  f0000000-0000-0000-0000-000000000002      检查检验  EXAM
+  f0000000-0000-0000-0000-000000000003      增值服务  VAS
+
+  上海华山:
+  f0000000-0000-0000-0000-000000000010      门诊挂号  REG
+  f0000000-0000-0000-0000-000000000011      检查检验  EXAM
+  f0000000-0000-0000-0000-000000000012      增值服务  VAS
+
+
+7.10 排班说明
+─────────────
+  排班数据使用 CURRENT_DATE + INTERVAL 动态生成，每次重新迁移数据库后
+  排班日期会从当天往后推 1~7 天。
+
+  排班ID示例（以张明医生为例）:
+  ID                                        日期        时段
+  ─────────────────────────────────────     ────────    ──────────────
+  40000000-0000-0000-0000-000000000001      +1天        08:30-11:30
+  40000000-0000-0000-0000-000000000002      +1天        14:00-17:00
+  40000000-0000-0000-0000-000000000003      +2天        08:30-11:30
+  ...以此类推
+
+  实际使用时请先通过 GET /api/v1/schedules 查询可用排班。
+
+
+================================================================================
+                              文档结束
+================================================================================

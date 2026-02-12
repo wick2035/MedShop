@@ -32,6 +32,12 @@ public class DoctorScheduleController {
 
     private final DoctorScheduleService doctorScheduleService;
 
+    @Operation(summary = "查询排班详情")
+    @GetMapping("/{id}")
+    public ApiResponse<DoctorScheduleResponse> getById(@PathVariable UUID id) {
+        return ApiResponse.success(doctorScheduleService.getScheduleById(id));
+    }
+
     @Operation(summary = "查询可用排班")
     @GetMapping
     public ApiResponse<Page<DoctorScheduleResponse>> findAvailable(

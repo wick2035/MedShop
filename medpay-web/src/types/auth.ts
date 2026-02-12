@@ -25,6 +25,7 @@ export interface UserInfoResponse {
   fullName: string;
   hospitalId: string | null;
   doctorId: string | null;
+  patientId: string | null;
 }
 
 export interface LoginResponse {

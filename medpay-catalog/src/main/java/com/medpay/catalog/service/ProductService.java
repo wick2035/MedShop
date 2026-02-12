@@ -8,6 +8,7 @@ import com.medpay.catalog.repository.ProductRepository;
 import com.medpay.common.exception.BusinessException;
 import com.medpay.common.exception.ErrorCode;
 import com.medpay.common.security.TenantContext;
+import com.medpay.common.security.TenantUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -82,6 +83,7 @@ public class ProductService {
     @Transactional
     public ProductResponse update(UUID id, ProductRequest request) {
         Product product = findByIdOrThrow(id);
+        TenantUtil.verifyAccess(product.getHospitalId());
         mapRequestToEntity(request, product);
 
         product = productRepository.save(product);
@@ -91,6 +93,7 @@ public class ProductService {
     @Transactional
     public ProductResponse updateStock(UUID id, int quantity) {
         Product product = findByIdOrThrow(id);
+        TenantUtil.verifyAccess(product.getHospitalId());
         product.setStockQuantity(quantity);
         product = productRepository.save(product);
         return toResponse(product);

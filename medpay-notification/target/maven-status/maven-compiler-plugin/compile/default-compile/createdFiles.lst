@@ -1,7 +1,0 @@
-com\medpay\notification\channel\NotificationChannel.class
-com\medpay\notification\domain\NotificationRepository.class
-com\medpay\notification\channel\SmsNotificationChannel.class
-com\medpay\notification\channel\InAppNotificationChannel.class
-com\medpay\notification\domain\Notification.class
-com\medpay\notification\service\NotificationService.class
-com\medpay\notification\controller\NotificationController.class

@@ -132,7 +132,7 @@ export default function HospitalListPage() {
               </h3>
               <p className="mb-2 text-sm text-gray-500">{hospital.address}</p>
               <div className="flex items-center gap-2 text-xs text-gray-400">
-                <span>{hospital.phone}</span>
+                <span>{hospital.contactPhone}</span>
                 <span>|</span>
                 <Badge variant="sage" size="sm">
                   {hospital.subscriptionTier}

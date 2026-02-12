@@ -45,7 +45,7 @@ function wrapChildRoutes(routes: RouteObject[]): RouteObject[] {
     ...route,
     element: route.element ? withSuspense(route.element) : undefined,
     children: route.children ? wrapChildRoutes(route.children) : undefined,
-  }));
+  })) as RouteObject[];
 }
 
 /* ----- Route definitions ----- */

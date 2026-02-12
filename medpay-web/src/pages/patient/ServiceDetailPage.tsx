@@ -51,7 +51,7 @@ export default function ServiceDetailPage() {
           orderType: OrderType.SERVICE,
           items: [{ referenceId: service.id, itemType: ItemType.SERVICE, quantity: 1 }],
         },
-        user.id,
+        user.patientId ?? user.id,
       );
       toast.success('Order created successfully!');
       navigate(`/patient/orders/${order.id}`);
@@ -114,7 +114,7 @@ export default function ServiceDetailPage() {
           </div>
 
           <div className="mb-6 flex flex-wrap gap-4 text-sm text-sage-700/70">
-            {service.durationMinutes > 0 && (
+            {(service.durationMinutes ?? 0) > 0 && (
               <div className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4 text-sage-400" />
                 {service.durationMinutes} minutes

@@ -131,8 +131,8 @@ export default function HospitalDetailPage() {
                 {HOSPITAL_STATUS_LABELS[hospital.status] ?? hospital.status}
               </span>
             </div>
-            {hospital.description && (
-              <p className="mt-1 text-sm text-gray-500">{hospital.description}</p>
+            {hospital.licenseNumber && (
+              <p className="mt-1 text-sm text-gray-500">License: {hospital.licenseNumber}</p>
             )}
           </div>
         </div>
@@ -149,22 +149,21 @@ export default function HospitalDetailPage() {
             <Phone className="h-4 w-4 text-gray-400" />
             <div>
               <p className="text-xs text-gray-400">Phone</p>
-              <p className="text-sm text-gray-700">{hospital.phone}</p>
+              <p className="text-sm text-gray-700">{hospital.contactPhone}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-md bg-ivory-50 p-3">
             <Mail className="h-4 w-4 text-gray-400" />
             <div>
               <p className="text-xs text-gray-400">Email</p>
-              <p className="text-sm text-gray-700">{hospital.email || '--'}</p>
+              <p className="text-sm text-gray-700">{hospital.contactEmail || '--'}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-md bg-ivory-50 p-3">
             <Building2 className="h-4 w-4 text-gray-400" />
             <div>
-              <p className="text-xs text-gray-400">Level / Tier</p>
+              <p className="text-xs text-gray-400">Tier</p>
               <p className="text-sm text-gray-700">
-                {hospital.level || '--'} /{' '}
                 <Badge variant="sage" size="sm">
                   {hospital.subscriptionTier}
                 </Badge>

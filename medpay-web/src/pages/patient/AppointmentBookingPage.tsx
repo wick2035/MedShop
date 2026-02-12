@@ -54,7 +54,7 @@ export default function AppointmentBookingPage() {
           scheduleId: schedule.id,
           doctorId: schedule.doctorId,
         },
-        user.id,
+        user.patientId ?? user.id,
       );
       toast.success('Appointment booked successfully!');
       navigate(`/patient/orders/${order.id}`);

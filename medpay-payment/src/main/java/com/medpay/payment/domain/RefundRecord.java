@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -65,6 +67,7 @@ public class RefundRecord extends TenantEntity {
     @Column(name = "channel_refund_id", length = 100)
     private String channelRefundId;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "channel_response", columnDefinition = "jsonb")
     private String channelResponse;
 
