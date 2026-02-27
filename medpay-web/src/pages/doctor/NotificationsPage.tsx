@@ -48,7 +48,7 @@ export default function NotificationsPage() {
       setNotifications(data.content ?? []);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to load notifications',
+        err instanceof Error ? err.message : '加载通知失败',
       );
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ export default function NotificationsPage() {
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to mark all as read',
+        err instanceof Error ? err.message : '标记全部已读失败',
       );
     } finally {
       setMarkingAllRead(false);
@@ -93,15 +93,15 @@ export default function NotificationsPage() {
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants}>
           <PageHeader
-            title="Notifications"
+            title="通知"
             subtitle={
               unreadCount > 0
-                ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
-                : 'All caught up'
+                ? `${unreadCount} 条未读通知`
+                : '全部已读'
             }
             breadcrumbs={[
-              { label: 'Dashboard', href: '/doctor' },
-              { label: 'Notifications' },
+              { label: '仪表盘', href: '/doctor' },
+              { label: '通知' },
             ]}
             actions={
               unreadCount > 0 ? (
@@ -112,7 +112,7 @@ export default function NotificationsPage() {
                   onClick={handleMarkAllRead}
                   icon={<CheckCheck className="h-4 w-4" />}
                 >
-                  Mark All Read
+                  全部标为已读
                 </Button>
               ) : undefined
             }
@@ -135,15 +135,15 @@ export default function NotificationsPage() {
                 size="sm"
                 onClick={fetchNotifications}
               >
-                Retry
+                重试
               </Button>
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-sage-500">
               <BellOff className="mb-3 h-12 w-12 text-sage-300" />
-              <p className="text-lg font-medium">No notifications</p>
+              <p className="text-lg font-medium">暂无通知</p>
               <p className="mt-1 text-sm text-sage-400">
-                You're all caught up. Notifications will appear here.
+                暂无新通知，通知消息将显示在此处
               </p>
             </div>
           ) : (

@@ -36,7 +36,7 @@ function getWeekRange(baseDate: Date): { start: Date; end: Date } {
 
 function formatWeekDisplay(start: Date, end: Date): string {
   const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-  return `${start.toLocaleDateString('en-US', opts)} - ${end.toLocaleDateString('en-US', opts)}, ${end.getFullYear()}`;
+  return `${start.toLocaleDateString('zh-CN', opts)} - ${end.toLocaleDateString('zh-CN', opts)}, ${end.getFullYear()}`;
 }
 
 function toDateStr(d: Date): string {
@@ -73,7 +73,7 @@ export default function ScheduleListPage() {
       );
       setSchedules(filtered);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load schedules');
+      setError(err instanceof Error ? err.message : '加载排班失败');
     } finally {
       setLoading(false);
     }
@@ -104,16 +104,16 @@ export default function ScheduleListPage() {
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants}>
           <PageHeader
-            title="My Schedule"
-            subtitle="Manage your appointment slots"
+            title="我的排班"
+            subtitle="管理您的预约时段"
             breadcrumbs={[
-              { label: 'Dashboard', href: '/doctor' },
-              { label: 'Schedule' },
+              { label: '仪表盘', href: '/doctor' },
+              { label: '排班' },
             ]}
             actions={
               <Link to="/doctor/schedules/new">
                 <Button icon={<Plus className="h-4 w-4" />}>
-                  New Schedule
+                  新建排班
                 </Button>
               </Link>
             }
@@ -131,7 +131,7 @@ export default function ScheduleListPage() {
             onClick={() => setWeekOffset((o) => o - 1)}
             icon={<ChevronLeft className="h-4 w-4" />}
           >
-            Prev
+            上一周
           </Button>
           <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
             <Calendar className="h-4 w-4 text-sage-500" />
@@ -142,7 +142,7 @@ export default function ScheduleListPage() {
             size="sm"
             onClick={() => setWeekOffset((o) => o + 1)}
           >
-            Next <ChevronRight className="h-4 w-4" />
+            下一周 <ChevronRight className="h-4 w-4" />
           </Button>
         </motion.div>
 
@@ -168,7 +168,7 @@ export default function ScheduleListPage() {
               >
                 <div className="mb-1 text-center">
                   <p className="text-xs text-sage-500">
-                    {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                    {day.toLocaleDateString('zh-CN', { weekday: 'short' })}
                   </p>
                   <p
                     className={cn(
@@ -211,7 +211,7 @@ export default function ScheduleListPage() {
         >
           <div className="border-b border-ivory-200 px-6 py-4">
             <h2 className="font-display text-lg font-semibold text-sage-800">
-              Schedule Details
+              排班详情
             </h2>
           </div>
 
@@ -223,20 +223,20 @@ export default function ScheduleListPage() {
             <div className="flex flex-col items-center justify-center gap-3 py-12">
               <p className="text-red-500">{error}</p>
               <Button variant="outline" size="sm" onClick={fetchSchedules}>
-                Retry
+                重试
               </Button>
             </div>
           ) : schedules.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-sage-500">
               <Calendar className="mb-3 h-10 w-10 text-sage-300" />
-              <p>No schedules this week</p>
+              <p>本周暂无排班</p>
               <Link to="/doctor/schedules/new" className="mt-3">
                 <Button
                   variant="outline"
                   size="sm"
                   icon={<Plus className="h-4 w-4" />}
                 >
-                  Create Schedule
+                  创建排班
                 </Button>
               </Link>
             </div>
@@ -245,10 +245,10 @@ export default function ScheduleListPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-ivory-100 text-left text-xs font-medium uppercase tracking-wider text-sage-500">
-                    <th className="px-6 py-3">Date</th>
-                    <th className="px-6 py-3">Time</th>
-                    <th className="px-6 py-3">Appointments</th>
-                    <th className="px-6 py-3">Status</th>
+                    <th className="px-6 py-3">日期</th>
+                    <th className="px-6 py-3">时间</th>
+                    <th className="px-6 py-3">预约数</th>
+                    <th className="px-6 py-3">状态</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ivory-100">

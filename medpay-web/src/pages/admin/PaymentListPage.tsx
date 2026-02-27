@@ -44,7 +44,7 @@ export default function PaymentListPage() {
         setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load payments';
+      const msg = err instanceof Error ? err.message : '加载支付记录失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -59,12 +59,12 @@ export default function PaymentListPage() {
   const columns: DataTableColumn<PaymentStatusResponse>[] = [
     {
       key: 'transactionNo',
-      header: 'Transaction No.',
+      header: '交易号',
       render: (row) => <span className="font-mono text-xs text-sage-700">{row.transactionNo}</span>,
     },
     {
       key: 'paymentChannel',
-      header: 'Channel',
+      header: '渠道',
       render: (row) => (
         <Badge variant="sage" size="sm">
           {PAYMENT_CHANNEL_LABELS[row.paymentChannel] ?? row.paymentChannel}
@@ -73,13 +73,13 @@ export default function PaymentListPage() {
     },
     {
       key: 'totalAmount',
-      header: 'Amount',
+      header: '金额',
       sortable: true,
       render: (row) => <span className="font-medium">{formatCurrency(row.totalAmount)}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => (
         <span
           className={cn(
@@ -93,7 +93,7 @@ export default function PaymentListPage() {
     },
     {
       key: 'paidAt',
-      header: 'Paid At',
+      header: '支付时间',
       render: (row) => <span className="text-xs text-gray-500">{formatDateTime(row.paidAt)}</span>,
     },
   ];
@@ -104,7 +104,7 @@ export default function PaymentListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchPayments}>Retry</Button>
+          <Button variant="outline" onClick={fetchPayments}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -112,17 +112,17 @@ export default function PaymentListPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Payment Records" subtitle="View all payment transactions" />
+      <PageHeader title="支付记录" subtitle="查看所有支付交易" />
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns as any} data={payments as any} loading={loading} emptyMessage="No payments found" />
+        <DataTable columns={columns as any} data={payments as any} loading={loading} emptyMessage="暂无支付记录" />
       </motion.div>
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>上一页</Button>
+          <span className="text-sm text-gray-500">第 {page + 1} 页 / 共 {totalPages} 页</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>下一页</Button>
         </div>
       )}
     </PageContainer>

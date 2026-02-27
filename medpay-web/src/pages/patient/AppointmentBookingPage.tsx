@@ -36,7 +36,7 @@ export default function AppointmentBookingPage() {
         const doc = await doctorsApi.getById(sched.doctorId);
         setDoctor(doc);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load schedule');
+        setError(err instanceof Error ? err.message : '加载排班失败');
       } finally {
         setLoading(false);
       }
@@ -56,10 +56,10 @@ export default function AppointmentBookingPage() {
         },
         user.patientId ?? user.id,
       );
-      toast.success('Appointment booked successfully!');
+      toast.success('预约成功！');
       navigate(`/patient/orders/${order.id}`);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Booking failed';
+      const message = err instanceof Error ? err.message : '预约失败';
       toast.error(message);
     } finally {
       setBooking(false);
@@ -80,9 +80,9 @@ export default function AppointmentBookingPage() {
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <Card className="py-12 text-center">
           <Calendar className="mx-auto h-10 w-10 text-sage-300" />
-          <p className="mt-3 text-sm text-red-500">{error || 'Schedule not found'}</p>
+          <p className="mt-3 text-sm text-red-500">{error || '未找到排班'}</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
-            Go Back
+            返回
           </Button>
         </Card>
       </div>
@@ -102,13 +102,13 @@ export default function AppointmentBookingPage() {
           className="flex items-center gap-2 text-sm font-medium text-sage-600 transition-colors hover:text-sage-800"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          返回
         </button>
       </motion.div>
 
       <motion.div variants={itemVariants}>
         <h1 className="mb-6 font-display text-2xl font-semibold text-sage-800">
-          Confirm Appointment
+          确认预约
         </h1>
       </motion.div>
 
@@ -134,7 +134,7 @@ export default function AppointmentBookingPage() {
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-sage-400" />
               <div>
-                <p className="text-xs text-sage-700/60">Date</p>
+                <p className="text-xs text-sage-700/60">日期</p>
                 <p className="text-sm font-medium text-sage-800">
                   {formatDate(schedule.scheduleDate)}
                 </p>
@@ -144,7 +144,7 @@ export default function AppointmentBookingPage() {
             <div className="flex items-center gap-3">
               <Clock className="h-5 w-5 text-sage-400" />
               <div>
-                <p className="text-xs text-sage-700/60">Time</p>
+                <p className="text-xs text-sage-700/60">时间</p>
                 <p className="text-sm font-medium text-sage-800">
                   {formatTime(schedule.timeSlotStart)} - {formatTime(schedule.timeSlotEnd)}
                 </p>
@@ -154,7 +154,7 @@ export default function AppointmentBookingPage() {
             <div className="flex items-center gap-3">
               <MapPin className="h-5 w-5 text-sage-400" />
               <div>
-                <p className="text-xs text-sage-700/60">Department</p>
+                <p className="text-xs text-sage-700/60">科室</p>
                 <p className="text-sm font-medium text-sage-800">
                   {doctor.specialty}
                 </p>
@@ -165,7 +165,7 @@ export default function AppointmentBookingPage() {
           {/* Fee */}
           <div className="mt-6 rounded-lg bg-ivory-100 p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-sage-700">Consultation Fee</span>
+              <span className="text-sm text-sage-700">问诊费</span>
               <span className="text-lg font-semibold text-sage-800">
                 {formatCurrency(doctor.consultationFee)}
               </span>
@@ -181,7 +181,7 @@ export default function AppointmentBookingPage() {
               onClick={handleConfirmBooking}
               icon={<CheckCircle className="h-5 w-5" />}
             >
-              Confirm Booking
+              确认预约
             </Button>
           </div>
         </Card>

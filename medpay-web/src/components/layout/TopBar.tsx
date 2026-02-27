@@ -75,7 +75,7 @@ export default function TopBar({
           <button
             onClick={onMenuClick}
             className="rounded-md p-2 text-sage-700/70 transition-colors hover:bg-ivory-200 hover:text-sage-700 lg:hidden"
-            aria-label="Open menu"
+            aria-label="打开菜单"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -100,7 +100,7 @@ export default function TopBar({
               onChange={(e) => setHospitalId(e.target.value || null)}
               className="h-9 rounded-md border border-ivory-300 bg-white/80 px-3 pr-8 text-sm text-sage-700 transition-colors focus:border-sage-400 focus:outline-none focus:ring-1 focus:ring-sage-400"
             >
-              <option value="">All Hospitals</option>
+              <option value="">全部医院</option>
               {hospitals.map((h) => (
                 <option key={h.id} value={h.id}>{h.name}</option>
               ))}
@@ -111,7 +111,7 @@ export default function TopBar({
         {/* Notification bell */}
         <button
           className="relative rounded-md p-2 text-sage-700/70 transition-colors hover:bg-ivory-200 hover:text-sage-700"
-          aria-label="Notifications"
+          aria-label="通知"
           onClick={() => navigate('notifications')}
         >
           <Bell className="h-5 w-5" />
@@ -174,7 +174,7 @@ export default function TopBar({
                   className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-sage-700 transition-colors hover:bg-ivory-100"
                 >
                   <User className="h-4 w-4" />
-                  Profile
+                  个人中心
                 </button>
 
                 <div className="my-1 border-t border-ivory-200" />
@@ -184,7 +184,7 @@ export default function TopBar({
                   className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50"
                 >
                   <LogOut className="h-4 w-4" />
-                  Log out
+                  退出登录
                 </button>
               </motion.div>
             )}

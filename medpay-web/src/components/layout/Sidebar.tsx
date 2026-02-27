@@ -111,14 +111,14 @@ export default function Sidebar({
             'flex w-full items-center rounded-md px-3 py-2 text-sage-700/60 transition-colors hover:bg-ivory-200 hover:text-sage-700',
             collapsed && 'justify-center',
           )}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? '展开侧栏' : '收起侧栏'}
         >
           {collapsed ? (
             <ChevronsRight className="h-4 w-4" />
           ) : (
             <>
               <ChevronsLeft className="h-4 w-4" />
-              <span className="ml-2 text-sm">Collapse</span>
+              <span className="ml-2 text-sm">收起</span>
             </>
           )}
         </button>

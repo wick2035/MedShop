@@ -16,12 +16,12 @@ import { OrderStatus } from '@/types/enums';
 import type { OrderResponse } from '@/types/order';
 
 const statusTabs: { label: string; value: string }[] = [
-  { label: 'All', value: '' },
-  { label: ORDER_STATUS_LABELS[OrderStatus.CREATED] || 'Pending Payment', value: OrderStatus.CREATED },
-  { label: ORDER_STATUS_LABELS[OrderStatus.PAID] || 'Paid', value: OrderStatus.PAID },
-  { label: ORDER_STATUS_LABELS[OrderStatus.COMPLETED] || 'Completed', value: OrderStatus.COMPLETED },
-  { label: ORDER_STATUS_LABELS[OrderStatus.CANCELLED] || 'Cancelled', value: OrderStatus.CANCELLED },
-  { label: ORDER_STATUS_LABELS[OrderStatus.REFUNDED] || 'Refunded', value: OrderStatus.REFUNDED },
+  { label: '全部', value: '' },
+  { label: ORDER_STATUS_LABELS[OrderStatus.CREATED] || '待支付', value: OrderStatus.CREATED },
+  { label: ORDER_STATUS_LABELS[OrderStatus.PAID] || '已支付', value: OrderStatus.PAID },
+  { label: ORDER_STATUS_LABELS[OrderStatus.COMPLETED] || '已完成', value: OrderStatus.COMPLETED },
+  { label: ORDER_STATUS_LABELS[OrderStatus.CANCELLED] || '已取消', value: OrderStatus.CANCELLED },
+  { label: ORDER_STATUS_LABELS[OrderStatus.REFUNDED] || '已退款', value: OrderStatus.REFUNDED },
 ];
 
 export default function OrderListPage() {
@@ -51,7 +51,7 @@ export default function OrderListPage() {
       setOrders(filtered);
       setTotalPages(result.totalPages);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load orders');
+      setError(err instanceof Error ? err.message : '加载订单失败');
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,7 @@ export default function OrderListPage() {
       className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
     >
       <motion.div variants={itemVariants}>
-        <PageHeader title="My Orders" subtitle="View and manage your orders" />
+        <PageHeader title="我的订单" subtitle="查看和管理您的订单" />
       </motion.div>
 
       {/* Status filter tabs */}
@@ -114,18 +114,18 @@ export default function OrderListPage() {
         <Card className="py-12 text-center">
           <p className="text-sm text-red-500">{error}</p>
           <Button variant="outline" className="mt-4" onClick={fetchOrders}>
-            Retry
+            重试
           </Button>
         </Card>
       ) : orders.length === 0 ? (
         <Card className="py-12 text-center">
           <ClipboardList className="mx-auto h-10 w-10 text-sage-300" />
-          <p className="mt-3 text-sm text-sage-700/60">No orders found</p>
+          <p className="mt-3 text-sm text-sage-700/60">暂无订单</p>
           <button
             onClick={() => navigate('/patient/services')}
             className="mt-3 text-sm font-medium text-sage-500 hover:text-sage-600"
           >
-            Browse services
+            浏览服务
           </button>
         </Card>
       ) : (
@@ -178,10 +178,10 @@ export default function OrderListPage() {
             onClick={() => goToPage(currentPage - 1)}
             icon={<ChevronLeft className="h-4 w-4" />}
           >
-            Previous
+            上一页
           </Button>
           <span className="text-sm text-sage-700/60">
-            Page {currentPage + 1} of {totalPages}
+            第 {currentPage + 1} 页 / 共 {totalPages} 页
           </span>
           <Button
             variant="outline"
@@ -190,7 +190,7 @@ export default function OrderListPage() {
             onClick={() => goToPage(currentPage + 1)}
             icon={<ChevronRight className="h-4 w-4" />}
           >
-            Next
+            下一页
           </Button>
         </motion.div>
       )}

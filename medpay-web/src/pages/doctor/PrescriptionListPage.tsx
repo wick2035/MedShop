@@ -19,10 +19,10 @@ import { prescriptionsApi } from '@/api/prescriptions.api';
 import { cn, formatCurrency, formatDate } from '@/lib/utils';
 
 const STATUS_TABS = [
-  { key: 'ALL', label: 'All' },
-  { key: 'PENDING', label: 'Pending' },
-  { key: 'CONFIRMED', label: 'Confirmed' },
-  { key: 'CANCELLED', label: 'Cancelled' },
+  { key: 'ALL', label: '全部' },
+  { key: 'PENDING', label: '待处理' },
+  { key: 'CONFIRMED', label: '已确认' },
+  { key: 'CANCELLED', label: '已取消' },
 ] as const;
 
 const STATUS_STYLES: Record<string, string> = {
@@ -50,7 +50,7 @@ export default function PrescriptionListPage() {
       setPrescriptions(data);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to load prescriptions',
+        err instanceof Error ? err.message : '加载处方失败',
       );
     } finally {
       setLoading(false);
@@ -79,16 +79,16 @@ export default function PrescriptionListPage() {
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants}>
           <PageHeader
-            title="My Prescriptions"
-            subtitle="View and manage your prescriptions"
+            title="处方管理"
+            subtitle="查看和管理处方"
             breadcrumbs={[
-              { label: 'Dashboard', href: '/doctor' },
-              { label: 'Prescriptions' },
+              { label: '仪表盘', href: '/doctor' },
+              { label: '处方' },
             ]}
             actions={
               <Link to="/doctor/prescriptions/new">
                 <Button icon={<Plus className="h-4 w-4" />}>
-                  New Prescription
+                  新建处方
                 </Button>
               </Link>
             }
@@ -121,7 +121,7 @@ export default function PrescriptionListPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sage-400" />
             <input
               type="text"
-              placeholder="Search prescriptions..."
+              placeholder="搜索处方..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-lg border border-ivory-200 bg-white/80 py-2 pl-9 pr-4 text-sm text-sage-800 placeholder:text-sage-300 focus:border-sage-400 focus:outline-none focus:ring-2 focus:ring-sage-200 sm:w-72"
@@ -142,17 +142,17 @@ export default function PrescriptionListPage() {
             <div className="flex flex-col items-center justify-center gap-3 py-12">
               <p className="text-red-500">{error}</p>
               <Button variant="outline" size="sm" onClick={fetchPrescriptions}>
-                Retry
+                重试
               </Button>
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-sage-500">
               <FileText className="mb-3 h-12 w-12 text-sage-300" />
-              <p className="text-lg font-medium">No prescriptions found</p>
+              <p className="text-lg font-medium">未找到处方</p>
               <p className="mt-1 text-sm text-sage-400">
                 {activeTab !== 'ALL'
-                  ? 'Try selecting a different status filter.'
-                  : 'Create your first prescription to get started.'}
+                  ? '请尝试选择其他状态筛选'
+                  : '创建您的第一张处方'}
               </p>
             </div>
           ) : (
@@ -160,13 +160,13 @@ export default function PrescriptionListPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-ivory-100 text-left text-xs font-medium uppercase tracking-wider text-sage-500">
-                    <th className="px-6 py-3">Prescription No.</th>
-                    <th className="px-6 py-3">Patient</th>
-                    <th className="px-6 py-3">Diagnosis</th>
-                    <th className="px-6 py-3">Amount</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3">Date</th>
-                    <th className="px-6 py-3">Actions</th>
+                    <th className="px-6 py-3">处方编号</th>
+                    <th className="px-6 py-3">患者</th>
+                    <th className="px-6 py-3">诊断</th>
+                    <th className="px-6 py-3">金额</th>
+                    <th className="px-6 py-3">状态</th>
+                    <th className="px-6 py-3">日期</th>
+                    <th className="px-6 py-3">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ivory-100">
@@ -219,7 +219,7 @@ export default function PrescriptionListPage() {
                             navigate(`/doctor/prescriptions/${rx.id}`);
                           }}
                         >
-                          View
+                          查看
                         </Button>
                       </td>
                     </tr>

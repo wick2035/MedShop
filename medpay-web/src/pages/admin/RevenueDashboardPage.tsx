@@ -20,7 +20,7 @@ function RevenueBarChart({ data }: { data: { label: string; value: number }[] })
   const max = Math.max(...data.map((d) => d.value), 1);
   return (
     <div className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-      <h3 className="font-display text-lg font-semibold text-sage-800 mb-4">Revenue Overview</h3>
+      <h3 className="font-display text-lg font-semibold text-sage-800 mb-4">营收概览</h3>
       <div className="flex items-end gap-3 h-48">
         {data.map((d) => (
           <div key={d.label} className="flex flex-1 flex-col items-center gap-1">
@@ -59,7 +59,7 @@ export default function RevenueDashboardPage() {
       const data = await reportsApi.getDashboard(selectedHospitalId ?? undefined);
       setKpi(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load revenue data';
+      const msg = err instanceof Error ? err.message : '加载营收数据失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -87,9 +87,9 @@ export default function RevenueDashboardPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success('Report exported successfully');
+      toast.success('报表导出成功');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to export report');
+      toast.error(err instanceof Error ? err.message : '导出报表失败');
     } finally {
       setExporting(false);
     }
@@ -111,32 +111,32 @@ export default function RevenueDashboardPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchKpi}>Retry</Button>
+          <Button variant="outline" onClick={fetchKpi}>重试</Button>
         </div>
       </PageContainer>
     );
   }
 
   const chartData = [
-    { label: 'Today Rev.', value: kpi?.todayRevenue ?? 0 },
-    { label: 'Month Rev.', value: kpi?.monthRevenue ?? 0 },
-    { label: 'Today Orders', value: kpi?.todayOrders ?? 0 },
-    { label: 'Month Orders', value: kpi?.monthOrders ?? 0 },
+    { label: '今日营收', value: kpi?.todayRevenue ?? 0 },
+    { label: '本月营收', value: kpi?.monthRevenue ?? 0 },
+    { label: '今日订单', value: kpi?.todayOrders ?? 0 },
+    { label: '本月订单', value: kpi?.monthOrders ?? 0 },
   ];
 
   return (
     <PageContainer>
       <PageHeader
-        title="Revenue Dashboard"
-        subtitle="Revenue analytics and reporting"
+        title="营收仪表盘"
+        subtitle="营收分析与报表"
         breadcrumbs={[
-          { label: 'Reports', href: '/admin/reports' },
-          { label: 'Revenue Dashboard' },
+          { label: '报表', href: '/admin/reports' },
+          { label: '营收仪表盘' },
         ]}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" icon={<Download className="h-4 w-4" />} loading={exporting} onClick={handleExport}>
-              Export CSV
+              导出 CSV
             </Button>
           </div>
         }
@@ -145,11 +145,11 @@ export default function RevenueDashboardPage() {
       {/* Date range filter */}
       <div className="mb-6 flex flex-wrap items-end gap-3">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Start Date</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">开始日期</label>
           <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">End Date</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">结束日期</label>
           <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
         </div>
       </div>
@@ -157,31 +157,31 @@ export default function RevenueDashboardPage() {
       {/* KPI cards */}
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <motion.div variants={itemVariants}>
-          <StatCard icon={DollarSign} label="Today Revenue" value={kpi?.todayRevenue ?? 0} />
+          <StatCard icon={DollarSign} label="今日营收" value={kpi?.todayRevenue ?? 0} />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <StatCard icon={ShoppingCart} label="Today Orders" value={kpi?.todayOrders ?? 0} prefix="" />
+          <StatCard icon={ShoppingCart} label="今日订单" value={kpi?.todayOrders ?? 0} prefix="" />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <StatCard icon={TrendingUp} label="Month Revenue" value={kpi?.monthRevenue ?? 0} />
+          <StatCard icon={TrendingUp} label="本月营收" value={kpi?.monthRevenue ?? 0} />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <StatCard icon={ShoppingCart} label="Month Orders" value={kpi?.monthOrders ?? 0} prefix="" />
+          <StatCard icon={ShoppingCart} label="本月订单" value={kpi?.monthOrders ?? 0} prefix="" />
         </motion.div>
       </motion.div>
 
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <motion.div variants={itemVariants}>
-          <StatCard icon={RotateCcw} label="Today Refunds" value={kpi?.todayRefunds ?? 0} />
+          <StatCard icon={RotateCcw} label="今日退款" value={kpi?.todayRefunds ?? 0} />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <StatCard icon={RotateCcw} label="Pending Refunds" value={kpi?.pendingRefunds ?? 0} prefix="" />
+          <StatCard icon={RotateCcw} label="待处理退款" value={kpi?.pendingRefunds ?? 0} prefix="" />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <StatCard icon={RotateCcw} label="Month Refunds" value={kpi?.monthRefunds ?? 0} />
+          <StatCard icon={RotateCcw} label="本月退款" value={kpi?.monthRefunds ?? 0} />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <StatCard icon={DollarSign} label="Pending Settlement" value={kpi?.settlementPending ?? 0} />
+          <StatCard icon={DollarSign} label="待结算" value={kpi?.settlementPending ?? 0} />
         </motion.div>
       </motion.div>
 

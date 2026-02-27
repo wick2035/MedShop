@@ -27,7 +27,7 @@ export default function PageHeader({
     <div className={cn('mb-6', className)}>
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav aria-label="Breadcrumb" className="mb-3">
+        <nav aria-label="面包屑导航" className="mb-3">
           <ol className="flex items-center gap-1.5 text-sm text-sage-700/60">
             {breadcrumbs.map((crumb, index) => {
               const isLast = index === breadcrumbs.length - 1;

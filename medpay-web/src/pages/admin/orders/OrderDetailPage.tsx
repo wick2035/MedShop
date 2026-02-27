@@ -58,7 +58,7 @@ export default function OrderDetailPage() {
         setRefunds(refundList);
       } catch { /* refunds may not exist */ }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load order';
+      const msg = err instanceof Error ? err.message : '加载订单失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -74,10 +74,10 @@ export default function OrderDetailPage() {
     if (!id) return;
     try {
       await adminOrdersApi.updateStatus(id, event);
-      toast.success('Order status updated');
+      toast.success('订单状态已更新');
       fetchData();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update status');
+      toast.error(err instanceof Error ? err.message : '更新状态失败');
     }
   };
 
@@ -96,8 +96,8 @@ export default function OrderDetailPage() {
       <PageContainer>
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
-          <p>{error ?? 'Order not found'}</p>
-          <Button variant="outline" onClick={fetchData}>Retry</Button>
+          <p>{error ?? '未找到订单'}</p>
+          <Button variant="outline" onClick={fetchData}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -108,14 +108,14 @@ export default function OrderDetailPage() {
   return (
     <PageContainer>
       <PageHeader
-        title={`Order ${order.orderNo}`}
+        title={`订单 ${order.orderNo}`}
         breadcrumbs={[
-          { label: 'Orders', href: '/admin/orders' },
+          { label: '订单', href: '/admin/orders' },
           { label: order.orderNo },
         ]}
         actions={
           <Button variant="outline" icon={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate('/admin/orders')}>
-            Back
+            返回
           </Button>
         }
       />
@@ -149,19 +149,19 @@ export default function OrderDetailPage() {
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div>
-              <p className="text-xs text-gray-400">Patient</p>
+              <p className="text-xs text-gray-400">患者</p>
               <p className="text-sm font-medium text-gray-700">{order.patientId.slice(0, 8)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Order Source</p>
+              <p className="text-xs text-gray-400">订单来源</p>
               <p className="text-sm font-medium text-gray-700">{order.orderSource}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Created</p>
+              <p className="text-xs text-gray-400">创建时间</p>
               <p className="text-sm text-gray-700">{formatDateTime(order.createdAt)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Total</p>
+              <p className="text-xs text-gray-400">合计</p>
               <p className="text-sm text-gray-700">{formatCurrency(order.totalAmount)}</p>
             </div>
           </div>
@@ -169,15 +169,15 @@ export default function OrderDetailPage() {
 
         {/* Order Items */}
         <motion.div variants={itemVariants} className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-          <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">Order Items</h3>
+          <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">订单明细</h3>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-ivory-200 text-xs uppercase text-gray-500">
-                <th className="px-3 py-2 text-left">Item</th>
-                <th className="px-3 py-2 text-left">Type</th>
-                <th className="px-3 py-2 text-right">Qty</th>
-                <th className="px-3 py-2 text-right">Unit Price</th>
-                <th className="px-3 py-2 text-right">Subtotal</th>
+                <th className="px-3 py-2 text-left">项目</th>
+                <th className="px-3 py-2 text-left">类型</th>
+                <th className="px-3 py-2 text-right">数量</th>
+                <th className="px-3 py-2 text-right">单价</th>
+                <th className="px-3 py-2 text-right">小计</th>
               </tr>
             </thead>
             <tbody>
@@ -193,7 +193,7 @@ export default function OrderDetailPage() {
             </tbody>
             <tfoot>
               <tr className="border-t border-ivory-200">
-                <td colSpan={4} className="px-3 py-3 text-right text-sm font-semibold text-gray-700">Total</td>
+                <td colSpan={4} className="px-3 py-3 text-right text-sm font-semibold text-gray-700">合计</td>
                 <td className="px-3 py-3 text-right font-display text-lg font-bold text-sage-700">{formatCurrency(order.totalAmount)}</td>
               </tr>
             </tfoot>
@@ -202,42 +202,42 @@ export default function OrderDetailPage() {
 
         {/* Payment Breakdown */}
         <motion.div variants={itemVariants} className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-          <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">Payment Information</h3>
+          <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">支付信息</h3>
           {payment ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div>
-                <p className="text-xs text-gray-400">Transaction No.</p>
+                <p className="text-xs text-gray-400">交易编号</p>
                 <p className="font-mono text-sm text-gray-700">{payment.transactionNo}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Channel</p>
+                <p className="text-xs text-gray-400">支付渠道</p>
                 <p className="text-sm text-gray-700">{payment.paymentChannel}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Amount</p>
+                <p className="text-xs text-gray-400">金额</p>
                 <p className="text-sm font-medium text-gray-700">{formatCurrency(payment.totalAmount)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Status</p>
+                <p className="text-xs text-gray-400">状态</p>
                 <Badge variant={payment.status === 'SUCCESS' ? 'success' : 'warning'} size="sm">
                   {PAYMENT_STATUS_LABELS[payment.status as keyof typeof PAYMENT_STATUS_LABELS] ?? payment.status}
                 </Badge>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-400">No payment recorded</p>
+            <p className="text-sm text-gray-400">暂无支付记录</p>
           )}
           <div className="mt-4 grid grid-cols-3 gap-4 rounded-md bg-ivory-50 p-4">
             <div>
-              <p className="text-xs text-gray-400">Total</p>
+              <p className="text-xs text-gray-400">合计</p>
               <p className="text-lg font-semibold text-emerald-600">{formatCurrency(order.totalAmount)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Insurance</p>
+              <p className="text-xs text-gray-400">医保</p>
               <p className="text-lg font-semibold text-blue-500">{formatCurrency(order.insuranceAmount)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Self Pay</p>
+              <p className="text-xs text-gray-400">自付</p>
               <p className="text-lg font-semibold text-sage-700">{formatCurrency(order.selfPayAmount)}</p>
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function OrderDetailPage() {
         {/* Refund Records */}
         {refunds.length > 0 && (
           <motion.div variants={itemVariants} className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-            <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">Refund Records</h3>
+            <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">退款记录</h3>
             <div className="space-y-3">
               {refunds.map((refund) => (
                 <div key={refund.id} className="rounded-md border border-ivory-100 p-3">

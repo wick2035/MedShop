@@ -53,7 +53,7 @@ export default function ProductListPage() {
         setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load products';
+      const msg = err instanceof Error ? err.message : '加载商品失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -70,26 +70,26 @@ export default function ProductListPage() {
     : products;
 
   const columns: DataTableColumn<ProductResponse>[] = [
-    { key: 'name', header: 'Name', sortable: true },
+    { key: 'name', header: '名称', sortable: true },
     {
       key: 'productType',
-      header: 'Type',
+      header: '类型',
       render: (row) => (
         <Badge variant="sage" size="sm">
           {PRODUCT_TYPE_LABELS[row.productType] ?? row.productType}
         </Badge>
       ),
     },
-    { key: 'manufacturer', header: 'Manufacturer' },
+    { key: 'manufacturer', header: '生产厂商' },
     {
       key: 'price',
-      header: 'Price',
+      header: '价格',
       sortable: true,
       render: (row) => <span className="font-medium">{formatCurrency(row.price)}</span>,
     },
     {
       key: 'stockQuantity',
-      header: 'Stock',
+      header: '库存',
       sortable: true,
       render: (row) => (
         <span className={row.stockQuantity < 10 ? 'font-medium text-red-600' : 'text-gray-700'}>
@@ -99,16 +99,16 @@ export default function ProductListPage() {
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => (
         <Badge variant={row.status === 'ACTIVE' ? 'success' : 'error'} size="sm">
-          {row.status}
+          {row.status === 'ACTIVE' ? '启用' : row.status === 'INACTIVE' ? '停用' : row.status}
         </Badge>
       ),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: '操作',
       render: (row) => (
         <div className="flex items-center gap-1">
           <Button
@@ -119,7 +119,7 @@ export default function ProductListPage() {
               navigate(`/admin/catalog/products/${row.id}/edit`);
             }}
           >
-            Edit
+            编辑
           </Button>
           <Button
             variant="ghost"
@@ -129,7 +129,7 @@ export default function ProductListPage() {
               navigate(`/admin/catalog/products/${row.id}/stock`);
             }}
           >
-            Stock
+            库存
           </Button>
         </div>
       ),
@@ -142,7 +142,7 @@ export default function ProductListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchProducts}>Retry</Button>
+          <Button variant="outline" onClick={fetchProducts}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -151,14 +151,14 @@ export default function ProductListPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Products & Medicines"
-        subtitle="Manage products, medicines, and medical devices"
+        title="商品与药品"
+        subtitle="管理商品、药品和医疗器械"
         actions={
           <Button
             icon={<Plus className="h-4 w-4" />}
             onClick={() => navigate('/admin/catalog/products/create')}
           >
-            Add Product
+            添加商品
           </Button>
         }
       />
@@ -166,13 +166,13 @@ export default function ProductListPage() {
       <DataTableToolbar
         searchValue={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Search products..."
+        searchPlaceholder="搜索商品..."
         filters={
           <Select
             value={typeFilter}
             onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}
             options={[
-              { value: '', label: 'All Types' },
+              { value: '', label: '全部类型' },
               ...Object.entries(PRODUCT_TYPE_LABELS).map(([key, label]) => ({
                 value: key,
                 label: label,
@@ -187,15 +187,15 @@ export default function ProductListPage() {
           columns={columns as any}
           data={filtered as any}
           loading={loading}
-          emptyMessage="No products found"
+          emptyMessage="暂无商品"
         />
       </motion.div>
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>上一页</Button>
+          <span className="text-sm text-gray-500">第 {page + 1} 页 / 共 {totalPages} 页</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>下一页</Button>
         </div>
       )}
     </PageContainer>

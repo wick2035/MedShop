@@ -39,7 +39,7 @@ export default function ReconciliationListPage() {
         setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load batches';
+      const msg = err instanceof Error ? err.message : '加载对账批次失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -54,23 +54,23 @@ export default function ReconciliationListPage() {
   const columns: DataTableColumn<ReconciliationBatchResponse>[] = [
     {
       key: 'batchNo',
-      header: 'Batch No.',
+      header: '批次号',
       render: (row) => <span className="font-mono text-xs text-sage-700">{row.batchNo}</span>,
     },
     {
       key: 'reconciliationDate',
-      header: 'Date',
+      header: '日期',
       render: (row) => <span className="text-sm">{formatDate(row.reconciliationDate)}</span>,
     },
-    { key: 'channel', header: 'Channel' },
+    { key: 'channel', header: '渠道' },
     {
       key: 'matchedCount',
-      header: 'Matched',
+      header: '已匹配',
       render: (row) => <span className="text-emerald-600">{row.matchedCount}</span>,
     },
     {
       key: 'mismatchedCount',
-      header: 'Mismatched',
+      header: '未匹配',
       render: (row) => (
         <span className={row.mismatchedCount > 0 ? 'font-medium text-red-600' : 'text-gray-500'}>
           {row.mismatchedCount}
@@ -79,17 +79,17 @@ export default function ReconciliationListPage() {
     },
     {
       key: 'systemTotalAmount',
-      header: 'System Amount',
+      header: '系统金额',
       render: (row) => <span className="text-sm">{formatCurrency(row.systemTotalAmount)}</span>,
     },
     {
       key: 'channelTotalAmount',
-      header: 'Channel Amount',
+      header: '渠道金额',
       render: (row) => <span className="text-sm">{formatCurrency(row.channelTotalAmount)}</span>,
     },
     {
       key: 'differenceAmount',
-      header: 'Difference',
+      header: '差异',
       render: (row) => (
         <span className={row.differenceAmount !== 0 ? 'font-medium text-red-600' : 'text-gray-500'}>
           {formatCurrency(row.differenceAmount)}
@@ -98,10 +98,11 @@ export default function ReconciliationListPage() {
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => {
         const variant = row.status === 'COMPLETED' ? 'success' : row.status === 'IN_PROGRESS' ? 'warning' : 'default';
-        return <Badge variant={variant} size="sm">{row.status}</Badge>;
+        const label = row.status === 'COMPLETED' ? '已完成' : row.status === 'IN_PROGRESS' ? '进行中' : row.status === 'FAILED' ? '失败' : row.status;
+        return <Badge variant={variant} size="sm">{label}</Badge>;
       },
     },
   ];
@@ -112,7 +113,7 @@ export default function ReconciliationListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchBatches}>Retry</Button>
+          <Button variant="outline" onClick={fetchBatches}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -121,11 +122,11 @@ export default function ReconciliationListPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Reconciliation"
-        subtitle="Payment reconciliation batches"
+        title="对账管理"
+        subtitle="支付对账批次"
         actions={
           <Button icon={<Plus className="h-4 w-4" />} onClick={() => navigate('/admin/reconciliation/trigger')}>
-            Trigger
+            触发
           </Button>
         }
       />
@@ -135,16 +136,16 @@ export default function ReconciliationListPage() {
           columns={columns as any}
           data={batches as any}
           loading={loading}
-          emptyMessage="No reconciliation batches found"
+          emptyMessage="暂无对账批次"
           onRowClick={(row) => navigate(`/admin/reconciliation/${row.id}`)}
         />
       </motion.div>
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>上一页</Button>
+          <span className="text-sm text-gray-500">第 {page + 1} 页 / 共 {totalPages} 页</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>下一页</Button>
         </div>
       )}
     </PageContainer>

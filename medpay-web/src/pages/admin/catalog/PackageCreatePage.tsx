@@ -38,7 +38,7 @@ export default function PackageCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.code.trim() || !form.price) {
-      toast.error('Please fill in all required fields');
+      toast.error('请填写所有必填项');
       return;
     }
     setSubmitting(true);
@@ -53,10 +53,10 @@ export default function PackageCreatePage() {
         validityDays: form.validityDays ? Number(form.validityDays) : undefined,
         maxUsage: form.maxUsage ? Number(form.maxUsage) : undefined,
       });
-      toast.success('Package created successfully');
+      toast.success('套餐创建成功');
       navigate('/admin/catalog/packages');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create package');
+      toast.error(err instanceof Error ? err.message : '创建套餐失败');
     } finally {
       setSubmitting(false);
     }
@@ -65,10 +65,10 @@ export default function PackageCreatePage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Add Health Package"
+        title="添加健康套餐"
         breadcrumbs={[
-          { label: 'Packages', href: '/admin/catalog/packages' },
-          { label: 'Add Package' },
+          { label: '套餐', href: '/admin/catalog/packages' },
+          { label: '添加套餐' },
         ]}
       />
 
@@ -79,20 +79,20 @@ export default function PackageCreatePage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Name <span className="text-red-500">*</span>
+              名称 <span className="text-red-500">*</span>
             </label>
-            <Input value={form.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="Package name" />
+            <Input value={form.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="套餐名称" />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Code <span className="text-red-500">*</span>
+              编码 <span className="text-red-500">*</span>
             </label>
             <Input value={form.code} onChange={(e) => handleChange('code', e.target.value)} placeholder="PKG-001" />
           </div>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Package Type</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">套餐类型</label>
           <Select
             value={form.packageType}
             onChange={(e) => handleChange('packageType', e.target.value)}
@@ -106,35 +106,35 @@ export default function PackageCreatePage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Price (CNY) <span className="text-red-500">*</span>
+              价格（元） <span className="text-red-500">*</span>
             </label>
             <Input type="number" value={form.price} onChange={(e) => handleChange('price', e.target.value)} step="0.01" />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Original Price (CNY)</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">原价（元）</label>
             <Input type="number" value={form.originalPrice} onChange={(e) => handleChange('originalPrice', e.target.value)} step="0.01" />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Validity (days)</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">有效期（天）</label>
             <Input type="number" value={form.validityDays} onChange={(e) => handleChange('validityDays', e.target.value)} />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Max Usage</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">最大使用次数</label>
             <Input type="number" value={form.maxUsage} onChange={(e) => handleChange('maxUsage', e.target.value)} />
           </div>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">描述</label>
           <Textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} rows={3} />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/packages')}>Cancel</Button>
-          <Button type="submit" loading={submitting}>Create Package</Button>
+          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/packages')}>取消</Button>
+          <Button type="submit" loading={submitting}>创建套餐</Button>
         </div>
       </form>
     </PageContainer>

@@ -54,7 +54,7 @@ export default function ServiceListPage() {
         setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load services';
+      const msg = err instanceof Error ? err.message : '加载服务失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -71,45 +71,45 @@ export default function ServiceListPage() {
     : services;
 
   const columns: DataTableColumn<MedicalServiceResponse>[] = [
-    { key: 'name', header: 'Name', sortable: true },
+    { key: 'name', header: '名称', sortable: true },
     {
       key: 'serviceType',
-      header: 'Type',
+      header: '类型',
       render: (row) => (
         <Badge variant="sage" size="sm">
           {SERVICE_TYPE_LABELS[row.serviceType] ?? row.serviceType}
         </Badge>
       ),
     },
-    { key: 'categoryName', header: 'Category' },
+    { key: 'categoryName', header: '分类' },
     {
       key: 'price',
-      header: 'Price',
+      header: '价格',
       sortable: true,
       render: (row) => <span className="font-medium">{formatCurrency(row.price)}</span>,
     },
     {
       key: 'requiresPrescription',
-      header: 'Prescription',
+      header: '处方',
       render: (row) =>
         row.requiresPrescription ? (
-          <Badge variant="terracotta" size="sm">Required</Badge>
+          <Badge variant="terracotta" size="sm">需要</Badge>
         ) : (
-          <span className="text-xs text-gray-400">No</span>
+          <span className="text-xs text-gray-400">否</span>
         ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => (
         <Badge variant={row.status === 'ACTIVE' ? 'success' : 'error'} size="sm">
-          {row.status}
+          {row.status === 'ACTIVE' ? '启用' : row.status === 'INACTIVE' ? '停用' : row.status}
         </Badge>
       ),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: '操作',
       render: (row) => (
         <Button
           variant="ghost"
@@ -120,7 +120,7 @@ export default function ServiceListPage() {
             navigate(`/admin/catalog/services/${row.id}/edit`);
           }}
         >
-          View
+          查看
         </Button>
       ),
     },
@@ -132,7 +132,7 @@ export default function ServiceListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchServices}>Retry</Button>
+          <Button variant="outline" onClick={fetchServices}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -141,14 +141,14 @@ export default function ServiceListPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Medical Services"
-        subtitle="Manage medical service catalog"
+        title="医疗服务"
+        subtitle="管理医疗服务目录"
         actions={
           <Button
             icon={<Plus className="h-4 w-4" />}
             onClick={() => navigate('/admin/catalog/services/create')}
           >
-            Add Service
+            添加服务
           </Button>
         }
       />
@@ -156,13 +156,13 @@ export default function ServiceListPage() {
       <DataTableToolbar
         searchValue={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Search services..."
+        searchPlaceholder="搜索服务..."
         filters={
           <Select
             value={typeFilter}
             onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}
             options={[
-              { value: '', label: 'All Types' },
+              { value: '', label: '全部类型' },
               ...Object.entries(SERVICE_TYPE_LABELS).map(([key, label]) => ({
                 value: key,
                 label: label,
@@ -177,7 +177,7 @@ export default function ServiceListPage() {
           columns={columns as any}
           data={filtered as any}
           loading={loading}
-          emptyMessage="No services found"
+          emptyMessage="暂无服务"
           onRowClick={(row) => navigate(`/admin/catalog/services/${row.id}/edit`)}
         />
       </motion.div>
@@ -186,13 +186,13 @@ export default function ServiceListPage() {
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
           <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>
-            Previous
+            上一页
           </Button>
           <span className="text-sm text-gray-500">
-            Page {page + 1} of {totalPages}
+            第 {page + 1} 页 / 共 {totalPages} 页
           </span>
           <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
-            Next
+            下一页
           </Button>
         </div>
       )}

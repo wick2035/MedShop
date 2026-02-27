@@ -29,7 +29,7 @@ function formatDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 export default function ScheduleOverviewPage() {
   const { selectedHospitalId } = useHospitalContextStore();
@@ -52,7 +52,7 @@ export default function ScheduleOverviewPage() {
       });
       setSchedules(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load schedules';
+      const msg = err instanceof Error ? err.message : '加载排班失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -85,7 +85,7 @@ export default function ScheduleOverviewPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchSchedules}>Retry</Button>
+          <Button variant="outline" onClick={fetchSchedules}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -94,8 +94,8 @@ export default function ScheduleOverviewPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Schedule Overview"
-        subtitle="Weekly view of all doctor schedules"
+        title="排班概览"
+        subtitle="医生排班周视图"
       />
 
       {/* Week Navigation */}
@@ -105,8 +105,8 @@ export default function ScheduleOverviewPage() {
         </Button>
         <div className="text-center">
           <p className="font-display text-lg font-semibold text-sage-800">
-            {weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -{' '}
-            {weekDates[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            {weekDates[0].toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })} -{' '}
+            {weekDates[6].toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={nextWeek}>
@@ -161,7 +161,7 @@ export default function ScheduleOverviewPage() {
                       className="rounded bg-ivory-100 p-1.5 text-xs"
                     >
                       <p className="font-medium text-sage-700 truncate">
-                        Dr. {schedule.doctorId.slice(0, 8)}
+                        医生 {schedule.doctorId.slice(0, 8)}
                       </p>
                       <div className="flex items-center gap-1 text-gray-500">
                         <Clock className="h-3 w-3" />

@@ -10,11 +10,11 @@ interface BottomNavItem {
 }
 
 const navItems: BottomNavItem[] = [
-  { label: 'Home', icon: Home, href: '/patient' },
-  { label: 'Services', icon: Stethoscope, href: '/patient/services' },
-  { label: 'Orders', icon: ClipboardList, href: '/patient/orders' },
-  { label: 'Messages', icon: Bell, href: '/patient/notifications' },
-  { label: 'Profile', icon: User, href: '/patient/profile' },
+  { label: '首页', icon: Home, href: '/patient' },
+  { label: '服务', icon: Stethoscope, href: '/patient/services' },
+  { label: '订单', icon: ClipboardList, href: '/patient/orders' },
+  { label: '消息', icon: Bell, href: '/patient/notifications' },
+  { label: '我的', icon: User, href: '/patient/profile' },
 ];
 
 export default function BottomNav() {

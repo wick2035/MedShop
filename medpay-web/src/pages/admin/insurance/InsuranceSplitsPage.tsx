@@ -26,7 +26,7 @@ export default function InsuranceSplitsPage() {
 
   const fetchSplits = async () => {
     if (!orderId.trim()) {
-      toast.error('Please enter an Order ID');
+      toast.error('请输入订单编号');
       return;
     }
     setLoading(true);
@@ -38,7 +38,7 @@ export default function InsuranceSplitsPage() {
       const allSplits = Array.isArray(data) ? data.flatMap((r: SplitPayResponse) => r.splits ?? []) : [];
       setSplits(allSplits);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load split payments';
+      const msg = err instanceof Error ? err.message : '加载分账信息失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -49,18 +49,18 @@ export default function InsuranceSplitsPage() {
   const columns: DataTableColumn<SplitDetail>[] = [
     {
       key: 'payerType',
-      header: 'Payer Type',
+      header: '付款方类型',
       render: (row) => <span className="font-mono text-xs text-sage-700">{row.payerType}</span>,
     },
     {
       key: 'amount',
-      header: 'Amount',
+      header: '金额',
       sortable: true,
       render: (row) => <span className="font-medium">{formatCurrency(row.amount)}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => {
         const variant = row.status === 'SUCCESS' ? 'success' : row.status === 'FAILED' ? 'error' : 'warning';
         return (
@@ -74,21 +74,21 @@ export default function InsuranceSplitsPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Split Payments" subtitle="View split payment details for insurance co-pay orders" />
+      <PageHeader title="分账支付" subtitle="查看医保共付订单的分账支付详情" />
 
       {/* Search by Order ID */}
       <div className="mb-6 flex items-end gap-3">
         <div className="flex-1 max-w-md">
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Order ID</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">订单编号</label>
           <Input
             value={orderId}
             onChange={(e) => setOrderId(e.target.value)}
-            placeholder="Enter Order ID to search..."
+            placeholder="输入订单编号搜索..."
             onKeyDown={(e) => e.key === 'Enter' && fetchSplits()}
           />
         </div>
         <Button icon={<Search className="h-4 w-4" />} onClick={fetchSplits} loading={loading}>
-          Search
+          搜索
         </Button>
       </div>
 
@@ -101,14 +101,14 @@ export default function InsuranceSplitsPage() {
 
       {searched && (
         <motion.div variants={itemVariants} initial="hidden" animate="visible">
-          <DataTable columns={columns as any} data={splits as any} loading={loading} emptyMessage="No split payments found for this order" />
+          <DataTable columns={columns as any} data={splits as any} loading={loading} emptyMessage="该订单暂无分账支付记录" />
         </motion.div>
       )}
 
       {!searched && (
         <div className="flex h-48 flex-col items-center justify-center gap-2 text-gray-400">
           <Search className="h-12 w-12 text-gray-300" />
-          <p className="text-sm">Enter an Order ID to view split payment details</p>
+          <p className="text-sm">输入订单编号查看分账支付详情</p>
         </div>
       )}
     </PageContainer>

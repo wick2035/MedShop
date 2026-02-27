@@ -23,41 +23,41 @@ import type { SidebarGroup } from './Sidebar';
 
 const sidebarGroups: SidebarGroup[] = [
   {
-    title: 'Overview',
+    title: '概览',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
+      { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard, href: '/admin' },
     ],
   },
   {
-    title: 'Management',
+    title: '管理',
     items: [
-      { id: 'hospitals', label: 'Hospitals', icon: Building2, href: '/admin/hospitals' },
-      { id: 'catalog', label: 'Catalog', icon: BookOpen, href: '/admin/catalog/services' },
-      { id: 'schedules', label: 'Schedules', icon: Calendar, href: '/admin/schedules' },
+      { id: 'hospitals', label: '医院', icon: Building2, href: '/admin/hospitals' },
+      { id: 'catalog', label: '服务目录', icon: BookOpen, href: '/admin/catalog/services' },
+      { id: 'schedules', label: '排班', icon: Calendar, href: '/admin/schedules' },
     ],
   },
   {
-    title: 'Operations',
+    title: '运营',
     items: [
-      { id: 'orders', label: 'Orders', icon: ClipboardList, href: '/admin/orders' },
-      { id: 'payments', label: 'Payments', icon: CreditCard, href: '/admin/payments' },
-      { id: 'refunds', label: 'Refunds', icon: RotateCcw, href: '/admin/refunds' },
+      { id: 'orders', label: '订单', icon: ClipboardList, href: '/admin/orders' },
+      { id: 'payments', label: '支付', icon: CreditCard, href: '/admin/payments' },
+      { id: 'refunds', label: '退款', icon: RotateCcw, href: '/admin/refunds' },
     ],
   },
   {
-    title: 'Finance',
+    title: '财务',
     items: [
-      { id: 'insurance', label: 'Insurance', icon: Shield, href: '/admin/insurance/claims' },
-      { id: 'reconciliation', label: 'Reconciliation', icon: Scale, href: '/admin/reconciliation' },
-      { id: 'reports', label: 'Reports', icon: BarChart3, href: '/admin/reports' },
-      { id: 'settlements', label: 'Settlements', icon: Landmark, href: '/admin/settlements' },
+      { id: 'insurance', label: '医保', icon: Shield, href: '/admin/insurance/claims' },
+      { id: 'reconciliation', label: '对账', icon: Scale, href: '/admin/reconciliation' },
+      { id: 'reports', label: '报表', icon: BarChart3, href: '/admin/reports' },
+      { id: 'settlements', label: '结算', icon: Landmark, href: '/admin/settlements' },
     ],
   },
   {
-    title: 'System',
+    title: '系统',
     items: [
-      { id: 'notifications', label: 'Notifications', icon: Bell, href: '/admin/notifications' },
-      { id: 'audit', label: 'Audit Log', icon: ScrollText, href: '/admin/audit' },
+      { id: 'notifications', label: '通知', icon: Bell, href: '/admin/notifications' },
+      { id: 'audit', label: '审计日志', icon: ScrollText, href: '/admin/audit' },
     ],
   },
 ];

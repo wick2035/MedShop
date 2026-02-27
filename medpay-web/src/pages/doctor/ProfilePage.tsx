@@ -51,7 +51,7 @@ export default function ProfilePage() {
         }
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : 'Failed to load profile',
+          err instanceof Error ? err.message : '加载个人信息失败',
         );
       } finally {
         setLoading(false);
@@ -68,7 +68,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <PageContainer>
-        <PageHeader title="Profile" />
+        <PageHeader title="个人中心" />
         <div className="flex min-h-[300px] items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-sage-200 border-t-sage-500" />
         </div>
@@ -81,11 +81,11 @@ export default function ProfilePage() {
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants}>
           <PageHeader
-            title="Profile"
-            subtitle="Your account information"
+            title="个人中心"
+            subtitle="您的账户信息"
             breadcrumbs={[
-              { label: 'Dashboard', href: '/doctor' },
-              { label: 'Profile' },
+              { label: '仪表盘', href: '/doctor' },
+              { label: '个人中心' },
             ]}
           />
         </motion.div>
@@ -123,7 +123,7 @@ export default function ProfilePage() {
             {/* Basic Info */}
             <div className="flex-1 text-center sm:text-left">
               <h2 className="font-display text-2xl font-semibold text-sage-800">
-                Dr. {doctor?.fullName || user?.fullName || 'Doctor'}
+                {doctor?.fullName || user?.fullName || '医生'} 医生
               </h2>
               {doctor?.title && (
                 <p className="mt-0.5 text-sm font-medium text-sage-600">
@@ -142,7 +142,7 @@ export default function ProfilePage() {
                 <div className="mt-1 flex items-center justify-center gap-2 sm:justify-start">
                   <Building2 className="h-4 w-4 text-sage-400" />
                   <span className="text-sm text-sage-600">
-                    Department
+                    科室
                   </span>
                 </div>
               )}
@@ -150,7 +150,7 @@ export default function ProfilePage() {
                 <div className="mt-1 flex items-center justify-center gap-2 sm:justify-start">
                   <DollarSign className="h-4 w-4 text-sage-400" />
                   <span className="text-sm text-sage-600">
-                    Consultation Fee: {formatCurrency(doctor.consultationFee)}
+                    问诊费：{formatCurrency(doctor.consultationFee)}
                   </span>
                 </div>
               )}
@@ -164,7 +164,7 @@ export default function ProfilePage() {
                   <span className="mt-1 text-lg font-semibold text-sage-800">
                     --
                   </span>
-                  <span className="text-xs text-sage-500">Rating</span>
+                  <span className="text-xs text-sage-500">评分</span>
                 </div>
               </div>
             )}
@@ -174,7 +174,7 @@ export default function ProfilePage() {
           {doctor?.bio && (
             <div className="mt-6 rounded-lg bg-ivory-50 p-4">
               <h3 className="mb-2 text-sm font-medium text-sage-700">
-                Bio
+                个人简介
               </h3>
               <p className="text-sm text-sage-600">{doctor.bio}</p>
             </div>
@@ -188,7 +188,7 @@ export default function ProfilePage() {
         >
           <div className="border-b border-ivory-200 px-6 py-4">
             <h3 className="font-display text-lg font-semibold text-sage-800">
-              Account Information
+              账户信息
             </h3>
           </div>
 
@@ -198,7 +198,7 @@ export default function ProfilePage() {
                 <User className="h-4 w-4 text-sage-500" />
               </div>
               <div>
-                <p className="text-xs text-sage-500">Username</p>
+                <p className="text-xs text-sage-500">用户名</p>
                 <p className="text-sm font-medium text-sage-800">
                   {user?.username ?? '--'}
                 </p>
@@ -210,7 +210,7 @@ export default function ProfilePage() {
                 <User className="h-4 w-4 text-sage-500" />
               </div>
               <div>
-                <p className="text-xs text-sage-500">Full Name</p>
+                <p className="text-xs text-sage-500">姓名</p>
                 <p className="text-sm font-medium text-sage-800">
                   {user?.fullName ?? '--'}
                 </p>
@@ -222,7 +222,7 @@ export default function ProfilePage() {
                 <Phone className="h-4 w-4 text-sage-500" />
               </div>
               <div>
-                <p className="text-xs text-sage-500">Phone</p>
+                <p className="text-xs text-sage-500">手机号</p>
                 <p className="text-sm font-medium text-sage-800">
                   {user?.phone ?? '--'}
                 </p>
@@ -234,7 +234,7 @@ export default function ProfilePage() {
                 <Mail className="h-4 w-4 text-sage-500" />
               </div>
               <div>
-                <p className="text-xs text-sage-500">Email</p>
+                <p className="text-xs text-sage-500">邮箱</p>
                 <p className="text-sm font-medium text-sage-800">
                   {user?.email ?? '--'}
                 </p>
@@ -246,7 +246,7 @@ export default function ProfilePage() {
                 <Shield className="h-4 w-4 text-sage-500" />
               </div>
               <div>
-                <p className="text-xs text-sage-500">Role</p>
+                <p className="text-xs text-sage-500">角色</p>
                 <p className="text-sm font-medium text-sage-800">
                   {user?.role
                     ? USER_ROLE_LABELS[user.role as UserRole] ?? user.role
@@ -261,7 +261,7 @@ export default function ProfilePage() {
                   <Briefcase className="h-4 w-4 text-sage-500" />
                 </div>
                 <div>
-                  <p className="text-xs text-sage-500">Hospital ID</p>
+                  <p className="text-xs text-sage-500">医院ID</p>
                   <p className="text-sm font-medium text-sage-800">
                     {user.hospitalId}
                   </p>
@@ -278,7 +278,7 @@ export default function ProfilePage() {
             icon={<LogOut className="h-4 w-4" />}
             onClick={handleLogout}
           >
-            Logout
+            退出登录
           </Button>
         </motion.div>
       </motion.div>

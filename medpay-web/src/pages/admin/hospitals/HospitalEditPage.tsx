@@ -51,7 +51,7 @@ export default function HospitalEditPage() {
         description: '',
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load hospital';
+      const msg = err instanceof Error ? err.message : '加载医院失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -70,7 +70,7 @@ export default function HospitalEditPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !form.name.trim() || !form.address.trim() || !form.phone.trim()) {
-      toast.error('Please fill in all required fields');
+      toast.error('请填写所有必填项');
       return;
     }
     setSubmitting(true);
@@ -81,10 +81,10 @@ export default function HospitalEditPage() {
         contactPhone: form.phone || undefined,
         contactEmail: form.email || undefined,
       });
-      toast.success('Hospital updated successfully');
+      toast.success('医院更新成功');
       navigate(`/admin/hospitals/${id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update hospital');
+      toast.error(err instanceof Error ? err.message : '更新医院失败');
     } finally {
       setSubmitting(false);
     }
@@ -105,9 +105,9 @@ export default function HospitalEditPage() {
       <PageContainer>
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
-          <p>{error ?? 'Hospital not found'}</p>
+          <p>{error ?? '未找到医院'}</p>
           <Button variant="outline" onClick={fetchHospital}>
-            Retry
+            重试
           </Button>
         </div>
       </PageContainer>
@@ -117,11 +117,11 @@ export default function HospitalEditPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Edit Hospital"
+        title="编辑医院"
         breadcrumbs={[
-          { label: 'Hospitals', href: '/admin/hospitals' },
+          { label: '医院', href: '/admin/hospitals' },
           { label: hospital.name, href: `/admin/hospitals/${id}` },
-          { label: 'Edit' },
+          { label: '编辑' },
         ]}
       />
 
@@ -131,59 +131,59 @@ export default function HospitalEditPage() {
       >
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            Name <span className="text-red-500">*</span>
+            名称 <span className="text-red-500">*</span>
           </label>
           <Input
             value={form.name}
             onChange={(e) => handleChange('name', e.target.value)}
-            placeholder="Hospital name"
+            placeholder="医院名称"
           />
         </div>
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            Address <span className="text-red-500">*</span>
+            地址 <span className="text-red-500">*</span>
           </label>
           <Input
             value={form.address}
             onChange={(e) => handleChange('address', e.target.value)}
-            placeholder="Full address"
+            placeholder="详细地址"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Phone <span className="text-red-500">*</span>
+              电话 <span className="text-red-500">*</span>
             </label>
             <Input
               value={form.phone}
               onChange={(e) => handleChange('phone', e.target.value)}
-              placeholder="Contact phone"
+              placeholder="联系电话"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Email</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">邮箱</label>
             <Input
               value={form.email}
               onChange={(e) => handleChange('email', e.target.value)}
-              placeholder="Contact email"
+              placeholder="联系邮箱"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Level</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">等级</label>
             <Input
               value={form.level}
               onChange={(e) => handleChange('level', e.target.value)}
-              placeholder="e.g. Level 3A"
+              placeholder="如 三甲"
             />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Subscription Tier
+              订阅套餐
             </label>
             <Select
               value={form.subscriptionTier}
@@ -197,21 +197,21 @@ export default function HospitalEditPage() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">描述</label>
           <Textarea
             value={form.description}
             onChange={(e) => handleChange('description', e.target.value)}
-            placeholder="Brief description"
+            placeholder="医院简介"
             rows={3}
           />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="outline" onClick={() => navigate(`/admin/hospitals/${id}`)}>
-            Cancel
+            取消
           </Button>
           <Button type="submit" loading={submitting}>
-            Save Changes
+            保存修改
           </Button>
         </div>
       </form>

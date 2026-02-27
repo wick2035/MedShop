@@ -43,7 +43,7 @@ export default function LedgerPage() {
         setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load ledger';
+      const msg = err instanceof Error ? err.message : '加载账本失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -58,12 +58,12 @@ export default function LedgerPage() {
   const columns: DataTableColumn<LedgerResponse>[] = [
     {
       key: 'ledgerNo',
-      header: 'Ledger No.',
+      header: '账本编号',
       render: (row) => <span className="font-mono text-xs text-sage-700">{row.ledgerNo}</span>,
     },
     {
       key: 'transactionType',
-      header: 'Type',
+      header: '类型',
       render: (row) => {
         const isCredit = row.direction === 'CREDIT' || row.amount > 0;
         return (
@@ -75,7 +75,7 @@ export default function LedgerPage() {
     },
     {
       key: 'amount',
-      header: 'Amount',
+      header: '金额',
       sortable: true,
       render: (row) => (
         <span className={`font-medium ${row.direction === 'CREDIT' ? 'text-emerald-600' : 'text-red-600'}`}>
@@ -85,17 +85,17 @@ export default function LedgerPage() {
     },
     {
       key: 'referenceType',
-      header: 'Reference',
+      header: '关联类型',
       render: (row) => <span className="text-sm">{row.referenceType}</span>,
     },
     {
       key: 'description',
-      header: 'Description',
+      header: '描述',
       render: (row) => <span className="text-xs text-gray-500">{row.description}</span>,
     },
     {
       key: 'createdAt',
-      header: 'Date',
+      header: '日期',
       render: (row) => <span className="text-xs text-gray-500">{formatDateTime(row.createdAt)}</span>,
     },
   ];
@@ -106,7 +106,7 @@ export default function LedgerPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchLedger}>Retry</Button>
+          <Button variant="outline" onClick={fetchLedger}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -114,17 +114,17 @@ export default function LedgerPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Payment Ledger" subtitle="Detailed ledger entries for all transactions" />
+      <PageHeader title="支付账本" subtitle="所有交易的详细账本记录" />
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns as any} data={entries as any} loading={loading} emptyMessage="No ledger entries found" />
+        <DataTable columns={columns as any} data={entries as any} loading={loading} emptyMessage="暂无账本记录" />
       </motion.div>
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>上一页</Button>
+          <span className="text-sm text-gray-500">第 {page + 1} 页 / 共 {totalPages} 页</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>下一页</Button>
         </div>
       )}
     </PageContainer>

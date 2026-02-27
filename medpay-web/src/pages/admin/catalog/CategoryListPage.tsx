@@ -37,7 +37,7 @@ export default function CategoryListPage() {
       const data = await catalogCategoriesApi.list(selectedHospitalId ?? undefined);
       setCategories(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load categories';
+      const msg = err instanceof Error ? err.message : '加载分类失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -67,7 +67,7 @@ export default function CategoryListPage() {
 
   const handleSubmit = async () => {
     if (!formName.trim()) {
-      toast.error('Name is required');
+      toast.error('名称不能为空');
       return;
     }
     setSubmitting(true);
@@ -78,42 +78,42 @@ export default function CategoryListPage() {
           code: formName.toUpperCase().replace(/\s+/g, '_'),
           sortOrder: Number(formSort) || 0,
         });
-        toast.success('Category created');
+        toast.success('分类已创建');
       } else if (dialogMode === 'edit' && editCategory) {
         await catalogCategoriesApi.update(editCategory.id, {
           name: formName,
           code: editCategory.code,
           sortOrder: Number(formSort) || 0,
         });
-        toast.success('Category updated');
+        toast.success('分类已更新');
       }
       setDialogMode(null);
       setEditCategory(null);
       fetchCategories();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Operation failed');
+      toast.error(err instanceof Error ? err.message : '操作失败');
     } finally {
       setSubmitting(false);
     }
   };
 
   const columns: DataTableColumn<ServiceCategoryResponse>[] = [
-    { key: 'name', header: 'Name', sortable: true },
-    { key: 'code', header: 'Code' },
+    { key: 'name', header: '名称', sortable: true },
+    { key: 'code', header: '编码' },
     {
       key: 'sortOrder',
-      header: 'Sort Order',
+      header: '排序',
       sortable: true,
       render: (row) => <span className="font-mono text-sm">{row.sortOrder}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
-      render: (row) => <span className="text-xs text-gray-500">{row.status}</span>,
+      header: '状态',
+      render: (row) => <span className="text-xs text-gray-500">{row.status === 'ACTIVE' ? '启用' : row.status === 'INACTIVE' ? '停用' : row.status}</span>,
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: '操作',
       render: (row) => (
         <Button
           variant="ghost"
@@ -124,7 +124,7 @@ export default function CategoryListPage() {
             openEdit(row);
           }}
         >
-          Edit
+          编辑
         </Button>
       ),
     },
@@ -136,7 +136,7 @@ export default function CategoryListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchCategories}>Retry</Button>
+          <Button variant="outline" onClick={fetchCategories}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -145,11 +145,11 @@ export default function CategoryListPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Service Categories"
-        subtitle="Manage medical service categories"
+        title="服务分类"
+        subtitle="管理医疗服务分类"
         actions={
           <Button icon={<Plus className="h-4 w-4" />} onClick={openAdd}>
-            Add Category
+            添加分类
           </Button>
         }
       />
@@ -159,7 +159,7 @@ export default function CategoryListPage() {
           columns={columns as any}
           data={categories as any}
           loading={loading}
-          emptyMessage="No categories found"
+          emptyMessage="暂无分类"
         />
       </motion.div>
 
@@ -169,7 +169,7 @@ export default function CategoryListPage() {
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-display text-lg font-semibold text-sage-800">
-                {dialogMode === 'add' ? 'Add Category' : 'Edit Category'}
+                {dialogMode === 'add' ? '添加分类' : '编辑分类'}
               </h3>
               <button onClick={() => setDialogMode(null)}>
                 <X className="h-5 w-5 text-gray-400" />
@@ -177,22 +177,22 @@ export default function CategoryListPage() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Name *</label>
-                <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Category name" />
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">名称 *</label>
+                <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="分类名称" />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">描述</label>
                 <Textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={2} />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Sort Order</label>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">排序</label>
                 <Input type="number" value={formSort} onChange={(e) => setFormSort(e.target.value)} />
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setDialogMode(null)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setDialogMode(null)}>取消</Button>
               <Button loading={submitting} onClick={handleSubmit}>
-                {dialogMode === 'add' ? 'Create' : 'Save'}
+                {dialogMode === 'add' ? '创建' : '保存'}
               </Button>
             </div>
           </div>

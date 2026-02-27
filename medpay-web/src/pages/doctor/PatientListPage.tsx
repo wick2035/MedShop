@@ -40,7 +40,7 @@ export default function PatientListPage() {
       });
       setAppointments(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load patients');
+      setError(err instanceof Error ? err.message : '加载患者失败');
     } finally {
       setLoading(false);
     }
@@ -56,7 +56,7 @@ export default function PatientListPage() {
       await appointmentsApi.checkIn(appointmentId);
       await fetchAppointments();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Check-in failed');
+      setError(err instanceof Error ? err.message : '签到失败');
     } finally {
       setActionLoading(null);
     }
@@ -68,7 +68,7 @@ export default function PatientListPage() {
       await appointmentsApi.startConsultation(appointmentId);
       await fetchAppointments();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start consultation');
+      setError(err instanceof Error ? err.message : '开始就诊失败');
     } finally {
       setActionLoading(null);
     }
@@ -80,7 +80,7 @@ export default function PatientListPage() {
       await appointmentsApi.complete(appointmentId);
       await fetchAppointments();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete');
+      setError(err instanceof Error ? err.message : '完成失败');
     } finally {
       setActionLoading(null);
     }
@@ -89,7 +89,7 @@ export default function PatientListPage() {
   if (loading) {
     return (
       <PageContainer>
-        <PageHeader title="Today's Patients" />
+        <PageHeader title="今日患者" />
         <div className="flex min-h-[300px] items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-sage-200 border-t-sage-500" />
         </div>
@@ -102,11 +102,11 @@ export default function PatientListPage() {
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants}>
           <PageHeader
-            title="Today's Patients"
-            subtitle={`${appointments.length} appointments scheduled`}
+            title="今日患者"
+            subtitle={`${appointments.length} 个预约`}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/doctor' },
-              { label: 'Patients' },
+              { label: '仪表盘', href: '/doctor' },
+              { label: '患者' },
             ]}
           />
         </motion.div>
@@ -121,7 +121,7 @@ export default function PatientListPage() {
               onClick={() => setError(null)}
               className="ml-2 font-medium underline"
             >
-              Dismiss
+              关闭
             </button>
           </motion.div>
         )}
@@ -133,9 +133,9 @@ export default function PatientListPage() {
           {appointments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-sage-500">
               <Users className="mb-3 h-12 w-12 text-sage-300" />
-              <p className="text-lg font-medium">No patients scheduled for today</p>
+              <p className="text-lg font-medium">今天暂无患者预约</p>
               <p className="mt-1 text-sm text-sage-400">
-                Patients will appear here once they book appointments.
+                患者预约后将显示在此处
               </p>
             </div>
           ) : (
@@ -143,11 +143,11 @@ export default function PatientListPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-ivory-100 text-left text-xs font-medium uppercase tracking-wider text-sage-500">
-                    <th className="px-6 py-3">Queue #</th>
-                    <th className="px-6 py-3">Patient</th>
-                    <th className="px-6 py-3">Appointment Time</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3">Actions</th>
+                    <th className="px-6 py-3">序号</th>
+                    <th className="px-6 py-3">患者</th>
+                    <th className="px-6 py-3">预约时间</th>
+                    <th className="px-6 py-3">状态</th>
+                    <th className="px-6 py-3">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ivory-100">
@@ -171,10 +171,10 @@ export default function PatientListPage() {
                         </td>
                         <td className="px-6 py-4">
                           <p className="text-sm font-medium text-sage-800">
-                            Patient {appt.patientId.slice(0, 8)}
+                            患者 {appt.patientId.slice(0, 8)}
                           </p>
                           <p className="text-xs text-sage-500">
-                            Appt: {appt.appointmentNo}
+                            预约号：{appt.appointmentNo}
                           </p>
                         </td>
                         <td className="px-6 py-4">
@@ -207,7 +207,7 @@ export default function PatientListPage() {
                                 onClick={() => handleCheckIn(appt.id)}
                                 icon={<UserCheck className="h-3.5 w-3.5" />}
                               >
-                                Check In
+                                签到
                               </Button>
                             )}
                             {status === AppointmentStatus.CHECKED_IN && (
@@ -218,7 +218,7 @@ export default function PatientListPage() {
                                 onClick={() => handleStartConsultation(appt.id)}
                                 icon={<PlayCircle className="h-3.5 w-3.5" />}
                               >
-                                Start
+                                开始就诊
                               </Button>
                             )}
                             {status === AppointmentStatus.IN_PROGRESS && (
@@ -229,12 +229,12 @@ export default function PatientListPage() {
                                 onClick={() => handleComplete(appt.id)}
                                 icon={<CheckCircle2 className="h-3.5 w-3.5" />}
                               >
-                                Complete
+                                完成
                               </Button>
                             )}
                             {status === AppointmentStatus.COMPLETED && (
                               <span className="text-xs text-sage-400">
-                                Done
+                                已完成
                               </span>
                             )}
                           </div>

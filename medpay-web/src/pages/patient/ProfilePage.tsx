@@ -24,7 +24,7 @@ export default function ProfilePage() {
 
   function handleLogout() {
     logout();
-    toast.success('You have been logged out');
+    toast.success('已退出登录');
     navigate('/login', { replace: true });
   }
 
@@ -34,18 +34,18 @@ export default function ProfilePage() {
   }
 
   const profileFields = [
-    { icon: User, label: 'Full Name', value: user.fullName },
-    { icon: User, label: 'Username', value: user.username },
-    { icon: Phone, label: 'Phone', value: user.phone || 'Not set' },
-    { icon: Mail, label: 'Email', value: user.email || 'Not set' },
-    { icon: Shield, label: 'Role', value: USER_ROLE_LABELS[user.role] || user.role },
+    { icon: User, label: '姓名', value: user.fullName },
+    { icon: User, label: '用户名', value: user.username },
+    { icon: Phone, label: '手机号', value: user.phone || '未设置' },
+    { icon: Mail, label: '邮箱', value: user.email || '未设置' },
+    { icon: Shield, label: '角色', value: USER_ROLE_LABELS[user.role] || user.role },
   ];
 
   const quickLinks = [
-    { label: 'My Orders', href: '/patient/orders' },
-    { label: 'My Prescriptions', href: '/patient/prescriptions' },
-    { label: 'Insurance', href: '/patient/insurance' },
-    { label: 'Notifications', href: '/patient/notifications' },
+    { label: '我的订单', href: '/patient/orders' },
+    { label: '我的处方', href: '/patient/prescriptions' },
+    { label: '医保', href: '/patient/insurance' },
+    { label: '通知', href: '/patient/notifications' },
   ];
 
   return (
@@ -56,7 +56,7 @@ export default function ProfilePage() {
       className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8"
     >
       <motion.div variants={itemVariants}>
-        <PageHeader title="Profile" subtitle="View and manage your account" />
+        <PageHeader title="个人中心" subtitle="查看和管理您的账户" />
       </motion.div>
 
       {/* Profile card */}
@@ -84,7 +84,7 @@ export default function ProfilePage() {
       {/* Profile details */}
       <motion.div variants={itemVariants} className="mt-4">
         <Card className="p-6">
-          <h3 className="mb-4 text-base font-semibold text-sage-800">Account Information</h3>
+          <h3 className="mb-4 text-base font-semibold text-sage-800">账户信息</h3>
           <div className="space-y-4">
             {profileFields.map((field) => (
               <div key={field.label} className="flex items-center gap-3">
@@ -104,7 +104,7 @@ export default function ProfilePage() {
       {/* Quick links */}
       <motion.div variants={itemVariants} className="mt-4">
         <Card className="p-6">
-          <h3 className="mb-4 text-base font-semibold text-sage-800">Quick Links</h3>
+          <h3 className="mb-4 text-base font-semibold text-sage-800">快捷链接</h3>
           <div className="space-y-1">
             {quickLinks.map((link) => (
               <button
@@ -128,7 +128,7 @@ export default function ProfilePage() {
           onClick={handleLogout}
           icon={<LogOut className="h-4 w-4" />}
         >
-          Log Out
+          退出登录
         </Button>
       </motion.div>
     </motion.div>

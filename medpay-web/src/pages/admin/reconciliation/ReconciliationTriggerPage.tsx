@@ -31,11 +31,11 @@ export default function ReconciliationTriggerPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.reconciliationDate || !form.channel) {
-      toast.error('Please fill in all fields');
+      toast.error('请填写所有字段');
       return;
     }
     if (!selectedHospitalId) {
-      toast.error('Please select a hospital first');
+      toast.error('请先选择医院');
       return;
     }
     setSubmitting(true);
@@ -45,10 +45,10 @@ export default function ReconciliationTriggerPage() {
         channel: form.channel,
         hospitalId: selectedHospitalId,
       });
-      toast.success('Reconciliation triggered successfully');
+      toast.success('对账已触发');
       navigate('/admin/reconciliation');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to trigger reconciliation');
+      toast.error(err instanceof Error ? err.message : '触发对账失败');
     } finally {
       setSubmitting(false);
     }
@@ -57,10 +57,10 @@ export default function ReconciliationTriggerPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Trigger Reconciliation"
+        title="触发对账"
         breadcrumbs={[
-          { label: 'Reconciliation', href: '/admin/reconciliation' },
-          { label: 'Trigger' },
+          { label: '对账', href: '/admin/reconciliation' },
+          { label: '触发' },
         ]}
       />
 
@@ -70,7 +70,7 @@ export default function ReconciliationTriggerPage() {
       >
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            Reconciliation Date <span className="text-red-500">*</span>
+            对账日期 <span className="text-red-500">*</span>
           </label>
           <Input
             type="date"
@@ -81,7 +81,7 @@ export default function ReconciliationTriggerPage() {
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            Payment Channel <span className="text-red-500">*</span>
+            支付渠道 <span className="text-red-500">*</span>
           </label>
           <Select
             value={form.channel}
@@ -95,10 +95,10 @@ export default function ReconciliationTriggerPage() {
 
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="outline" onClick={() => navigate('/admin/reconciliation')}>
-            Cancel
+            取消
           </Button>
           <Button type="submit" loading={submitting}>
-            Trigger Reconciliation
+            触发对账
           </Button>
         </div>
       </form>

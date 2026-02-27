@@ -37,11 +37,11 @@ export default function ProductCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.price) {
-      toast.error('Please fill in all required fields');
+      toast.error('请填写所有必填项');
       return;
     }
     if (!selectedHospitalId) {
-      toast.error('Please select a hospital first');
+      toast.error('请先选择医院');
       return;
     }
     setSubmitting(true);
@@ -57,10 +57,10 @@ export default function ProductCreatePage() {
         requiresPrescription: false,
         insuranceCovered: false,
       });
-      toast.success('Product created successfully');
+      toast.success('商品创建成功');
       navigate('/admin/catalog/products');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create product');
+      toast.error(err instanceof Error ? err.message : '创建商品失败');
     } finally {
       setSubmitting(false);
     }
@@ -69,10 +69,10 @@ export default function ProductCreatePage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Add Product"
+        title="添加商品"
         breadcrumbs={[
-          { label: 'Products', href: '/admin/catalog/products' },
-          { label: 'Add Product' },
+          { label: '商品', href: '/admin/catalog/products' },
+          { label: '添加商品' },
         ]}
       />
 
@@ -82,14 +82,14 @@ export default function ProductCreatePage() {
       >
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            Name <span className="text-red-500">*</span>
+            名称 <span className="text-red-500">*</span>
           </label>
-          <Input value={form.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="Product name" />
+          <Input value={form.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="商品名称" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Product Type</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">商品类型</label>
             <Select
               value={form.productType}
               onChange={(e) => handleChange('productType', e.target.value)}
@@ -100,37 +100,37 @@ export default function ProductCreatePage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Manufacturer</label>
-            <Input value={form.manufacturer} onChange={(e) => handleChange('manufacturer', e.target.value)} placeholder="Manufacturer" />
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">生产厂商</label>
+            <Input value={form.manufacturer} onChange={(e) => handleChange('manufacturer', e.target.value)} placeholder="生产厂商" />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Price (CNY) <span className="text-red-500">*</span>
+              价格（元） <span className="text-red-500">*</span>
             </label>
             <Input type="number" value={form.price} onChange={(e) => handleChange('price', e.target.value)} step="0.01" />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Initial Stock</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">初始库存</label>
             <Input type="number" value={form.stockQuantity} onChange={(e) => handleChange('stockQuantity', e.target.value)} />
           </div>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Specification</label>
-          <Input value={form.specification} onChange={(e) => handleChange('specification', e.target.value)} placeholder="e.g. 500mg x 30 tablets" />
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">规格</label>
+          <Input value={form.specification} onChange={(e) => handleChange('specification', e.target.value)} placeholder="如：500mg x 30片" />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">描述</label>
           <Textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} rows={3} />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/products')}>Cancel</Button>
-          <Button type="submit" loading={submitting}>Create Product</Button>
+          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/products')}>取消</Button>
+          <Button type="submit" loading={submitting}>创建商品</Button>
         </div>
       </form>
     </PageContainer>

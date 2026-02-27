@@ -44,7 +44,7 @@ export default function ServiceBrowsePage() {
         const items = 'content' in result ? (result as { content: MedicalServiceResponse[] }).content : (result as unknown as MedicalServiceResponse[]);
         setServices(Array.isArray(items) ? items : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load services');
+        setError(err instanceof Error ? err.message : '加载失败');
       } finally {
         setLoading(false);
       }
@@ -64,7 +64,7 @@ export default function ServiceBrowsePage() {
       className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
     >
       <motion.div variants={itemVariants}>
-        <PageHeader title="Medical Services" subtitle="Browse available medical services" />
+        <PageHeader title="医疗服务" subtitle="浏览可用医疗服务" />
       </motion.div>
 
       {/* Category chips */}
@@ -77,7 +77,7 @@ export default function ServiceBrowsePage() {
               : 'bg-ivory-200 text-sage-700 hover:bg-ivory-300'
           }`}
         >
-          All
+          全部
         </button>
         {categories.map((cat) => (
           <button
@@ -102,7 +102,7 @@ export default function ServiceBrowsePage() {
             !selectedType ? 'bg-sage-100 text-sage-700' : 'text-sage-600 hover:bg-ivory-200'
           }`}
         >
-          All Types
+          全部类型
         </button>
         {serviceTypes.map((type) => (
           <button
@@ -121,7 +121,7 @@ export default function ServiceBrowsePage() {
       <motion.div variants={itemVariants} className="mb-6">
         <Input
           icon={Search}
-          placeholder="Search services..."
+          placeholder="搜索服务..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -141,7 +141,7 @@ export default function ServiceBrowsePage() {
       ) : filteredServices.length === 0 ? (
         <Card className="py-12 text-center">
           <Heart className="mx-auto h-10 w-10 text-sage-300" />
-          <p className="mt-3 text-sm text-sage-700/60">No services found</p>
+          <p className="mt-3 text-sm text-sage-700/60">未找到服务</p>
         </Card>
       ) : (
         <motion.div variants={itemVariants} className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -164,20 +164,20 @@ export default function ServiceBrowsePage() {
                   </Badge>
                 </div>
                 <p className="mb-3 line-clamp-2 text-xs text-sage-700/60">
-                  {service.description || 'No description available'}
+                  {service.description || '暂无描述'}
                 </p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 text-xs text-sage-700/60">
                     {(service.durationMinutes ?? 0) > 0 && (
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
-                        {service.durationMinutes} min
+                        {service.durationMinutes} 分钟
                       </span>
                     )}
                     {service.categoryId && (
                       <span className="flex items-center gap-1">
                         <Tag className="h-3.5 w-3.5" />
-                        {categories.find((c) => c.id === service.categoryId)?.name || 'Uncategorized'}
+                        {categories.find((c) => c.id === service.categoryId)?.name || '未分类'}
                       </span>
                     )}
                   </div>

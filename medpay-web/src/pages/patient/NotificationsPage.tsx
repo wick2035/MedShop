@@ -29,7 +29,7 @@ export default function NotificationsPage() {
       const items = 'content' in result ? result.content : (result as unknown as Notification[]);
       setNotifications(Array.isArray(items) ? items : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load notifications');
+      setError(err instanceof Error ? err.message : '加载通知失败');
     } finally {
       setLoading(false);
     }
@@ -51,9 +51,9 @@ export default function NotificationsPage() {
     try {
       await notificationsApi.markAllRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-      toast.success('All notifications marked as read');
+      toast.success('已全部标为已读');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to mark all as read');
+      toast.error(err instanceof Error ? err.message : '标记已读失败');
     } finally {
       setMarkingAll(false);
     }
@@ -70,7 +70,7 @@ export default function NotificationsPage() {
     >
       <motion.div variants={itemVariants}>
         <div className="flex items-center justify-between">
-          <PageHeader title="Notifications" subtitle={`${unreadCount} unread notifications`} />
+          <PageHeader title="通知" subtitle={`${unreadCount} 条未读通知`} />
           {unreadCount > 0 && (
             <Button
               variant="outline"
@@ -79,7 +79,7 @@ export default function NotificationsPage() {
               onClick={handleMarkAllRead}
               icon={<CheckCheck className="h-4 w-4" />}
             >
-              Mark All Read
+              全部标为已读
             </Button>
           )}
         </div>
@@ -93,13 +93,13 @@ export default function NotificationsPage() {
         <Card className="py-12 text-center">
           <p className="text-sm text-red-500">{error}</p>
           <Button variant="outline" className="mt-4" onClick={fetchNotifications}>
-            Retry
+            重试
           </Button>
         </Card>
       ) : notifications.length === 0 ? (
         <Card className="py-12 text-center">
           <Bell className="mx-auto h-10 w-10 text-sage-300" />
-          <p className="mt-3 text-sm text-sage-700/60">No notifications</p>
+          <p className="mt-3 text-sm text-sage-700/60">暂无通知</p>
         </Card>
       ) : (
         <motion.div variants={itemVariants} className="space-y-2">

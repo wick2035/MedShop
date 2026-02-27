@@ -44,7 +44,7 @@ export default function ServiceCreatePage() {
         const data = await catalogCategoriesApi.list(selectedHospitalId ?? undefined);
         setCategories(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load categories');
+        setError(err instanceof Error ? err.message : '加载分类失败');
       } finally {
         setLoading(false);
       }
@@ -59,11 +59,11 @@ export default function ServiceCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.categoryId || !form.price) {
-      toast.error('Please fill in all required fields');
+      toast.error('请填写所有必填项');
       return;
     }
     if (!selectedHospitalId) {
-      toast.error('Please select a hospital first');
+      toast.error('请先选择医院');
       return;
     }
     setSubmitting(true);
@@ -79,10 +79,10 @@ export default function ServiceCreatePage() {
         requiresPrescription: false,
         insuranceCovered: false,
       });
-      toast.success('Service created successfully');
+      toast.success('服务创建成功');
       navigate('/admin/catalog/services');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create service');
+      toast.error(err instanceof Error ? err.message : '创建服务失败');
     } finally {
       setSubmitting(false);
     }
@@ -112,10 +112,10 @@ export default function ServiceCreatePage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Add Medical Service"
+        title="添加医疗服务"
         breadcrumbs={[
-          { label: 'Services', href: '/admin/catalog/services' },
-          { label: 'Add Service' },
+          { label: '服务', href: '/admin/catalog/services' },
+          { label: '添加服务' },
         ]}
       />
 
@@ -125,21 +125,21 @@ export default function ServiceCreatePage() {
       >
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            Name <span className="text-red-500">*</span>
+            名称 <span className="text-red-500">*</span>
           </label>
-          <Input value={form.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="Service name" />
+          <Input value={form.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="服务名称" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Category <span className="text-red-500">*</span>
+              分类 <span className="text-red-500">*</span>
             </label>
             <Select
               value={form.categoryId}
               onChange={(e) => handleChange('categoryId', e.target.value)}
               options={[
-                { value: '', label: 'Select category' },
+                { value: '', label: '请选择分类' },
                 ...categories.map((cat) => ({
                   value: cat.id,
                   label: cat.name,
@@ -148,7 +148,7 @@ export default function ServiceCreatePage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Service Type</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">服务类型</label>
             <Select
               value={form.serviceType}
               onChange={(e) => handleChange('serviceType', e.target.value)}
@@ -163,7 +163,7 @@ export default function ServiceCreatePage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Price (CNY) <span className="text-red-500">*</span>
+              价格（元） <span className="text-red-500">*</span>
             </label>
             <Input
               type="number"
@@ -174,7 +174,7 @@ export default function ServiceCreatePage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Duration (min)</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">时长（分钟）</label>
             <Input
               type="number"
               value={form.durationMinutes}
@@ -185,7 +185,7 @@ export default function ServiceCreatePage() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">描述</label>
           <Textarea
             value={form.description}
             onChange={(e) => handleChange('description', e.target.value)}
@@ -202,16 +202,16 @@ export default function ServiceCreatePage() {
             className="h-4 w-4 rounded border-gray-300 text-sage-600 focus:ring-sage-500"
           />
           <label htmlFor="requiresAppointment" className="text-sm text-gray-700">
-            Requires appointment
+            需要预约
           </label>
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/services')}>
-            Cancel
+            取消
           </Button>
           <Button type="submit" loading={submitting}>
-            Create Service
+            创建服务
           </Button>
         </div>
       </form>

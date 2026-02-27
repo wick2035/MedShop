@@ -21,13 +21,13 @@ import { formatCurrency, formatDateTime, cn } from '@/lib/utils';
 import { useHospitalContextStore } from '@/stores/hospital-context.store';
 
 const TAB_STATUSES: { label: string; value: string }[] = [
-  { label: 'All', value: '' },
-  { label: 'Created', value: OrderStatus.CREATED },
-  { label: 'Paid', value: OrderStatus.PAID },
-  { label: 'Processing', value: OrderStatus.PROCESSING },
-  { label: 'Completed', value: OrderStatus.COMPLETED },
-  { label: 'Cancelled', value: OrderStatus.CANCELLED },
-  { label: 'Refunded', value: OrderStatus.REFUNDED },
+  { label: '全部', value: '' },
+  { label: '已创建', value: OrderStatus.CREATED },
+  { label: '已支付', value: OrderStatus.PAID },
+  { label: '处理中', value: OrderStatus.PROCESSING },
+  { label: '已完成', value: OrderStatus.COMPLETED },
+  { label: '已取消', value: OrderStatus.CANCELLED },
+  { label: '已退款', value: OrderStatus.REFUNDED },
 ];
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
@@ -68,7 +68,7 @@ export default function OrderListPage() {
         setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load orders';
+      const msg = err instanceof Error ? err.message : '加载订单失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -83,39 +83,39 @@ export default function OrderListPage() {
   const handleStatusChange = async (orderId: string, event: string) => {
     try {
       await adminOrdersApi.updateStatus(orderId, event);
-      toast.success('Order status updated');
+      toast.success('订单状态已更新');
       setActionMenuId(null);
       fetchOrders();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update status');
+      toast.error(err instanceof Error ? err.message : '更新状态失败');
     }
   };
 
   const columns: DataTableColumn<OrderResponse>[] = [
     {
       key: 'orderNo',
-      header: 'Order No.',
+      header: '订单号',
       render: (row) => <span className="font-mono text-xs text-sage-700">{row.orderNo}</span>,
     },
     {
       key: 'orderType',
-      header: 'Type',
+      header: '类型',
       render: (row) => (
         <Badge variant="sage" size="sm">
           {ORDER_TYPE_LABELS[row.orderType] ?? row.orderType}
         </Badge>
       ),
     },
-    { key: 'patientId', header: 'Patient', render: (row) => <span className="font-mono text-xs">{row.patientId.slice(0, 8)}</span> },
+    { key: 'patientId', header: '患者', render: (row) => <span className="font-mono text-xs">{row.patientId.slice(0, 8)}</span> },
     {
       key: 'totalAmount',
-      header: 'Amount',
+      header: '金额',
       sortable: true,
       render: (row) => <span className="font-medium">{formatCurrency(row.totalAmount)}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => (
         <span
           className={cn(
@@ -129,12 +129,12 @@ export default function OrderListPage() {
     },
     {
       key: 'createdAt',
-      header: 'Created',
+      header: '创建时间',
       render: (row) => <span className="text-xs text-gray-500">{formatDateTime(row.createdAt)}</span>,
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: '操作',
       render: (row) => {
         const transitions = STATUS_TRANSITIONS[row.status] ?? [];
         return (
@@ -159,7 +159,7 @@ export default function OrderListPage() {
                     navigate(`/admin/orders/${row.id}`);
                   }}
                 >
-                  View Details
+                  查看详情
                 </button>
                 {transitions.map((event) => (
                   <button
@@ -170,7 +170,7 @@ export default function OrderListPage() {
                       handleStatusChange(row.id, event);
                     }}
                   >
-                    {event.replace('_', ' ')}
+                    {event === 'CANCEL' ? '取消' : event === 'PROCESS' ? '处理' : event === 'COMPLETE' ? '完成' : event === 'CLOSE' ? '关闭' : event}
                   </button>
                 ))}
               </div>
@@ -187,7 +187,7 @@ export default function OrderListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchOrders}>Retry</Button>
+          <Button variant="outline" onClick={fetchOrders}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -195,7 +195,7 @@ export default function OrderListPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Order Management" subtitle="View and manage all orders" />
+      <PageHeader title="订单管理" subtitle="查看和管理所有订单" />
 
       {/* Status Tabs */}
       <div className="mb-4 flex flex-wrap gap-1 rounded-lg border border-ivory-200/60 bg-white/70 p-1">
@@ -220,16 +220,16 @@ export default function OrderListPage() {
           columns={columns as any}
           data={orders as any}
           loading={loading}
-          emptyMessage="No orders found"
+          emptyMessage="暂无订单"
           onRowClick={(row) => navigate(`/admin/orders/${row.id}`)}
         />
       </motion.div>
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>上一页</Button>
+          <span className="text-sm text-gray-500">第 {page + 1} 页 / 共 {totalPages} 页</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>下一页</Button>
         </div>
       )}
     </PageContainer>

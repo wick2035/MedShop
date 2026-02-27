@@ -13,12 +13,12 @@ import TopBar from './TopBar';
 import type { SidebarItem } from './Sidebar';
 
 const sidebarItems: SidebarItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/doctor' },
-  { id: 'schedules', label: 'My Schedule', icon: Calendar, href: '/doctor/schedules' },
-  { id: 'patients', label: 'Patients', icon: Users, href: '/doctor/patients' },
-  { id: 'prescriptions', label: 'Prescriptions', icon: FileText, href: '/doctor/prescriptions' },
-  { id: 'notifications', label: 'Notifications', icon: Bell, href: '/doctor/notifications' },
-  { id: 'profile', label: 'Profile', icon: User, href: '/doctor/profile' },
+  { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard, href: '/doctor' },
+  { id: 'schedules', label: '我的排班', icon: Calendar, href: '/doctor/schedules' },
+  { id: 'patients', label: '我的患者', icon: Users, href: '/doctor/patients' },
+  { id: 'prescriptions', label: '处方管理', icon: FileText, href: '/doctor/prescriptions' },
+  { id: 'notifications', label: '通知', icon: Bell, href: '/doctor/notifications' },
+  { id: 'profile', label: '个人中心', icon: User, href: '/doctor/profile' },
 ];
 
 export default function DoctorLayout() {

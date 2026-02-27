@@ -43,7 +43,7 @@ export default function DashboardPage() {
         setRecentOrders(ordersResult.content);
         setUnreadCount(unread);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+        setError(err instanceof Error ? err.message : '加载数据失败');
       } finally {
         setLoading(false);
       }
@@ -54,29 +54,29 @@ export default function DashboardPage() {
   const quickActions = [
     {
       icon: Stethoscope,
-      label: 'Book Appointment',
-      description: 'Find a doctor and book',
+      label: '预约挂号',
+      description: '查找医生并预约',
       color: 'bg-sage-50 text-sage-600',
       onClick: () => navigate('/patient/doctors'),
     },
     {
       icon: Heart,
-      label: 'Browse Services',
-      description: 'Medical services catalog',
+      label: '浏览服务',
+      description: '医疗服务目录',
       color: 'bg-blue-50 text-blue-600',
       onClick: () => navigate('/patient/services'),
     },
     {
       icon: ClipboardList,
-      label: 'My Orders',
-      description: 'View order history',
+      label: '我的订单',
+      description: '查看订单记录',
       color: 'bg-amber-50 text-amber-600',
       onClick: () => navigate('/patient/orders'),
     },
     {
       icon: FileText,
-      label: 'My Prescriptions',
-      description: 'View prescriptions',
+      label: '我的处方',
+      description: '查看处方',
       color: 'bg-purple-50 text-purple-600',
       onClick: () => navigate('/patient/prescriptions'),
     },
@@ -94,10 +94,10 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display text-2xl font-semibold text-sage-800 sm:text-3xl">
-              Welcome back, {user?.fullName || 'User'}
+              欢迎回来，{user?.fullName || 'User'}
             </h1>
             <p className="mt-1 text-sage-700/60">
-              {new Date().toLocaleDateString('en-US', {
+              {new Date().toLocaleDateString('zh-CN', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
       {/* Quick actions */}
       <motion.div variants={itemVariants} className="mb-8">
-        <h2 className="mb-4 text-lg font-semibold text-sage-800">Quick Actions</h2>
+        <h2 className="mb-4 text-lg font-semibold text-sage-800">快捷操作</h2>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {quickActions.map((action) => (
             <Card
@@ -151,12 +151,12 @@ export default function DashboardPage() {
       {/* Recent orders */}
       <motion.div variants={itemVariants}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-sage-800">Recent Orders</h2>
+          <h2 className="text-lg font-semibold text-sage-800">最近订单</h2>
           <button
             onClick={() => navigate('/patient/orders')}
             className="flex items-center gap-1 text-sm font-medium text-sage-500 transition-colors hover:text-sage-600"
           >
-            View all
+            查看全部
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
@@ -174,12 +174,12 @@ export default function DashboardPage() {
         ) : recentOrders.length === 0 ? (
           <Card className="py-12 text-center">
             <ClipboardList className="mx-auto h-10 w-10 text-sage-300" />
-            <p className="mt-3 text-sm text-sage-700/60">No orders yet</p>
+            <p className="mt-3 text-sm text-sage-700/60">暂无订单</p>
             <button
               onClick={() => navigate('/patient/services')}
               className="mt-3 text-sm font-medium text-sage-500 hover:text-sage-600"
             >
-              Browse services to get started
+              去浏览服务
             </button>
           </Card>
         ) : (

@@ -53,7 +53,7 @@ export default function DoctorListPage() {
         });
         setDoctors(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load doctors');
+        setError(err instanceof Error ? err.message : '加载医生列表失败');
       } finally {
         setLoading(false);
       }
@@ -73,16 +73,16 @@ export default function DoctorListPage() {
       className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
     >
       <motion.div variants={itemVariants}>
-        <PageHeader title="Find a Doctor" subtitle="Browse and book appointments with our doctors" />
+        <PageHeader title="找医生" subtitle="浏览医生信息并预约挂号" />
       </motion.div>
 
       {/* Filters */}
       <motion.div variants={itemVariants} className="mb-6 flex flex-col gap-4 sm:flex-row">
         <div className="sm:w-56">
           <Select
-            placeholder="All Hospitals"
+            placeholder="全部医院"
             options={[
-              { value: '', label: 'All Hospitals' },
+              { value: '', label: '全部医院' },
               ...hospitals.map((h) => ({ value: h.id, label: h.name })),
             ]}
             value={selectedHospital}
@@ -91,9 +91,9 @@ export default function DoctorListPage() {
         </div>
         <div className="sm:w-56">
           <Select
-            placeholder="All Departments"
+            placeholder="全部科室"
             options={[
-              { value: '', label: 'All Departments' },
+              { value: '', label: '全部科室' },
               ...departments.map((d) => ({ value: d.id, label: d.name })),
             ]}
             value={selectedDepartment}
@@ -104,7 +104,7 @@ export default function DoctorListPage() {
         <div className="flex-1">
           <Input
             icon={Search}
-            placeholder="Search by doctor name..."
+            placeholder="搜索医生姓名..."
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
           />
@@ -125,7 +125,7 @@ export default function DoctorListPage() {
       ) : filteredDoctors.length === 0 ? (
         <Card className="py-12 text-center">
           <Stethoscope className="mx-auto h-10 w-10 text-sage-300" />
-          <p className="mt-3 text-sm text-sage-700/60">No doctors found</p>
+          <p className="mt-3 text-sm text-sage-700/60">未找到医生</p>
         </Card>
       ) : (
         <motion.div variants={itemVariants} className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

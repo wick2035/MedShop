@@ -26,7 +26,7 @@ export default function OrderStatisticsPage() {
       const data = await adminOrdersApi.getStatistics(selectedHospitalId ?? undefined);
       setStats(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load statistics';
+      const msg = err instanceof Error ? err.message : '加载统计数据失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -59,7 +59,7 @@ export default function OrderStatisticsPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchStats}>Retry</Button>
+          <Button variant="outline" onClick={fetchStats}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -72,20 +72,20 @@ export default function OrderStatisticsPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Order Statistics" subtitle="Comprehensive order analysis" />
+      <PageHeader title="订单统计" subtitle="综合订单分析" />
 
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <motion.div variants={itemVariants}><StatCard icon={ShoppingCart} label="Total Orders" value={totalOrders} prefix="" /></motion.div>
-        <motion.div variants={itemVariants}><StatCard icon={DollarSign} label="Total Revenue" value={totalRevenue} prefix="¥" /></motion.div>
-        <motion.div variants={itemVariants}><StatCard icon={TrendingUp} label="Avg Order Value" value={totalOrders > 0 ? totalRevenue / totalOrders : 0} prefix="¥" /></motion.div>
-        <motion.div variants={itemVariants}><StatCard icon={BarChart3} label="Order Types" value={typeEntries.length} prefix="" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard icon={ShoppingCart} label="总订单数" value={totalOrders} prefix="" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard icon={DollarSign} label="总营收" value={totalRevenue} prefix="¥" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard icon={TrendingUp} label="平均订单金额" value={totalOrders > 0 ? totalRevenue / totalOrders : 0} prefix="¥" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard icon={BarChart3} label="订单类型数" value={typeEntries.length} prefix="" /></motion.div>
       </motion.div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <motion.div variants={itemVariants} initial="hidden" animate="visible" className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-          <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">Orders by Type</h3>
+          <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">按类型统计</h3>
           {typeEntries.length === 0 ? (
-            <p className="text-sm text-gray-400">No data available</p>
+            <p className="text-sm text-gray-400">暂无数据</p>
           ) : (
             <div className="space-y-3">
               {typeEntries.map(([key, value]) => (
@@ -104,9 +104,9 @@ export default function OrderStatisticsPage() {
         </motion.div>
 
         <motion.div variants={itemVariants} initial="hidden" animate="visible" className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-          <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">Orders by Status</h3>
+          <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">按状态统计</h3>
           {statusEntries.length === 0 ? (
-            <p className="text-sm text-gray-400">No data available</p>
+            <p className="text-sm text-gray-400">暂无数据</p>
           ) : (
             <div className="space-y-3">
               {statusEntries.map(([key, value]) => (

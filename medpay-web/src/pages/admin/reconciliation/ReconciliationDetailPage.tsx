@@ -38,7 +38,7 @@ export default function ReconciliationDetailPage() {
       const data = await reconciliationApi.getDetails(batchId);
       setDetails(Array.isArray(data) ? data : []);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load details';
+      const msg = err instanceof Error ? err.message : '加载详情失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -52,17 +52,17 @@ export default function ReconciliationDetailPage() {
 
   const handleResolve = async (detailId: string) => {
     if (!resolveNote.trim()) {
-      toast.error('Please add a resolution note');
+      toast.error('请添加处理说明');
       return;
     }
     try {
       await reconciliationApi.resolveDetail(detailId, { resolutionNote: resolveNote });
-      toast.success('Detail resolved');
+      toast.success('已处理');
       setResolvingId(null);
       setResolveNote('');
       fetchDetails();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to resolve');
+      toast.error(err instanceof Error ? err.message : '处理失败');
     }
   };
 
@@ -73,45 +73,45 @@ export default function ReconciliationDetailPage() {
   const columns: DataTableColumn<ReconciliationDetail>[] = [
     {
       key: 'paymentTransactionId',
-      header: 'System Txn',
+      header: '系统交易号',
       render: (row) => <span className="font-mono text-xs">{row.paymentTransactionId ?? '--'}</span>,
     },
     {
       key: 'channelTransactionId',
-      header: 'Channel Txn',
+      header: '渠道交易号',
       render: (row) => <span className="font-mono text-xs">{row.channelTransactionId ?? '--'}</span>,
     },
     {
       key: 'systemAmount',
-      header: 'System Amount',
+      header: '系统金额',
       render: (row) => <span className="text-sm">{formatCurrency(row.systemAmount)}</span>,
     },
     {
       key: 'channelAmount',
-      header: 'Channel Amount',
+      header: '渠道金额',
       render: (row) => <span className="text-sm">{formatCurrency(row.channelAmount)}</span>,
     },
     {
       key: 'matchStatus',
-      header: 'Match',
+      header: '匹配',
       render: (row) => (
         <Badge variant={row.matchStatus === 'MATCHED' ? 'success' : 'error'} size="sm">
-          {row.matchStatus}
+          {row.matchStatus === 'MATCHED' ? '已匹配' : row.matchStatus === 'MISMATCHED' ? '未匹配' : row.matchStatus}
         </Badge>
       ),
     },
     {
       key: 'resolutionStatus',
-      header: 'Resolution',
+      header: '处理状态',
       render: (row) => (
         <Badge variant={row.resolutionStatus === 'RESOLVED' ? 'success' : row.resolutionStatus === 'PENDING' ? 'warning' : 'default'} size="sm">
-          {row.resolutionStatus}
+          {row.resolutionStatus === 'RESOLVED' ? '已处理' : row.resolutionStatus === 'PENDING' ? '待处理' : row.resolutionStatus}
         </Badge>
       ),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: '操作',
       render: (row) =>
         row.matchStatus !== 'MATCHED' && row.resolutionStatus !== 'RESOLVED' ? (
           resolvingId === row.id ? (
@@ -119,19 +119,19 @@ export default function ReconciliationDetailPage() {
               <Input
                 value={resolveNote}
                 onChange={(e) => setResolveNote(e.target.value)}
-                placeholder="Resolution note"
+                placeholder="处理说明"
                 className="w-40"
               />
               <Button size="sm" onClick={() => handleResolve(row.id)}>
                 <CheckCircle className="h-3.5 w-3.5" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setResolvingId(null)}>
-                Cancel
+                取消
               </Button>
             </div>
           ) : (
             <Button variant="outline" size="sm" onClick={() => { setResolvingId(row.id); setResolveNote(''); }}>
-              Resolve
+              处理
             </Button>
           )
         ) : null,
@@ -154,7 +154,7 @@ export default function ReconciliationDetailPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchDetails}>Retry</Button>
+          <Button variant="outline" onClick={fetchDetails}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -163,27 +163,27 @@ export default function ReconciliationDetailPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Reconciliation Details"
+        title="对账详情"
         breadcrumbs={[
-          { label: 'Reconciliation', href: '/admin/reconciliation' },
-          { label: `Batch ${batchId?.substring(0, 8)}` },
+          { label: '对账', href: '/admin/reconciliation' },
+          { label: `批次 ${batchId?.substring(0, 8)}` },
         ]}
         actions={
           <Button variant="outline" icon={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate('/admin/reconciliation')}>
-            Back
+            返回
           </Button>
         }
       />
 
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <motion.div variants={itemVariants}><StatCard icon={FileCheck} label="Total Records" value={details.length} prefix="" /></motion.div>
-        <motion.div variants={itemVariants}><StatCard icon={FileCheck} label="Matched" value={matched} prefix="" /></motion.div>
-        <motion.div variants={itemVariants}><StatCard icon={FileX} label="Mismatched" value={mismatched} prefix="" /></motion.div>
-        <motion.div variants={itemVariants}><StatCard icon={DollarSign} label="Total Difference" value={totalDiff} prefix="¥" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard icon={FileCheck} label="总记录数" value={details.length} prefix="" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard icon={FileCheck} label="已匹配" value={matched} prefix="" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard icon={FileX} label="未匹配" value={mismatched} prefix="" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard icon={DollarSign} label="总差异" value={totalDiff} prefix="¥" /></motion.div>
       </motion.div>
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns as any} data={details as any} loading={false} emptyMessage="No details found" />
+        <DataTable columns={columns as any} data={details as any} loading={false} emptyMessage="暂无详情" />
       </motion.div>
     </PageContainer>
   );

@@ -34,7 +34,7 @@ export default function ProductStockPage() {
       const data = await productsApi.getById(id);
       setProduct(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load product';
+      const msg = err instanceof Error ? err.message : '加载商品失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -49,7 +49,7 @@ export default function ProductStockPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !quantity || Number(quantity) <= 0) {
-      toast.error('Please enter a valid quantity');
+      toast.error('请输入有效数量');
       return;
     }
     const adj = adjustType === 'ADD' ? Number(quantity) : -Number(quantity);
@@ -59,11 +59,11 @@ export default function ProductStockPage() {
         quantity: product ? product.stockQuantity + adj : adj,
         adjustment: adj,
       });
-      toast.success('Stock adjusted successfully');
+      toast.success('库存调整成功');
       setQuantity('');
       fetchProduct();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to adjust stock');
+      toast.error(err instanceof Error ? err.message : '调整库存失败');
     } finally {
       setSubmitting(false);
     }
@@ -84,8 +84,8 @@ export default function ProductStockPage() {
       <PageContainer>
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
-          <p>{error ?? 'Product not found'}</p>
-          <Button variant="outline" onClick={fetchProduct}>Retry</Button>
+          <p>{error ?? '商品未找到'}</p>
+          <Button variant="outline" onClick={fetchProduct}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -94,11 +94,11 @@ export default function ProductStockPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Stock Management"
+        title="库存管理"
         breadcrumbs={[
-          { label: 'Products', href: '/admin/catalog/products' },
+          { label: '商品', href: '/admin/catalog/products' },
           { label: product.name },
-          { label: 'Stock' },
+          { label: '库存' },
         ]}
       />
 
@@ -124,7 +124,7 @@ export default function ProductStockPage() {
 
           <div className="mt-6 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-sm text-gray-500">Current Stock</p>
+              <p className="text-sm text-gray-500">当前库存</p>
               <p
                 className={`mt-1 font-display text-4xl font-bold ${
                   product.stockQuantity < 10 ? 'text-red-600' : 'text-sage-800'
@@ -132,7 +132,7 @@ export default function ProductStockPage() {
               >
                 {product.stockQuantity}
               </p>
-              <p className="text-xs text-gray-400">units</p>
+              <p className="text-xs text-gray-400">件</p>
             </div>
           </div>
         </motion.div>
@@ -145,7 +145,7 @@ export default function ProductStockPage() {
           className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm"
         >
           <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">
-            Adjust Stock
+            调整库存
           </h3>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -160,7 +160,7 @@ export default function ProductStockPage() {
                 }`}
               >
                 <Plus className="h-4 w-4" />
-                Add Stock
+                入库
               </button>
               <button
                 type="button"
@@ -172,39 +172,39 @@ export default function ProductStockPage() {
                 }`}
               >
                 <Minus className="h-4 w-4" />
-                Subtract Stock
+                出库
               </button>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Quantity</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">数量</label>
               <Input
                 type="number"
                 min="1"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                placeholder="Enter quantity"
+                placeholder="请输入数量"
               />
             </div>
 
             {quantity && Number(quantity) > 0 && (
               <div className="rounded-md bg-ivory-50 p-3 text-sm text-gray-600">
-                New stock will be:{' '}
+                调整后库存：{' '}
                 <strong>
                   {adjustType === 'ADD'
                     ? product.stockQuantity + Number(quantity)
                     : product.stockQuantity - Number(quantity)}
                 </strong>{' '}
-                units
+                件
               </div>
             )}
 
             <div className="flex justify-end gap-3 pt-2">
               <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/products')}>
-                Back
+                返回
               </Button>
               <Button type="submit" loading={submitting}>
-                Adjust Stock
+                调整库存
               </Button>
             </div>
           </form>

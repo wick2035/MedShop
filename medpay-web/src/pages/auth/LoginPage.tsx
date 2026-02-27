@@ -24,8 +24,8 @@ export default function LoginPage() {
 
   function validate(): boolean {
     const newErrors: typeof errors = {};
-    if (!username.trim()) newErrors.username = 'Username is required';
-    if (!password) newErrors.password = 'Password is required';
+    if (!username.trim()) newErrors.username = '请输入用户名';
+    if (!password) newErrors.password = '请输入密码';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -38,10 +38,10 @@ export default function LoginPage() {
     try {
       const response = await authApi.login({ username: username.trim(), password });
       setAuth(response);
-      toast.success('Welcome back!');
+      toast.success('欢迎回来！');
       navigate(from, { replace: true });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed';
+      const message = err instanceof Error ? err.message : '登录失败';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -83,9 +83,9 @@ export default function LoginPage() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
               <Input
-                label="Username"
+                label="用户名"
                 icon={User}
-                placeholder="Enter your username"
+                placeholder="请输入用户名"
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value);
@@ -97,10 +97,10 @@ export default function LoginPage() {
 
               <div className="relative">
                 <Input
-                  label="Password"
+                  label="密码"
                   icon={Lock}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
+                  placeholder="请输入密码"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
@@ -129,18 +129,18 @@ export default function LoginPage() {
                 className="w-full"
                 size="lg"
               >
-                Sign In
+                登录
               </Button>
             </form>
 
             {/* Register link */}
             <p className="mt-6 text-center text-sm text-sage-700/60">
-              Don&apos;t have an account?{' '}
+              还没有账号？{' '}
               <Link
                 to="/register"
                 className="font-medium text-sage-500 transition-colors hover:text-sage-600"
               >
-                Create one
+                立即注册
               </Link>
             </p>
           </GlassCard>
@@ -166,12 +166,12 @@ export default function LoginPage() {
           className="relative z-10 text-center"
         >
           <h2 className="font-display text-3xl font-bold leading-tight text-white">
-            Smart Healthcare,
+            智慧医疗，
             <br />
-            Simple Payments
+            便捷支付
           </h2>
           <p className="mt-4 max-w-xs text-base text-white/70">
-            Manage appointments, prescriptions, and payments all in one place.
+            一站式管理预约、处方和支付
           </p>
 
           {/* Decorative dots */}

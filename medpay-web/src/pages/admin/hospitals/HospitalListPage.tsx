@@ -29,7 +29,7 @@ export default function HospitalListPage() {
       const data = await hospitalsApi.list();
       setHospitals(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load hospitals';
+      const msg = err instanceof Error ? err.message : '加载医院列表失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -64,7 +64,7 @@ export default function HospitalListPage() {
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
           <Button variant="outline" onClick={fetchHospitals}>
-            Retry
+            重试
           </Button>
         </div>
       </PageContainer>
@@ -74,11 +74,11 @@ export default function HospitalListPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Hospital Management"
-        subtitle="Manage hospitals in the system"
+        title="医院管理"
+        subtitle="管理系统中的医院"
         actions={
           <Button icon={<Plus className="h-4 w-4" />} onClick={() => navigate('/admin/hospitals/create')}>
-            Add Hospital
+            添加医院
           </Button>
         }
       />
@@ -90,7 +90,7 @@ export default function HospitalListPage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search hospitals..."
+          placeholder="搜索医院..."
           className="w-full rounded-md border border-ivory-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-700 placeholder:text-gray-400 focus:border-sage-300 focus:outline-none focus:ring-2 focus:ring-sage-500/20"
         />
       </div>
@@ -98,7 +98,7 @@ export default function HospitalListPage() {
       {filtered.length === 0 ? (
         <div className="flex h-48 flex-col items-center justify-center gap-2 text-gray-400">
           <Building2 className="h-12 w-12 text-gray-300" />
-          <p className="text-sm">No hospitals found</p>
+          <p className="text-sm">未找到医院</p>
         </div>
       ) : (
         <motion.div

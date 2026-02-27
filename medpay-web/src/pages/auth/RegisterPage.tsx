@@ -48,18 +48,18 @@ export default function RegisterPage() {
 
   function validate(): boolean {
     const newErrors: FormErrors = {};
-    if (!form.fullName.trim()) newErrors.fullName = 'Full name is required';
-    if (!form.username.trim()) newErrors.username = 'Username is required';
-    if (form.username.trim().length < 3) newErrors.username = 'Username must be at least 3 characters';
-    if (!form.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!/^1\d{10}$/.test(form.phone.trim())) newErrors.phone = 'Please enter a valid phone number';
+    if (!form.fullName.trim()) newErrors.fullName = '请输入姓名';
+    if (!form.username.trim()) newErrors.username = '请输入用户名';
+    if (form.username.trim().length < 3) newErrors.username = '用户名至少3个字符';
+    if (!form.phone.trim()) newErrors.phone = '请输入手机号';
+    if (!/^1\d{10}$/.test(form.phone.trim())) newErrors.phone = '请输入有效的手机号';
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = '请输入有效的邮箱';
     }
-    if (!form.password) newErrors.password = 'Password is required';
-    if (form.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    if (!form.password) newErrors.password = '请输入密码';
+    if (form.password.length < 6) newErrors.password = '密码至少6个字符';
     if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = '两次输入的密码不一致';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -78,10 +78,10 @@ export default function RegisterPage() {
         email: form.email.trim() || undefined,
         password: form.password,
       });
-      toast.success('Account created successfully! Please sign in.');
+      toast.success('注册成功！请登录');
       navigate('/login');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Registration failed';
+      const message = err instanceof Error ? err.message : '注册失败';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -108,12 +108,12 @@ export default function RegisterPage() {
           className="relative z-10 text-center"
         >
           <h2 className="font-display text-3xl font-bold leading-tight text-white">
-            Join MedPay
+            加入 MedPay
             <br />
-            Today
+            开启健康之旅
           </h2>
           <p className="mt-4 max-w-xs text-base text-white/70">
-            Start managing your healthcare journey with a simple, secure platform.
+            开始您的智慧医疗之旅，简单、安全、便捷
           </p>
           <div className="mt-10 flex justify-center gap-2">
             <div className="h-2 w-2 rounded-full bg-white/40" />
@@ -152,18 +152,18 @@ export default function RegisterPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
-                label="Full Name"
+                label="姓名"
                 icon={User}
-                placeholder="Enter your full name"
+                placeholder="请输入姓名"
                 value={form.fullName}
                 onChange={(e) => updateField('fullName', e.target.value)}
                 error={errors.fullName}
               />
 
               <Input
-                label="Username"
+                label="用户名"
                 icon={User}
-                placeholder="Choose a username"
+                placeholder="请输入用户名"
                 value={form.username}
                 onChange={(e) => updateField('username', e.target.value)}
                 error={errors.username}
@@ -171,9 +171,9 @@ export default function RegisterPage() {
               />
 
               <Input
-                label="Phone"
+                label="手机号"
                 icon={Phone}
-                placeholder="Enter your phone number"
+                placeholder="请输入手机号"
                 value={form.phone}
                 onChange={(e) => updateField('phone', e.target.value)}
                 error={errors.phone}
@@ -181,9 +181,9 @@ export default function RegisterPage() {
               />
 
               <Input
-                label="Email (optional)"
+                label="邮箱（选填）"
                 icon={Mail}
-                placeholder="Enter your email"
+                placeholder="请输入邮箱"
                 value={form.email}
                 onChange={(e) => updateField('email', e.target.value)}
                 error={errors.email}
@@ -192,10 +192,10 @@ export default function RegisterPage() {
 
               <div className="relative">
                 <Input
-                  label="Password"
+                  label="密码"
                   icon={Lock}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Create a password"
+                  placeholder="请设置密码"
                   value={form.password}
                   onChange={(e) => updateField('password', e.target.value)}
                   error={errors.password}
@@ -212,10 +212,10 @@ export default function RegisterPage() {
               </div>
 
               <Input
-                label="Confirm Password"
+                label="确认密码"
                 icon={Lock}
                 type="password"
-                placeholder="Confirm your password"
+                placeholder="请确认密码"
                 value={form.confirmPassword}
                 onChange={(e) => updateField('confirmPassword', e.target.value)}
                 error={errors.confirmPassword}
@@ -228,17 +228,17 @@ export default function RegisterPage() {
                 className="w-full"
                 size="lg"
               >
-                Create Account
+                注册
               </Button>
             </form>
 
             <p className="mt-6 text-center text-sm text-sage-700/60">
-              Already have an account?{' '}
+              已有账号？{' '}
               <Link
                 to="/login"
                 className="font-medium text-sage-500 transition-colors hover:text-sage-600"
               >
-                Sign in
+                去登录
               </Link>
             </p>
           </GlassCard>

@@ -35,7 +35,7 @@ export default function PackageListPage() {
       });
       setPackages(Array.isArray(data) ? data : []);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load packages';
+      const msg = err instanceof Error ? err.message : '加载套餐失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -48,11 +48,11 @@ export default function PackageListPage() {
   }, [selectedHospitalId]);
 
   const columns: DataTableColumn<HealthPackageResponse>[] = [
-    { key: 'name', header: 'Name', sortable: true },
-    { key: 'code', header: 'Code' },
+    { key: 'name', header: '名称', sortable: true },
+    { key: 'code', header: '编码' },
     {
       key: 'packageType',
-      header: 'Type',
+      header: '类型',
       render: (row) => (
         <Badge variant="sage" size="sm">
           {PACKAGE_TYPE_LABELS[row.packageType] ?? row.packageType}
@@ -61,7 +61,7 @@ export default function PackageListPage() {
     },
     {
       key: 'price',
-      header: 'Price',
+      header: '价格',
       sortable: true,
       render: (row) => (
         <div>
@@ -76,16 +76,16 @@ export default function PackageListPage() {
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => (
         <Badge variant={row.status === 'ACTIVE' ? 'success' : 'error'} size="sm">
-          {row.status}
+          {row.status === 'ACTIVE' ? '启用' : row.status === 'INACTIVE' ? '停用' : row.status}
         </Badge>
       ),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: '操作',
       render: (row) => (
         <Button
           variant="ghost"
@@ -95,7 +95,7 @@ export default function PackageListPage() {
             navigate(`/admin/catalog/packages/${row.id}/edit`);
           }}
         >
-          Edit
+          编辑
         </Button>
       ),
     },
@@ -107,7 +107,7 @@ export default function PackageListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchPackages}>Retry</Button>
+          <Button variant="outline" onClick={fetchPackages}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -116,11 +116,11 @@ export default function PackageListPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Health Packages"
-        subtitle="Manage bundled service and product packages"
+        title="健康套餐"
+        subtitle="管理服务和商品套餐"
         actions={
           <Button icon={<Plus className="h-4 w-4" />} onClick={() => navigate('/admin/catalog/packages/create')}>
-            Add Package
+            添加套餐
           </Button>
         }
       />
@@ -130,7 +130,7 @@ export default function PackageListPage() {
           columns={columns as any}
           data={packages as any}
           loading={loading}
-          emptyMessage="No packages found"
+          emptyMessage="暂无套餐"
         />
       </motion.div>
     </PageContainer>

@@ -18,11 +18,11 @@ import { formatCurrency, formatDateTime, truncate, cn } from '@/lib/utils';
 import { useHospitalContextStore } from '@/stores/hospital-context.store';
 
 const REFUND_STATUS_TABS = [
-  { label: 'All', value: '' },
-  { label: 'Pending', value: 'PENDING' },
-  { label: 'Approved', value: 'APPROVED' },
-  { label: 'Rejected', value: 'REJECTED' },
-  { label: 'Completed', value: 'COMPLETED' },
+  { label: '全部', value: '' },
+  { label: '待审批', value: 'PENDING' },
+  { label: '已批准', value: 'APPROVED' },
+  { label: '已拒绝', value: 'REJECTED' },
+  { label: '已完成', value: 'COMPLETED' },
 ];
 
 const REFUND_STATUS_VARIANTS: Record<string, 'warning' | 'success' | 'error' | 'default' | 'sage'> = {
@@ -51,7 +51,7 @@ export default function RefundListPage() {
       });
       setRefunds(Array.isArray(data) ? data : []);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load refunds';
+      const msg = err instanceof Error ? err.message : '加载退款列表失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -66,42 +66,42 @@ export default function RefundListPage() {
   const columns: DataTableColumn<RefundResponse>[] = [
     {
       key: 'id',
-      header: 'Refund No.',
+      header: '退款编号',
       render: (row) => <span className="font-mono text-xs text-sage-700">#{row.id.substring(0, 8)}</span>,
     },
     {
       key: 'orderNo',
-      header: 'Order No.',
+      header: '订单号',
       render: (row) => <span className="font-mono text-xs text-gray-500">{row.orderNo}</span>,
     },
     {
       key: 'refundAmount',
-      header: 'Amount',
+      header: '金额',
       sortable: true,
       render: (row) => <span className="font-medium text-red-600">{formatCurrency(row.refundAmount)}</span>,
     },
     {
       key: 'refundReason',
-      header: 'Reason',
+      header: '原因',
       render: (row) => <span className="text-xs text-gray-500">{truncate(row.refundReason, 30)}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => (
         <Badge variant={REFUND_STATUS_VARIANTS[row.status] ?? 'default'} size="sm">
-          {row.status}
+          {row.status === 'PENDING' ? '待审批' : row.status === 'APPROVED' ? '已批准' : row.status === 'REJECTED' ? '已拒绝' : row.status === 'COMPLETED' ? '已完成' : row.status}
         </Badge>
       ),
     },
     {
       key: 'createdAt',
-      header: 'Requested',
+      header: '申请时间',
       render: (row) => <span className="text-xs text-gray-500">{formatDateTime(row.createdAt)}</span>,
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: '操作',
       render: (row) =>
         row.status === 'PENDING' ? (
           <Button
@@ -112,7 +112,7 @@ export default function RefundListPage() {
               navigate(`/admin/refunds/${row.id}/review`);
             }}
           >
-            Review
+            审核
           </Button>
         ) : null,
     },
@@ -124,7 +124,7 @@ export default function RefundListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchRefunds}>Retry</Button>
+          <Button variant="outline" onClick={fetchRefunds}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -132,7 +132,7 @@ export default function RefundListPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Refund Approval" subtitle="Review and process refund requests" />
+      <PageHeader title="退款审批" subtitle="审核和处理退款申请" />
 
       <div className="mb-4 flex flex-wrap gap-1 rounded-lg border border-ivory-200/60 bg-white/70 p-1">
         {REFUND_STATUS_TABS.map((tab) => (
@@ -150,7 +150,7 @@ export default function RefundListPage() {
       </div>
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns as any} data={refunds as any} loading={loading} emptyMessage="No refund requests found" />
+        <DataTable columns={columns as any} data={refunds as any} loading={loading} emptyMessage="暂无退款申请" />
       </motion.div>
     </PageContainer>
   );

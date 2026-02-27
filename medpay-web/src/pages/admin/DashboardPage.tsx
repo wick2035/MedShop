@@ -38,7 +38,7 @@ function RevenueChartFallback({ data }: { data: RevenueByMonth[] }) {
   const maxRevenue = Math.max(...data.map((d) => d.revenue), 1);
   return (
     <div className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-      <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">Revenue Trend</h3>
+      <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">营收趋势</h3>
       <div className="flex items-end gap-2" style={{ height: 200 }}>
         {data.map((d, i) => (
           <div key={i} className="flex flex-1 flex-col items-center gap-1">
@@ -67,7 +67,7 @@ function OrderPieChartFallback({ data }: { data: Record<string, number> }) {
   ];
   return (
     <div className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-      <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">Orders by Status</h3>
+      <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">订单状态分布</h3>
       <div className="space-y-2">
         {entries.map(([key, value], i) => (
           <div key={key} className="flex items-center gap-3">
@@ -92,7 +92,7 @@ function StatusBarChartFallback({ data }: { data: Record<string, number> }) {
   const maxVal = Math.max(...entries.map(([, v]) => v), 1);
   return (
     <div className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-      <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">Revenue by Channel</h3>
+      <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">渠道营收</h3>
       <div className="space-y-3">
         {entries.map(([key, value]) => (
           <div key={key}>
@@ -146,7 +146,7 @@ export default function DashboardPage() {
       setKpi(dashData);
       if (isSuperAdmin) setHospitals(hospitalData);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load dashboard';
+      const msg = err instanceof Error ? err.message : '加载仪表盘失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -177,7 +177,7 @@ export default function DashboardPage() {
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
           <Button variant="outline" onClick={fetchData}>
-            Retry
+            重试
           </Button>
         </div>
       </PageContainer>
@@ -187,8 +187,8 @@ export default function DashboardPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Dashboard"
-        subtitle="Overview of key metrics and performance"
+        title="仪表盘"
+        subtitle="关键指标与业绩概览"
         actions={
           isSuperAdmin ? (
             <select
@@ -196,7 +196,7 @@ export default function DashboardPage() {
               onChange={(e) => setHospitalId(e.target.value || null)}
               className="rounded-md border border-ivory-200 bg-white px-3 py-2 text-sm text-sage-700 focus:border-sage-300 focus:outline-none focus:ring-2 focus:ring-sage-500/20"
             >
-              <option value="">All Hospitals</option>
+              <option value="">全部医院</option>
               {hospitals.map((h) => (
                 <option key={h.id} value={h.id}>
                   {h.name}
@@ -217,7 +217,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             icon={DollarSign}
-            label="Today Revenue"
+            label="今日营收"
             value={kpi?.todayRevenue ?? 0}
             prefix="¥"
           />
@@ -225,7 +225,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             icon={ShoppingCart}
-            label="Today Orders"
+            label="今日订单"
             value={kpi?.todayOrders ?? 0}
             prefix=""
           />
@@ -233,7 +233,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             icon={RotateCcw}
-            label="Today Refunds"
+            label="今日退款"
             value={kpi?.todayRefunds ?? 0}
             prefix="¥"
           />
@@ -241,7 +241,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             icon={Clock}
-            label="Pending Refunds"
+            label="待处理退款"
             value={kpi?.pendingRefunds ?? 0}
             prefix=""
           />
@@ -258,7 +258,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             icon={TrendingUp}
-            label="Month Revenue"
+            label="本月营收"
             value={kpi?.monthRevenue ?? 0}
             prefix="¥"
           />
@@ -266,7 +266,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             icon={Package}
-            label="Month Orders"
+            label="本月订单"
             value={kpi?.monthOrders ?? 0}
             prefix=""
           />
@@ -274,7 +274,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             icon={RotateCcw}
-            label="Month Refunds"
+            label="本月退款"
             value={kpi?.monthRefunds ?? 0}
             prefix="¥"
           />
@@ -282,7 +282,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             icon={CreditCard}
-            label="Settlement Pending"
+            label="待结算"
             value={kpi?.settlementPending ?? 0}
             prefix=""
           />

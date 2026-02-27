@@ -32,7 +32,7 @@ export default function PackageBrowsePage() {
         });
         setPackages(Array.isArray(result) ? result : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load packages');
+        setError(err instanceof Error ? err.message : '加载失败');
       } finally {
         setLoading(false);
       }
@@ -48,7 +48,7 @@ export default function PackageBrowsePage() {
       className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
     >
       <motion.div variants={itemVariants}>
-        <PageHeader title="Health Packages" subtitle="Browse comprehensive health check-up packages" />
+        <PageHeader title="健康套餐" subtitle="浏览全面的健康体检套餐" />
       </motion.div>
 
       {/* Type filter */}
@@ -59,7 +59,7 @@ export default function PackageBrowsePage() {
             !selectedType ? 'bg-sage-500 text-white' : 'bg-ivory-200 text-sage-700 hover:bg-ivory-300'
           }`}
         >
-          All
+          全部
         </button>
         {packageTypes.map((type) => (
           <button
@@ -88,7 +88,7 @@ export default function PackageBrowsePage() {
       ) : packages.length === 0 ? (
         <Card className="py-12 text-center">
           <Gift className="mx-auto h-10 w-10 text-sage-300" />
-          <p className="mt-3 text-sm text-sage-700/60">No packages available</p>
+          <p className="mt-3 text-sm text-sage-700/60">暂无套餐</p>
         </Card>
       ) : (
         <motion.div variants={itemVariants} className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -132,7 +132,7 @@ export default function PackageBrowsePage() {
                   {pkg.validityDays && (
                     <span className="flex items-center gap-1 text-xs text-sage-700/60">
                       <Tag className="h-3 w-3" />
-                      {pkg.validityDays} days
+                      {pkg.validityDays} 天
                     </span>
                   )}
                 </div>

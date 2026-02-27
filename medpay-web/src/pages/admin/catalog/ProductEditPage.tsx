@@ -50,7 +50,7 @@ export default function ProductEditPage() {
         status: data.status,
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load product';
+      const msg = err instanceof Error ? err.message : '加载商品失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -69,7 +69,7 @@ export default function ProductEditPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !form.name.trim()) {
-      toast.error('Name is required');
+      toast.error('名称不能为空');
       return;
     }
     setSubmitting(true);
@@ -84,10 +84,10 @@ export default function ProductEditPage() {
         requiresPrescription: false,
         insuranceCovered: false,
       });
-      toast.success('Product updated');
+      toast.success('商品已更新');
       navigate('/admin/catalog/products');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update product');
+      toast.error(err instanceof Error ? err.message : '更新商品失败');
     } finally {
       setSubmitting(false);
     }
@@ -108,8 +108,8 @@ export default function ProductEditPage() {
       <PageContainer>
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
-          <p>{error ?? 'Product not found'}</p>
-          <Button variant="outline" onClick={fetchProduct}>Retry</Button>
+          <p>{error ?? '商品未找到'}</p>
+          <Button variant="outline" onClick={fetchProduct}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -118,9 +118,9 @@ export default function ProductEditPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Edit Product"
+        title="编辑商品"
         breadcrumbs={[
-          { label: 'Products', href: '/admin/catalog/products' },
+          { label: '商品', href: '/admin/catalog/products' },
           { label: product.name },
         ]}
       />
@@ -130,13 +130,13 @@ export default function ProductEditPage() {
         className="mx-auto max-w-2xl space-y-6 rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm"
       >
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Name *</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">名称 *</label>
           <Input value={form.name} onChange={(e) => handleChange('name', e.target.value)} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Product Type</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">商品类型</label>
             <Select
               value={form.productType}
               onChange={(e) => handleChange('productType', e.target.value)}
@@ -147,29 +147,29 @@ export default function ProductEditPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Manufacturer</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">生产厂商</label>
             <Input value={form.manufacturer} onChange={(e) => handleChange('manufacturer', e.target.value)} />
           </div>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Price (CNY)</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">价格（元）</label>
           <Input type="number" value={form.price} onChange={(e) => handleChange('price', e.target.value)} step="0.01" />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Specification</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">规格</label>
           <Input value={form.specification} onChange={(e) => handleChange('specification', e.target.value)} />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Status</label>
-          <p className="text-sm text-gray-700">{form.status}</p>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">状态</label>
+          <p className="text-sm text-gray-700">{form.status === 'ACTIVE' ? '启用' : form.status === 'INACTIVE' ? '停用' : form.status}</p>
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/products')}>Cancel</Button>
-          <Button type="submit" loading={submitting}>Save Changes</Button>
+          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/products')}>取消</Button>
+          <Button type="submit" loading={submitting}>保存更改</Button>
         </div>
       </form>
     </PageContainer>

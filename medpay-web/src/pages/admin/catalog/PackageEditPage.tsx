@@ -54,7 +54,7 @@ export default function PackageEditPage() {
         maxUsage: data.maxUsage ? String(data.maxUsage) : '',
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load package';
+      const msg = err instanceof Error ? err.message : '加载套餐失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -73,7 +73,7 @@ export default function PackageEditPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !form.name.trim()) {
-      toast.error('Name is required');
+      toast.error('名称不能为空');
       return;
     }
     setSubmitting(true);
@@ -88,10 +88,10 @@ export default function PackageEditPage() {
         validityDays: form.validityDays ? Number(form.validityDays) : undefined,
         maxUsage: form.maxUsage ? Number(form.maxUsage) : undefined,
       });
-      toast.success('Package updated');
+      toast.success('套餐已更新');
       navigate('/admin/catalog/packages');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update package');
+      toast.error(err instanceof Error ? err.message : '更新套餐失败');
     } finally {
       setSubmitting(false);
     }
@@ -112,8 +112,8 @@ export default function PackageEditPage() {
       <PageContainer>
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
-          <p>{error ?? 'Package not found'}</p>
-          <Button variant="outline" onClick={fetchPackage}>Retry</Button>
+          <p>{error ?? '套餐未找到'}</p>
+          <Button variant="outline" onClick={fetchPackage}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -122,9 +122,9 @@ export default function PackageEditPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Edit Health Package"
+        title="编辑健康套餐"
         breadcrumbs={[
-          { label: 'Packages', href: '/admin/catalog/packages' },
+          { label: '套餐', href: '/admin/catalog/packages' },
           { label: pkg.name },
         ]}
       />
@@ -135,17 +135,17 @@ export default function PackageEditPage() {
       >
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Name *</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">名称 *</label>
             <Input value={form.name} onChange={(e) => handleChange('name', e.target.value)} />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Code</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">编码</label>
             <Input value={form.code} onChange={(e) => handleChange('code', e.target.value)} />
           </div>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Package Type</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">套餐类型</label>
           <Select
             value={form.packageType}
             onChange={(e) => handleChange('packageType', e.target.value)}
@@ -158,34 +158,34 @@ export default function PackageEditPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Price (CNY)</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">价格（元）</label>
             <Input type="number" value={form.price} onChange={(e) => handleChange('price', e.target.value)} step="0.01" />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Original Price</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">原价</label>
             <Input type="number" value={form.originalPrice} onChange={(e) => handleChange('originalPrice', e.target.value)} step="0.01" />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Validity (days)</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">有效期（天）</label>
             <Input type="number" value={form.validityDays} onChange={(e) => handleChange('validityDays', e.target.value)} />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Max Usage</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">最大使用次数</label>
             <Input type="number" value={form.maxUsage} onChange={(e) => handleChange('maxUsage', e.target.value)} />
           </div>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">描述</label>
           <Textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} rows={3} />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/packages')}>Cancel</Button>
-          <Button type="submit" loading={submitting}>Save Changes</Button>
+          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/packages')}>取消</Button>
+          <Button type="submit" loading={submitting}>保存更改</Button>
         </div>
       </form>
     </PageContainer>

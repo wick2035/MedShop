@@ -33,7 +33,7 @@ export default function RefundReviewPage() {
       const data = await refundsApi.getById(id);
       setRefund(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load refund';
+      const msg = err instanceof Error ? err.message : '加载退款详情失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -50,10 +50,10 @@ export default function RefundReviewPage() {
     setSubmitting(true);
     try {
       await refundsApi.approve(id, comment || undefined);
-      toast.success('Refund approved');
+      toast.success('退款已批准');
       navigate('/admin/refunds');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to approve refund');
+      toast.error(err instanceof Error ? err.message : '批准退款失败');
     } finally {
       setSubmitting(false);
     }
@@ -61,16 +61,16 @@ export default function RefundReviewPage() {
 
   const handleReject = async () => {
     if (!id || !comment.trim()) {
-      toast.error('Please provide a reason for rejection');
+      toast.error('请提供拒绝原因');
       return;
     }
     setSubmitting(true);
     try {
       await refundsApi.reject(id, comment || undefined);
-      toast.success('Refund rejected');
+      toast.success('退款已拒绝');
       navigate('/admin/refunds');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to reject refund');
+      toast.error(err instanceof Error ? err.message : '拒绝退款失败');
     } finally {
       setSubmitting(false);
     }
@@ -91,8 +91,8 @@ export default function RefundReviewPage() {
       <PageContainer>
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
-          <p>{error ?? 'Refund not found'}</p>
-          <Button variant="outline" onClick={fetchRefund}>Retry</Button>
+          <p>{error ?? '退款未找到'}</p>
+          <Button variant="outline" onClick={fetchRefund}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -101,9 +101,9 @@ export default function RefundReviewPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Review Refund"
+        title="退款审核"
         breadcrumbs={[
-          { label: 'Refunds', href: '/admin/refunds' },
+          { label: '退款', href: '/admin/refunds' },
           { label: `#${refund.id.substring(0, 8)}` },
         ]}
       />
@@ -112,35 +112,35 @@ export default function RefundReviewPage() {
         {/* Refund Details */}
         <motion.div variants={itemVariants} className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-lg font-semibold text-sage-800">Refund Details</h3>
+            <h3 className="font-display text-lg font-semibold text-sage-800">退款详情</h3>
             <Badge variant={refund.status === 'PENDING' ? 'warning' : refund.status === 'APPROVED' ? 'success' : 'error'} size="sm">
-              {refund.status}
+              {refund.status === 'PENDING' ? '待审批' : refund.status === 'APPROVED' ? '已批准' : refund.status === 'REJECTED' ? '已拒绝' : refund.status === 'COMPLETED' ? '已完成' : refund.status}
             </Badge>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-gray-400">Refund ID</p>
+              <p className="text-xs text-gray-400">退款编号</p>
               <p className="font-mono text-sm text-gray-700">{refund.id}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Order No.</p>
+              <p className="text-xs text-gray-400">订单号</p>
               <p className="font-mono text-sm text-gray-700">{refund.orderNo}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Patient</p>
+              <p className="text-xs text-gray-400">患者</p>
               <p className="text-sm font-medium text-gray-700">{refund.orderNo}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Amount</p>
+              <p className="text-xs text-gray-400">金额</p>
               <p className="text-lg font-bold text-red-600">{formatCurrency(refund.refundAmount)}</p>
             </div>
             <div className="col-span-2">
-              <p className="text-xs text-gray-400">Reason</p>
+              <p className="text-xs text-gray-400">原因</p>
               <p className="mt-1 text-sm text-gray-700">{refund.refundReason}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400">Requested At</p>
+              <p className="text-xs text-gray-400">申请时间</p>
               <p className="text-sm text-gray-700">{formatDateTime(refund.createdAt)}</p>
             </div>
           </div>
@@ -149,14 +149,14 @@ export default function RefundReviewPage() {
         {/* Review Form */}
         {refund.status === 'PENDING' && (
           <motion.div variants={itemVariants} className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-            <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">Your Decision</h3>
+            <h3 className="mb-4 font-display text-lg font-semibold text-sage-800">审批意见</h3>
 
             <div className="mb-4">
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Comment</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">备注</label>
               <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a comment (required for rejection)..."
+                placeholder="请添加备注（拒绝时必填）..."
                 rows={3}
               />
             </div>
@@ -168,14 +168,14 @@ export default function RefundReviewPage() {
                 loading={submitting}
                 onClick={handleReject}
               >
-                Reject
+                拒绝
               </Button>
               <Button
                 icon={<CheckCircle className="h-4 w-4" />}
                 loading={submitting}
                 onClick={handleApprove}
               >
-                Approve
+                批准
               </Button>
             </div>
           </motion.div>
@@ -184,11 +184,11 @@ export default function RefundReviewPage() {
         {/* Previous decision */}
         {refund.status !== 'PENDING' && refund.reviewComment && (
           <motion.div variants={itemVariants} className="rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm">
-            <h3 className="mb-2 font-display text-lg font-semibold text-sage-800">Decision</h3>
+            <h3 className="mb-2 font-display text-lg font-semibold text-sage-800">审批结果</h3>
             <p className="text-sm text-gray-600">{refund.reviewComment}</p>
             {refund.reviewedAt && (
               <p className="mt-2 text-xs text-gray-400">
-                Reviewed at: {formatDateTime(refund.reviewedAt)}
+                审核时间：{formatDateTime(refund.reviewedAt)}
               </p>
             )}
           </motion.div>

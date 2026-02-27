@@ -18,16 +18,16 @@ import type { SidebarItem } from './Sidebar';
 import { cn } from '@/lib/utils';
 
 const sidebarItems: SidebarItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/patient' },
-  { id: 'doctors', label: 'Doctors', icon: Stethoscope, href: '/patient/doctors' },
-  { id: 'services', label: 'Services', icon: Heart, href: '/patient/services' },
-  { id: 'pharmacy', label: 'Pharmacy', icon: Pill, href: '/patient/products' },
-  { id: 'packages', label: 'Packages', icon: Package, href: '/patient/packages' },
-  { id: 'orders', label: 'My Orders', icon: ClipboardList, href: '/patient/orders' },
-  { id: 'prescriptions', label: 'Prescriptions', icon: FileText, href: '/patient/prescriptions' },
-  { id: 'insurance', label: 'Insurance', icon: Shield, href: '/patient/insurance' },
-  { id: 'notifications', label: 'Notifications', icon: Bell, href: '/patient/notifications' },
-  { id: 'profile', label: 'Profile', icon: User, href: '/patient/profile' },
+  { id: 'dashboard', label: '首页', icon: LayoutDashboard, href: '/patient' },
+  { id: 'doctors', label: '找医生', icon: Stethoscope, href: '/patient/doctors' },
+  { id: 'services', label: '医疗服务', icon: Heart, href: '/patient/services' },
+  { id: 'pharmacy', label: '药房', icon: Pill, href: '/patient/products' },
+  { id: 'packages', label: '健康套餐', icon: Package, href: '/patient/packages' },
+  { id: 'orders', label: '我的订单', icon: ClipboardList, href: '/patient/orders' },
+  { id: 'prescriptions', label: '我的处方', icon: FileText, href: '/patient/prescriptions' },
+  { id: 'insurance', label: '医保', icon: Shield, href: '/patient/insurance' },
+  { id: 'notifications', label: '通知', icon: Bell, href: '/patient/notifications' },
+  { id: 'profile', label: '个人中心', icon: User, href: '/patient/profile' },
 ];
 
 export default function PatientLayout() {

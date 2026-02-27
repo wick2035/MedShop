@@ -28,7 +28,7 @@ function LoadingFallback() {
     <div className="flex min-h-screen items-center justify-center bg-ivory-50">
       <div className="flex flex-col items-center gap-3">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-sage-200 border-t-sage-500" />
-        <span className="text-sm text-sage-700/60">Loading...</span>
+        <span className="text-sm text-sage-700/60">加载中...</span>
       </div>
     </div>
   );

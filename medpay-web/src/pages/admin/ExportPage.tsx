@@ -14,11 +14,11 @@ import { useHospitalContextStore } from '@/stores/hospital-context.store';
 type DataType = 'revenue' | 'orders' | 'payments' | 'refunds' | 'settlements';
 
 const DATA_TYPE_OPTIONS: { value: DataType; label: string }[] = [
-  { value: 'revenue', label: 'Revenue Report' },
-  { value: 'orders', label: 'Orders Report' },
-  { value: 'payments', label: 'Payments Report' },
-  { value: 'refunds', label: 'Refunds Report' },
-  { value: 'settlements', label: 'Settlements Report' },
+  { value: 'revenue', label: '营收报表' },
+  { value: 'orders', label: '订单报表' },
+  { value: 'payments', label: '支付报表' },
+  { value: 'refunds', label: '退款报表' },
+  { value: 'settlements', label: '结算报表' },
 ];
 
 export default function ExportPage() {
@@ -42,11 +42,11 @@ export default function ExportPage() {
   const handleExport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.startDate || !form.endDate) {
-      toast.error('Please select a date range');
+      toast.error('请选择日期范围');
       return;
     }
     if (new Date(form.startDate) > new Date(form.endDate)) {
-      toast.error('Start date must be before end date');
+      toast.error('开始日期必须早于结束日期');
       return;
     }
     setExporting(true);
@@ -64,9 +64,9 @@ export default function ExportPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success('Export completed successfully');
+      toast.success('导出成功');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to export data');
+      toast.error(err instanceof Error ? err.message : '导出数据失败');
     } finally {
       setExporting(false);
     }
@@ -75,11 +75,11 @@ export default function ExportPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Export Data"
-        subtitle="Download reports as CSV files"
+        title="导出数据"
+        subtitle="下载 CSV 格式报表"
         breadcrumbs={[
-          { label: 'Reports', href: '/admin/reports' },
-          { label: 'Export' },
+          { label: '报表', href: '/admin/reports' },
+          { label: '导出' },
         ]}
       />
 
@@ -92,13 +92,13 @@ export default function ExportPage() {
             <FileDown className="h-7 w-7 text-sage-600" />
           </div>
           <p className="text-sm text-gray-500 text-center">
-            Select the data type and date range to generate a CSV export.
+            选择数据类型和日期范围以生成 CSV 导出文件。
           </p>
         </div>
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            Data Type <span className="text-red-500">*</span>
+            数据类型 <span className="text-red-500">*</span>
           </label>
           <Select
             value={form.dataType}
@@ -110,7 +110,7 @@ export default function ExportPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Start Date <span className="text-red-500">*</span>
+              开始日期 <span className="text-red-500">*</span>
             </label>
             <Input
               type="date"
@@ -120,7 +120,7 @@ export default function ExportPage() {
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              End Date <span className="text-red-500">*</span>
+              结束日期 <span className="text-red-500">*</span>
             </label>
             <Input
               type="date"
@@ -132,13 +132,13 @@ export default function ExportPage() {
 
         {selectedHospitalId && (
           <div className="rounded-md bg-sage-50 p-3 text-sm text-sage-700">
-            Export will be filtered to the currently selected hospital.
+            导出将按当前选择的医院进行筛选。
           </div>
         )}
 
         {!selectedHospitalId && (
           <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-700">
-            No hospital selected. Export will include data from all hospitals.
+            未选择医院，导出将包含所有医院的数据。
           </div>
         )}
 
@@ -148,7 +148,7 @@ export default function ExportPage() {
             loading={exporting}
             icon={<Download className="h-4 w-4" />}
           >
-            Export CSV
+            导出 CSV
           </Button>
         </div>
       </form>

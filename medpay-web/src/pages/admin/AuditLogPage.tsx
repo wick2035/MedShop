@@ -62,7 +62,7 @@ export default function AuditLogPage() {
         setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load audit logs';
+      const msg = err instanceof Error ? err.message : '加载审计日志失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -126,7 +126,7 @@ export default function AuditLogPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchLogs}>Retry</Button>
+          <Button variant="outline" onClick={fetchLogs}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -135,36 +135,36 @@ export default function AuditLogPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Audit Log"
-        subtitle="System activity and change history"
+        title="审计日志"
+        subtitle="系统活动与变更历史"
         breadcrumbs={[
-          { label: 'Audit', href: '/admin/audit' },
-          { label: 'Logs' },
+          { label: '审计', href: '/admin/audit' },
+          { label: '日志' },
         ]}
       />
 
       {/* Filters */}
       <div className="mb-6 flex flex-wrap items-end gap-3 rounded-lg border border-ivory-200/60 bg-white/70 p-4 backdrop-blur-sm">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Action</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">操作</label>
           <Select
             value={filters.action}
             onChange={(e) => setFilters((prev) => ({ ...prev, action: e.target.value }))}
-            placeholder="All Actions"
+            placeholder="全部操作"
             options={ACTIONS.filter(Boolean).map((a) => ({ value: a, label: a }))}
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Entity Type</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">实体类型</label>
           <Select
             value={filters.entityType}
             onChange={(e) => setFilters((prev) => ({ ...prev, entityType: e.target.value }))}
-            placeholder="All Types"
+            placeholder="全部类型"
             options={ENTITY_TYPES.filter(Boolean).map((t) => ({ value: t, label: t }))}
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Start Date</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">开始日期</label>
           <Input
             type="date"
             value={filters.startDate}
@@ -172,7 +172,7 @@ export default function AuditLogPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">End Date</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">结束日期</label>
           <Input
             type="date"
             value={filters.endDate}
@@ -180,7 +180,7 @@ export default function AuditLogPage() {
           />
         </div>
         <Button icon={<Search className="h-4 w-4" />} onClick={handleSearch}>
-          Search
+          搜索
         </Button>
       </div>
 
@@ -192,7 +192,7 @@ export default function AuditLogPage() {
       ) : logs.length === 0 ? (
         <div className="flex h-48 flex-col items-center justify-center gap-2 text-gray-400">
           <Shield className="h-12 w-12 text-gray-300" />
-          <p className="text-sm">No audit log entries found</p>
+          <p className="text-sm">暂无审计日志</p>
         </div>
       ) : (
         <motion.div variants={itemVariants} initial="hidden" animate="visible" className="space-y-2">
@@ -249,7 +249,7 @@ export default function AuditLogPage() {
                           <span className="font-mono">{log.userId.substring(0, 8)}</span>
                         </>
                       ) : (
-                        'System'
+                        '系统'
                       )}
                     </span>
 
@@ -266,7 +266,7 @@ export default function AuditLogPage() {
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       {log.oldValue && (
                         <div>
-                          <h4 className="mb-1 text-xs font-semibold text-red-600 uppercase tracking-wider">Old Value</h4>
+                          <h4 className="mb-1 text-xs font-semibold text-red-600 uppercase tracking-wider">旧值</h4>
                           <pre className="max-h-64 overflow-auto rounded bg-red-50 p-3 text-xs text-red-800 font-mono whitespace-pre-wrap">
                             {formatJson(log.oldValue)}
                           </pre>
@@ -274,7 +274,7 @@ export default function AuditLogPage() {
                       )}
                       {log.newValue && (
                         <div>
-                          <h4 className="mb-1 text-xs font-semibold text-emerald-600 uppercase tracking-wider">New Value</h4>
+                          <h4 className="mb-1 text-xs font-semibold text-emerald-600 uppercase tracking-wider">新值</h4>
                           <pre className="max-h-64 overflow-auto rounded bg-emerald-50 p-3 text-xs text-emerald-800 font-mono whitespace-pre-wrap">
                             {formatJson(log.newValue)}
                           </pre>
@@ -302,9 +302,9 @@ export default function AuditLogPage() {
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>上一页</Button>
+          <span className="text-sm text-gray-500">第 {page + 1} 页 / 共 {totalPages} 页</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>下一页</Button>
         </div>
       )}
     </PageContainer>

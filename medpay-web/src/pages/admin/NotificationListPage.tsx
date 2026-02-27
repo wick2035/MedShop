@@ -38,7 +38,7 @@ export default function NotificationListPage() {
         setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load notifications';
+      const msg = err instanceof Error ? err.message : '加载通知失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -69,7 +69,7 @@ export default function NotificationListPage() {
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to mark as read');
+      toast.error(err instanceof Error ? err.message : '标记已读失败');
     } finally {
       setMarkingId(null);
     }
@@ -83,9 +83,9 @@ export default function NotificationListPage() {
         prev.map((n) => ({ ...n, read: true, readAt: n.readAt ?? new Date().toISOString() })),
       );
       setUnreadCount(0);
-      toast.success('All notifications marked as read');
+      toast.success('所有通知已标记为已读');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to mark all as read');
+      toast.error(err instanceof Error ? err.message : '全部标记已读失败');
     } finally {
       setMarkingAll(false);
     }
@@ -122,7 +122,7 @@ export default function NotificationListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchNotifications}>Retry</Button>
+          <Button variant="outline" onClick={fetchNotifications}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -131,8 +131,8 @@ export default function NotificationListPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Notifications"
-        subtitle={unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up'}
+        title="通知"
+        subtitle={unreadCount > 0 ? `${unreadCount} 条未读通知` : '全部已读'}
         actions={
           unreadCount > 0 ? (
             <Button
@@ -141,7 +141,7 @@ export default function NotificationListPage() {
               loading={markingAll}
               onClick={handleMarkAllRead}
             >
-              Mark All Read
+              全部标为已读
             </Button>
           ) : undefined
         }
@@ -150,7 +150,7 @@ export default function NotificationListPage() {
       {notifications.length === 0 ? (
         <div className="flex h-48 flex-col items-center justify-center gap-2 text-gray-400">
           <BellOff className="h-12 w-12 text-gray-300" />
-          <p className="text-sm">No notifications yet</p>
+          <p className="text-sm">暂无通知</p>
         </div>
       ) : (
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-3">
@@ -202,7 +202,7 @@ export default function NotificationListPage() {
                     loading={markingId === n.id}
                     onClick={() => handleMarkRead(n.id)}
                   >
-                    Mark Read
+                    标为已读
                   </Button>
                 )}
               </div>
@@ -213,9 +213,9 @@ export default function NotificationListPage() {
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>上一页</Button>
+          <span className="text-sm text-gray-500">第 {page + 1} 页 / 共 {totalPages} 页</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>下一页</Button>
         </div>
       )}
     </PageContainer>

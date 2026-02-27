@@ -62,7 +62,7 @@ export default function ServiceEditPage() {
         enabled: svc.status === 'ACTIVE',
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load service';
+      const msg = err instanceof Error ? err.message : '加载服务失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -81,7 +81,7 @@ export default function ServiceEditPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !form.name.trim()) {
-      toast.error('Name is required');
+      toast.error('名称不能为空');
       return;
     }
     setSubmitting(true);
@@ -97,10 +97,10 @@ export default function ServiceEditPage() {
         requiresPrescription: form.requiresAppointment,
         insuranceCovered: false,
       });
-      toast.success('Service updated');
+      toast.success('服务已更新');
       navigate('/admin/catalog/services');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update service');
+      toast.error(err instanceof Error ? err.message : '更新服务失败');
     } finally {
       setSubmitting(false);
     }
@@ -121,8 +121,8 @@ export default function ServiceEditPage() {
       <PageContainer>
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
-          <p>{error ?? 'Service not found'}</p>
-          <Button variant="outline" onClick={fetchData}>Retry</Button>
+          <p>{error ?? '服务未找到'}</p>
+          <Button variant="outline" onClick={fetchData}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -131,9 +131,9 @@ export default function ServiceEditPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Edit Medical Service"
+        title="编辑医疗服务"
         breadcrumbs={[
-          { label: 'Services', href: '/admin/catalog/services' },
+          { label: '服务', href: '/admin/catalog/services' },
           { label: service.name },
         ]}
       />
@@ -143,18 +143,18 @@ export default function ServiceEditPage() {
         className="mx-auto max-w-2xl space-y-6 rounded-lg border border-ivory-200/60 bg-white/70 p-6 backdrop-blur-sm"
       >
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Name *</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">名称 *</label>
           <Input value={form.name} onChange={(e) => handleChange('name', e.target.value)} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Category</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">分类</label>
             <Select
               value={form.categoryId}
               onChange={(e) => handleChange('categoryId', e.target.value)}
               options={[
-                { value: '', label: 'Select category' },
+                { value: '', label: '请选择分类' },
                 ...categories.map((cat) => ({
                   value: cat.id,
                   label: cat.name,
@@ -163,7 +163,7 @@ export default function ServiceEditPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Service Type</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">服务类型</label>
             <Select
               value={form.serviceType}
               onChange={(e) => handleChange('serviceType', e.target.value)}
@@ -177,17 +177,17 @@ export default function ServiceEditPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Price (CNY)</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">价格（元）</label>
             <Input type="number" value={form.price} onChange={(e) => handleChange('price', e.target.value)} step="0.01" />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Duration (min)</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">时长（分钟）</label>
             <Input type="number" value={form.durationMinutes} onChange={(e) => handleChange('durationMinutes', e.target.value)} />
           </div>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">描述</label>
           <Textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} rows={3} />
         </div>
 
@@ -200,7 +200,7 @@ export default function ServiceEditPage() {
               onChange={(e) => handleChange('requiresAppointment', e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 text-sage-600 focus:ring-sage-500"
             />
-            <label htmlFor="requiresAppointment" className="text-sm text-gray-700">Requires appointment</label>
+            <label htmlFor="requiresAppointment" className="text-sm text-gray-700">需要预约</label>
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -210,13 +210,13 @@ export default function ServiceEditPage() {
               onChange={(e) => handleChange('enabled', e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 text-sage-600 focus:ring-sage-500"
             />
-            <label htmlFor="enabled" className="text-sm text-gray-700">Enabled</label>
+            <label htmlFor="enabled" className="text-sm text-gray-700">启用</label>
           </div>
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/services')}>Cancel</Button>
-          <Button type="submit" loading={submitting}>Save Changes</Button>
+          <Button type="button" variant="outline" onClick={() => navigate('/admin/catalog/services')}>取消</Button>
+          <Button type="submit" loading={submitting}>保存更改</Button>
         </div>
       </form>
     </PageContainer>

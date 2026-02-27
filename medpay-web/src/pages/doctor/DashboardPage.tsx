@@ -54,7 +54,7 @@ export default function DashboardPage() {
           prescriptionData.filter((p) => p.status === 'PENDING'),
         );
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+        setError(err instanceof Error ? err.message : '加载数据失败');
       } finally {
         setLoading(false);
       }
@@ -86,7 +86,7 @@ export default function DashboardPage() {
         <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
           <p className="text-red-500">{error}</p>
           <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
+            重试
           </Button>
         </div>
       </PageContainer>
@@ -99,7 +99,7 @@ export default function DashboardPage() {
         {/* Welcome Section */}
         <motion.div variants={itemVariants} className="mb-8">
           <h1 className="font-display text-3xl font-semibold text-sage-800">
-            Dr. {user?.fullName ?? 'Doctor'}
+            {user?.fullName ?? '医生'} 医生
           </h1>
           <p className="mt-1 text-sage-600/70">{formattedDate}</p>
         </motion.div>
@@ -115,7 +115,7 @@ export default function DashboardPage() {
                 <CalendarDays className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-sage-600/70">Today's Appointments</p>
+                <p className="text-sm text-sage-600/70">今日预约</p>
                 <p className="text-2xl font-semibold text-sage-800">
                   {totalAppointmentsToday}
                 </p>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
                 <ClipboardList className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-sm text-sage-600/70">Pending Prescriptions</p>
+                <p className="text-sm text-sage-600/70">待处理处方</p>
                 <p className="text-2xl font-semibold text-sage-800">
                   {pendingPrescriptions.length}
                 </p>
@@ -143,7 +143,7 @@ export default function DashboardPage() {
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-sm text-sage-600/70">Completed Today</p>
+                <p className="text-sm text-sage-600/70">今日已完成</p>
                 <p className="text-2xl font-semibold text-sage-800">
                   {completedToday}
                 </p>
@@ -159,11 +159,11 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between border-b border-ivory-200 px-6 py-4">
             <h2 className="font-display text-lg font-semibold text-sage-800">
-              Today's Schedule
+              今日排班
             </h2>
             <Link to="/doctor/schedules">
               <Button variant="ghost" size="sm">
-                View All <ChevronRight className="h-4 w-4" />
+                查看全部 <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
           {schedules.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-6 py-12 text-sage-500">
               <Clock className="mb-3 h-10 w-10 text-sage-300" />
-              <p>No schedules for today</p>
+              <p>今天暂无排班</p>
             </div>
           ) : (
             <div className="divide-y divide-ivory-100">
@@ -196,11 +196,10 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-sage-700">
-                      {schedule.bookedCount}/{schedule.maxPatients} patients
+                      {schedule.bookedCount}/{schedule.maxPatients} 位患者
                     </p>
                     <p className="text-xs text-sage-500">
-                      {schedule.maxPatients - schedule.bookedCount} slots
-                      available
+                      {schedule.maxPatients - schedule.bookedCount} 个空位
                     </p>
                   </div>
                 </div>
@@ -217,11 +216,11 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between border-b border-ivory-200 px-6 py-4">
               <h2 className="font-display text-lg font-semibold text-sage-800">
-                Pending Prescriptions
+                待处理处方
               </h2>
               <Link to="/doctor/prescriptions">
                 <Button variant="ghost" size="sm">
-                  View All <ChevronRight className="h-4 w-4" />
+                  查看全部 <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
@@ -241,7 +240,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-                    Pending
+                    待处理
                   </span>
                 </Link>
               ))}
@@ -252,7 +251,7 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <motion.div variants={itemVariants}>
           <h2 className="mb-4 font-display text-lg font-semibold text-sage-800">
-            Quick Actions
+            快捷操作
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Link to="/doctor/schedules/new">
@@ -261,9 +260,9 @@ export default function DashboardPage() {
                   <Plus className="h-6 w-6 text-sage-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-sage-800">Create Schedule</p>
+                  <p className="font-medium text-sage-800">创建排班</p>
                   <p className="text-sm text-sage-600/70">
-                    Set up new appointment slots
+                    设置新的预约时段
                   </p>
                 </div>
               </div>
@@ -276,10 +275,10 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p className="font-medium text-sage-800">
-                    Write Prescription
+                    开具处方
                   </p>
                   <p className="text-sm text-sage-600/70">
-                    Create a new prescription
+                    创建新处方
                   </p>
                 </div>
               </div>

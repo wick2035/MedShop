@@ -56,7 +56,7 @@ export default function SettlementListPage() {
         setTotalPages(paginated.totalPages ?? 1);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load settlements';
+      const msg = err instanceof Error ? err.message : '加载结算记录失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -70,11 +70,11 @@ export default function SettlementListPage() {
 
   const handleGenerate = async () => {
     if (!generateForm.periodStart || !generateForm.periodEnd) {
-      toast.error('Please select start and end dates');
+      toast.error('请选择开始和结束日期');
       return;
     }
     if (!selectedHospitalId) {
-      toast.error('Please select a hospital first');
+      toast.error('请先选择医院');
       return;
     }
     setGenerating(true);
@@ -84,12 +84,12 @@ export default function SettlementListPage() {
         periodStart: generateForm.periodStart,
         periodEnd: generateForm.periodEnd,
       });
-      toast.success('Settlement report generated');
+      toast.success('结算报告已生成');
       setShowGenerate(false);
       setGenerateForm({ periodStart: '', periodEnd: '' });
       fetchSettlements();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to generate settlement');
+      toast.error(err instanceof Error ? err.message : '生成结算报告失败');
     } finally {
       setGenerating(false);
     }
@@ -99,10 +99,10 @@ export default function SettlementListPage() {
     setConfirmingId(settlementId);
     try {
       await reportsApi.confirmSettlement(settlementId);
-      toast.success('Settlement confirmed');
+      toast.success('结算已确认');
       fetchSettlements();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to confirm settlement');
+      toast.error(err instanceof Error ? err.message : '确认结算失败');
     } finally {
       setConfirmingId(null);
     }
@@ -111,12 +111,12 @@ export default function SettlementListPage() {
   const columns: DataTableColumn<SettlementRecord>[] = [
     {
       key: 'settlementNo',
-      header: 'Settlement No.',
+      header: '结算编号',
       render: (row) => <span className="font-mono text-xs text-sage-700">{row.settlementNo}</span>,
     },
     {
       key: 'settlementPeriodStart',
-      header: 'Period',
+      header: '结算周期',
       render: (row) => (
         <span className="text-sm">
           {formatDate(row.settlementPeriodStart)} ~ {formatDate(row.settlementPeriodEnd)}
@@ -125,17 +125,17 @@ export default function SettlementListPage() {
     },
     {
       key: 'totalTransactions',
-      header: 'Transactions',
+      header: '交易数',
       render: (row) => <span className="text-sm">{row.totalTransactions}</span>,
     },
     {
       key: 'grossAmount',
-      header: 'Gross',
+      header: '总额',
       render: (row) => <span className="text-sm font-medium">{formatCurrency(row.grossAmount)}</span>,
     },
     {
       key: 'refundAmount',
-      header: 'Refunds',
+      header: '退款',
       render: (row) => (
         <span className={row.refundAmount > 0 ? 'text-sm text-red-600' : 'text-sm text-gray-400'}>
           {formatCurrency(row.refundAmount)}
@@ -144,32 +144,33 @@ export default function SettlementListPage() {
     },
     {
       key: 'platformFee',
-      header: 'Platform Fee',
+      header: '平台费用',
       render: (row) => <span className="text-sm text-gray-500">{formatCurrency(row.platformFee)}</span>,
     },
     {
       key: 'netAmount',
-      header: 'Net Amount',
+      header: '净额',
       render: (row) => <span className="text-sm font-semibold text-emerald-600">{formatCurrency(row.netAmount)}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => {
         const variant = row.status === 'CONFIRMED' ? 'success' : row.status === 'PENDING' ? 'warning' : 'default';
-        return <Badge variant={variant} size="sm">{row.status}</Badge>;
+        const label = row.status === 'CONFIRMED' ? '已确认' : row.status === 'PENDING' ? '待处理' : row.status;
+        return <Badge variant={variant} size="sm">{label}</Badge>;
       },
     },
     {
       key: 'settledAt',
-      header: 'Settled At',
+      header: '结算时间',
       render: (row) => (
         <span className="text-xs text-gray-500">{row.settledAt ? formatDateTime(row.settledAt) : '--'}</span>
       ),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: '操作',
       render: (row) =>
         row.status === 'PENDING' ? (
           <Button
@@ -182,7 +183,7 @@ export default function SettlementListPage() {
               handleConfirm(row.id);
             }}
           >
-            Confirm
+            确认
           </Button>
         ) : null,
     },
@@ -194,7 +195,7 @@ export default function SettlementListPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchSettlements}>Retry</Button>
+          <Button variant="outline" onClick={fetchSettlements}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -203,28 +204,28 @@ export default function SettlementListPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Settlements"
-        subtitle="Hospital settlement records"
+        title="结算管理"
+        subtitle="医院结算记录"
         breadcrumbs={[
-          { label: 'Reports', href: '/admin/reports' },
-          { label: 'Settlements' },
+          { label: '报表', href: '/admin/reports' },
+          { label: '结算' },
         ]}
         actions={
           <Button icon={<Plus className="h-4 w-4" />} onClick={() => setShowGenerate(true)}>
-            Generate
+            生成
           </Button>
         }
       />
 
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns as any} data={settlements as any} loading={loading} emptyMessage="No settlement records found" />
+        <DataTable columns={columns as any} data={settlements as any} loading={loading} emptyMessage="暂无结算记录" />
       </motion.div>
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>上一页</Button>
+          <span className="text-sm text-gray-500">第 {page + 1} 页 / 共 {totalPages} 页</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>下一页</Button>
         </div>
       )}
 
@@ -232,11 +233,11 @@ export default function SettlementListPage() {
       {showGenerate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h2 className="font-display text-lg font-semibold text-sage-800 mb-4">Generate Settlement</h2>
+            <h2 className="font-display text-lg font-semibold text-sage-800 mb-4">生成结算</h2>
             <div className="space-y-4">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Period Start <span className="text-red-500">*</span>
+                  开始日期 <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="date"
@@ -246,7 +247,7 @@ export default function SettlementListPage() {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Period End <span className="text-red-500">*</span>
+                  结束日期 <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="date"
@@ -256,8 +257,8 @@ export default function SettlementListPage() {
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setShowGenerate(false)}>Cancel</Button>
-              <Button loading={generating} onClick={handleGenerate}>Generate</Button>
+              <Button variant="outline" onClick={() => setShowGenerate(false)}>取消</Button>
+              <Button loading={generating} onClick={handleGenerate}>生成</Button>
             </div>
           </div>
         </div>

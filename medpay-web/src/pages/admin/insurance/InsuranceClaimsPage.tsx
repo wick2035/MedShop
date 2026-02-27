@@ -32,7 +32,7 @@ export default function InsuranceClaimsPage() {
       const items = Array.isArray(data) ? data : (data as any)?.content ?? [];
       setClaims(items);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load claims';
+      const msg = err instanceof Error ? err.message : '加载理赔失败';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -47,32 +47,32 @@ export default function InsuranceClaimsPage() {
   const columns: DataTableColumn<InsuranceClaim>[] = [
     {
       key: 'id',
-      header: 'Claim No.',
+      header: '理赔编号',
       render: (row) => <span className="font-mono text-xs text-sage-700">#{row.id.substring(0, 8)}</span>,
     },
-    { key: 'patientId', header: 'Patient', render: (row) => <span className="font-mono text-xs">{row.patientId.slice(0, 8)}</span> },
+    { key: 'patientId', header: '患者', render: (row) => <span className="font-mono text-xs">{row.patientId.slice(0, 8)}</span> },
     {
       key: 'claimAmount',
-      header: 'Total Amount',
+      header: '总金额',
       sortable: true,
       render: (row) => <span className="font-medium">{formatCurrency(row.totalAmount)}</span>,
     },
     {
       key: 'insurancePays',
-      header: 'Insurance Pays',
+      header: '医保支付',
       render: (row) => <span className="text-emerald-600">{formatCurrency(row.insurancePays)}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
+      header: '状态',
       render: (row) => {
         const variant = row.status === 'APPROVED' ? 'success' : row.status === 'REJECTED' ? 'error' : row.status === 'PENDING' ? 'warning' : 'default';
-        return <Badge variant={variant} size="sm">{row.status}</Badge>;
+        return <Badge variant={variant} size="sm">{row.status === 'APPROVED' ? '已批准' : row.status === 'REJECTED' ? '已拒绝' : row.status === 'PENDING' ? '待审批' : row.status}</Badge>;
       },
     },
     {
       key: 'submittedAt',
-      header: 'Submitted',
+      header: '提交时间',
       render: (row) => <span className="text-xs text-gray-500">{formatDateTime(row.submittedAt)}</span>,
     },
   ];
@@ -83,7 +83,7 @@ export default function InsuranceClaimsPage() {
         <div className="flex h-64 flex-col items-center justify-center gap-4 text-gray-500">
           <AlertCircle className="h-12 w-12 text-red-400" />
           <p>{error}</p>
-          <Button variant="outline" onClick={fetchClaims}>Retry</Button>
+          <Button variant="outline" onClick={fetchClaims}>重试</Button>
         </div>
       </PageContainer>
     );
@@ -91,9 +91,9 @@ export default function InsuranceClaimsPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Insurance Claims" subtitle="View and track insurance claim submissions" />
+      <PageHeader title="医保理赔" subtitle="查看和跟踪医保理赔提交" />
       <motion.div variants={itemVariants} initial="hidden" animate="visible">
-        <DataTable columns={columns as any} data={claims as any} loading={loading} emptyMessage="No insurance claims found" />
+        <DataTable columns={columns as any} data={claims as any} loading={loading} emptyMessage="暂无医保理赔记录" />
       </motion.div>
     </PageContainer>
   );

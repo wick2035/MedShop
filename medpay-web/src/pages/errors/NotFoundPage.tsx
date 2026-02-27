@@ -16,13 +16,13 @@ export default function NotFoundPage() {
         </div>
         <h1 className="font-display text-4xl font-semibold text-sage-800">404</h1>
         <p className="mt-2 text-lg text-sage-700/60">
-          The page you're looking for doesn't exist.
+          您访问的页面不存在
         </p>
         <Link
           to="/"
           className="mt-6 inline-block rounded-md bg-sage-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sage-600"
         >
-          Go Home
+          返回首页
         </Link>
       </motion.div>
     </div>

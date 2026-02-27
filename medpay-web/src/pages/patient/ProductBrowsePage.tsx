@@ -35,7 +35,7 @@ export default function ProductBrowsePage() {
         const items = 'content' in result ? (result as { content: ProductResponse[] }).content : (result as unknown as ProductResponse[]);
         setProducts(Array.isArray(items) ? items : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load products');
+        setError(err instanceof Error ? err.message : '加载失败');
       } finally {
         setLoading(false);
       }
@@ -55,7 +55,7 @@ export default function ProductBrowsePage() {
       className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
     >
       <motion.div variants={itemVariants}>
-        <PageHeader title="Pharmacy" subtitle="Browse medicines and health products" />
+        <PageHeader title="药房" subtitle="浏览药品和健康产品" />
       </motion.div>
 
       {/* Type filter */}
@@ -68,7 +68,7 @@ export default function ProductBrowsePage() {
               : 'bg-ivory-200 text-sage-700 hover:bg-ivory-300'
           }`}
         >
-          All
+          全部
         </button>
         {productTypes.map((type) => (
           <button
@@ -89,7 +89,7 @@ export default function ProductBrowsePage() {
       <motion.div variants={itemVariants} className="mb-6">
         <Input
           icon={Search}
-          placeholder="Search products..."
+          placeholder="搜索商品..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -109,7 +109,7 @@ export default function ProductBrowsePage() {
       ) : filteredProducts.length === 0 ? (
         <Card className="py-12 text-center">
           <Pill className="mx-auto h-10 w-10 text-sage-300" />
-          <p className="mt-3 text-sm text-sage-700/60">No products found</p>
+          <p className="mt-3 text-sm text-sage-700/60">未找到商品</p>
         </Card>
       ) : (
         <motion.div variants={itemVariants} className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -142,7 +142,7 @@ export default function ProductBrowsePage() {
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-sage-700/60">
-                    Stock: {product.stockQuantity}
+                    库存：{product.stockQuantity}
                   </span>
                   <span className="text-sm font-semibold text-terracotta">
                     {formatCurrency(product.price)}

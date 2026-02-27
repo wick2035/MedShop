@@ -42,7 +42,7 @@ export default function DoctorDetailPage() {
         setDoctor(doc);
         setSchedules(sched.filter((s) => s.status === 'AVAILABLE' && s.bookedCount < s.maxPatients));
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load doctor');
+        setError(err instanceof Error ? err.message : '加载医生详情失败');
       } finally {
         setLoading(false);
       }
@@ -64,9 +64,9 @@ export default function DoctorDetailPage() {
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <Card className="py-12 text-center">
           <Stethoscope className="mx-auto h-10 w-10 text-sage-300" />
-          <p className="mt-3 text-sm text-red-500">{error || 'Doctor not found'}</p>
+          <p className="mt-3 text-sm text-red-500">{error || '未找到医生'}</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
-            Go Back
+            返回
           </Button>
         </Card>
       </div>
@@ -87,7 +87,7 @@ export default function DoctorDetailPage() {
           className="flex items-center gap-2 text-sm font-medium text-sage-600 transition-colors hover:text-sage-800"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Doctors
+          返回医生列表
         </button>
       </motion.div>
 
@@ -113,23 +113,23 @@ export default function DoctorDetailPage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <MapPin className="h-4 w-4 text-sage-400" />
-                  {doctor.departmentId ? 'Department' : 'General Practice'}
+                  {doctor.departmentId ? '科室' : '全科'}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Star className="h-4 w-4 fill-muted-gold text-muted-gold" />
-                  {doctor.ratingScore.toFixed(1)} rating ({doctor.totalRatings})
+                  {doctor.ratingScore.toFixed(1)} 评分 ({doctor.totalRatings})
                 </div>
               </div>
 
               <div className="mt-4">
                 <Badge variant="terracotta" size="md">
-                  Consultation Fee: {formatCurrency(doctor.consultationFee)}
+                  问诊费：{formatCurrency(doctor.consultationFee)}
                 </Badge>
               </div>
 
               {doctor.bio && (
                 <div className="mt-6">
-                  <h3 className="mb-2 text-sm font-semibold text-sage-700">About</h3>
+                  <h3 className="mb-2 text-sm font-semibold text-sage-700">简介</h3>
                   <p className="text-sm leading-relaxed text-sage-700/70">
                     {doctor.bio}
                   </p>
@@ -143,14 +143,14 @@ export default function DoctorDetailPage() {
       {/* Available schedules */}
       <motion.div variants={itemVariants} className="mt-8">
         <h2 className="mb-4 font-display text-xl font-semibold text-sage-800">
-          Available Schedules
+          可预约时段
         </h2>
 
         {schedules.length === 0 ? (
           <Card className="py-12 text-center">
             <Calendar className="mx-auto h-10 w-10 text-sage-300" />
             <p className="mt-3 text-sm text-sage-700/60">
-              No available schedules at the moment
+              暂无可预约时段
             </p>
           </Card>
         ) : (
@@ -170,7 +170,7 @@ export default function DoctorDetailPage() {
                       {formatTime(schedule.timeSlotStart)} - {formatTime(schedule.timeSlotEnd)}
                     </div>
                     <p className="mt-0.5 text-xs text-sage-700/60">
-                      {schedule.bookedCount} / {schedule.maxPatients} booked
+                      {schedule.bookedCount} / {schedule.maxPatients} 已预约
                     </p>
                   </div>
                 </div>
@@ -179,7 +179,7 @@ export default function DoctorDetailPage() {
                   size="sm"
                   onClick={() => navigate(`/patient/book/${schedule.id}`)}
                 >
-                  Book
+                  预约
                 </Button>
               </Card>
             ))}
